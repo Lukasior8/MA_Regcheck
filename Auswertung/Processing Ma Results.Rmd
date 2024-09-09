@@ -1,0 +1,285 @@
+---
+title: "Processing MA Results"
+author: "Luki"
+date: "2024-09-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Datacleaning to dos:
+
+resultate
+- wenn preregvorhanden oder paper vorhandene keine Zahl (sondern leer oder  not available) dann die ganze zeile löschen
+- kontrollieren dass überall nur x,y, n,m, leer oder zahl ist.
+- Prompt versionen renamen
+- PreDCP_1_TEXT komische Zahlen verändern
+
+Olmos datensatz...
+
+
+
+
+# Dependancies
+
+
+
+```{r}
+library(tidyverse)
+library("readxl")
+library(janitor)
+library(stringr)
+library(openxlsx)
+
+```
+
+# clean data_results
+
+## Read  data
+
+
+```{r}
+data_results_raw <- read_excel("../data/DATA_Resultate_raw.xlsx") |>
+  janitor::clean_names()
+```
+
+##select and remove unwanted columns
+
+
+```{r}
+data_results_filtered <- data_results_raw %>%
+  select(   
+    -prereg_vorhanden,
+    -paper_vorhanden,
+    -gpt_link_extraction,
+    -gpt_link_comparison,
+    -notes_extraction,
+    -notes_comparison,
+    -hyp_pre,
+    -hyp_pap,
+    -type,
+    -iv1,
+    -iv2,
+    -tv,
+    -dv,
+    -fcv,
+    -ocv,
+    -starts_with("x")
+    )
+
+
+
+
+```
+
+## kategorien alphabetic säubern
+
+```{r}
+
+categories_alphabetic <- c("pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pre_niv1_1", "pre_niv1_2", 
+                            "pre_pre_mi2", "pre_mi2", "pre_iv2", "c_pre_iv2", "pre_niv2_1", "pre_niv2_2", 
+                            "pre_pre_mt", "pre_mt", "pre_tv", "c_pre_tv", "pre_ntv_1", "pre_ntv_2", 
+                            "pre_dv", "c_pre_dv", "pre_ndv_1", "pre_ndv_2", 
+                            "pre_pre_mc", "pre_mc", "pre_cv", "c_pre_cv", "pre_ncv_1", "pre_ncv_2", 
+                            "pre_dcp_1", "pre_dcp_2", "pre_pa", "pre_iec_1", "pre_imd_1", "pre_imd_2", 
+                            "pre_sm_1", "pre_sm_2", "pre_sm_3", 
+                            "pre_vsa_1", "pre_vsa_2", "pre_vsa_3", "pre_ic", "pap_pap_mi1", "pap_mi1", 
+                            "pap_iv1", "c_pap_iv1", "pap_niv1_1", "pap_niv1_2", "pap_pap_mi2", "pap_mi2", 
+                            "pap_iv2", "c_pap_iv2", "pap_niv2_1", "pap_niv2_2", "pap_pap_mt", "pap_mt", 
+                            "pap_tv", "c_pap_tv", "pap_ntv_1", "pap_ntv_2", "pap_dv", "c_pap_dv", 
+                            "pap_ndv_1", "pap_ndv_2", "pap_pap_mc", "pap_mc", "pap_cv", "c_pap_cv", 
+                            "pap_ncv_1", "pap_ncv_2", "pap_dcp_1", "pap_dcp_2", "pap_pa", "pap_iec_1", 
+                            "pap_imd_1", "pap_imd_2", "pap_sm_1", "pap_sm_2", "pap_sm_3", "pap_vsa_1", 
+                            "pap_vsa_2", "pap_vsa_3", "pap_ic", "match_mi1", "match_iv1_0", "match_iv1_1", 
+                            "match_iv1_2", "match_iv1_3", "match_mi2", "match_iv2_0", "match_iv2_1", 
+                            "match_iv2_2", "match_iv2_3", "match_mt", "match_tv_0", "match_tv_1", 
+                            "match_tv_2", "match_tv_3", "match_dv_0", "match_dv_1", "match_dv_2", 
+                            "match_dv_3", "match_mc", "match_cv_0", "match_cv_1", "match_cv_2", 
+                            "match_cv_3", "match_dcp_1", "match_dcp_2", "match_iec_1", "match_imd_1", 
+                            "match_imd_2", "match_sm_1", "match_sm_2", "match_sm_3", "match_vsa_1", 
+                            "match_vsa_2", "match_vsa_3", "match_ic")
+
+
+frequencies_categories <- lapply(data_results_filtered[categories_alphabetic], table)
+
+
+#frequencies_categories
+
+
+
+clean_value <- function(x) {
+  cleaned <- tolower(x)     
+  cleaned <- gsub("yy", "y", cleaned)  
+  cleaned <- gsub("xx", "x", cleaned)  
+  cleaned <- gsub("nn", "n", cleaned)  
+  return(cleaned)
+}
+
+
+data_results_filtered_clean <- data_results_filtered %>%
+  mutate_at(vars(one_of(categories_alphabetic)), clean_value)
+
+frequencies_categories_cleaned <- lapply(data_results_filtered_clean[categories_alphabetic], table)
+
+
+#frequencies_categories_cleaned
+
+
+
+
+replace_with_exclude <- function(x) {
+  ifelse(x %in% c("x", "y", "n"), x, "exclude")
+}
+
+
+data_results_filtered_clean_exclude <- data_results_filtered_clean %>%
+  mutate_at(vars(one_of(categories_alphabetic)), replace_with_exclude)
+
+# Check frequencies after cleaning
+frequencies_categories_cleaned_exclude <- lapply(data_results_filtered_clean_exclude[categories_alphabetic], table)
+
+#frequencies_categories_cleaned_exclude
+```
+
+## kategorien numeric säubern
+
+```{r}
+
+# List of column names that need to be converted to numeric
+categories_numeric <- c("pre_dcp_1_text", "pap_dcp_1_text", "s_pre_iv", "s_pre_dv", 
+                        "s_pre_dcp", "s_pre_smu", "s_pre_sic", "s_pap_iv", "s_pap_dv", 
+                        "s_pap_dcp", "s_pap_smu", "s_pap_sic", "prompt_version_a_strictness_prereg", 
+                        "prompt_version_a_strictness_pubstud", "con_iv", "con_dv", 
+                        "con_dcp", "con_smu", "con_sic", "global_consistency_esimate")
+
+# Convert to numeric and replace non-numeric with 'exclude'
+data_results_filtered_clean_exclude_numeric <- data_results_filtered_clean_exclude %>%
+  mutate_at(vars(one_of(categories_numeric)), 
+            ~ifelse(is.na(as.numeric(.)), "exclude", as.numeric(.)))
+
+# Check frequencies after cleaning
+frequencies_categories_cleaned_exclude_numeric <- lapply(data_results_filtered_clean_exclude_numeric[categories_numeric], table)
+
+#frequencies_categories_cleaned_exclude_numeric
+
+
+```
+
+
+## finish data_results_finito
+
+```{r}
+
+
+
+# Ändere die Werte "v4" und "V4" in der Spalte prompt_version zu "D"
+data_results_finito <- data_results_filtered_clean_exclude_numeric %>%
+  mutate(prompt_version = ifelse(prompt_version %in% c("v4", "V4"), "D", prompt_version))
+
+# Neue Spalte master_exclude hinzufügen und standardmäßig auf "include" setzen
+data_results_finito <- data_results_finito %>%
+  mutate(master_exclude = ifelse(is.na(date_gpt), "exclude", "include"))
+
+
+
+```
+# clean olmos data
+
+## read olmos data
+
+```{r}
+DATA_olmo_raw <- read_excel("../data/Data Preregistration Effectiveness.xlsx") |>
+  janitor::clean_names()
+
+
+data_olmo_raw <- DATA_olmo_raw[seq(3, nrow(DATA_olmo_raw), 3), ] # select only reconciled data
+
+```
+
+
+## select only wanted colums
+
+```{r}
+olmo_selected_columns <- c(
+  "psp", "coder", "pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pre_niv1_1", 
+  "pre_niv1_2", "pre_niv1_3", "pre_pre_mi2", "pre_mi2", "pre_iv2", "c_pre_iv2", 
+  "pre_niv2_1", "pre_niv2_2", "pre_niv2_3", "pre_pre_mt", "pre_mt", "pre_tv", 
+  "c_pre_tv", "pre_ntv_1", "pre_ntv_2", "pre_ntv_3", "pre_dv", "c_pre_dv", 
+  "pre_ndv_1", "pre_ndv_2", "pre_ndv_3", "pre_pre_mc", "pre_mc", "pre_cv", 
+  "c_pre_cv", "pre_ncv_1", "pre_ncv_2", "pre_ncv_3", "pre_dcp_1", "pre_dcp_2", 
+  "pre_dcp_3", "pre_dcp_1_text", "pre_pa", #"pre_iec_1", 
+  "pre_imd_1", "pre_imd_2", 
+  "pre_sm_1", "pre_sm_2", "pre_sm_3", "pre_sm_4", "pre_vsa_1", "pre_vsa_2", 
+  "pre_vsa_3", "pre_vsa_4", "pre_ic", "pap_pap_mi1", "pap_mi1", "pap_iv1", "c_pap_iv1", 
+  "pap_niv1_1", "pap_niv1_2", "pap_niv1_3", "pap_pap_mi2", "pap_mi2", "pap_iv2", 
+  "c_pap_iv2", "pap_niv2_1", "pap_niv2_2", "pap_niv2_3", "pap_pap_mt", "pap_mt", 
+  "pap_tv", "c_pap_tv", "pap_ntv_1", "pap_ntv_2", "pap_ntv_3", "pap_dv", "c_pap_dv", 
+  "pap_ndv_1", "pap_ndv_2", "pap_ndv_3", "pap_pap_mc", "pap_mc", "pap_cv", "c_pap_cv", 
+  "pap_ncv_1", "pap_ncv_2", "pap_ncv_3", "pap_dcp_1", "pap_dcp_2", "pap_dcp_3", 
+  "pap_dcp_1_text", "pap_pa", #"pap_iec_1",
+  "pap_imd_1", "pap_imd_2", "pap_sm_1", 
+  "pap_sm_2", "pap_sm_3", "pap_sm_4", "pap_vsa_1", "pap_vsa_2", "pap_vsa_3", 
+  "pap_vsa_4", "pap_ic", "match_mi1", "match_iv1_0", "match_iv1_1", "match_iv1_2", 
+  "match_iv1_3", "match_iv1_4", "match_mi2", "match_iv2_0", "match_iv2_1", 
+  "match_iv2_2", "match_iv2_3", "match_iv2_4", "match_mt", "match_tv_0", 
+  "match_tv_1", "match_tv_2", "match_tv_3", "match_tv_4", "match_dv_0", "match_dv_1", 
+  "match_dv_2", "match_dv_3", "match_dv_4", "match_mc", "match_cv_0", "match_cv_1", 
+  "match_cv_2", "match_cv_3", "match_cv_4", "match_dcp_1", "match_dcp_2", 
+  "match_dcp_3", #"match_iec_1", 
+  "match_imd_1", "match_imd_2", "match_sm_1", 
+  "match_sm_2", "match_sm_3", "match_sm_4", "match_vsa_1", "match_vsa_2", 
+  "match_vsa_3", "match_vsa_4", "match_ic"
+)
+
+
+data_olmo_raw_selected <- data_olmo_raw %>%
+  select(all_of(olmo_selected_columns)) 
+
+
+#✖ Columns `pre_iec_1`, `pap_iec_1`, and `match_iec_1` don't exist.!!!!
+
+```
+
+
+## mutate answers
+
+```{r}
+
+
+data_olmo_raw_selected_mutated <- data_olmo_raw_selected %>%
+  mutate_if(is.character, ~ case_when(
+    . == "No" ~ "n",
+    . == "Yes" ~ "y",
+    . == "Composite" ~ "y",
+    . == "Non-composite" ~ "n",
+    . == "Yes,procedure" ~ "y",
+    . == "Yes,values" ~ "y",
+    . == "Yes,sample size" ~ "y",
+    . == "Yes,sampling frame" ~ "y",
+    . == "Yes,definition" ~ "y",
+    . == "Yes,model" ~ "y",
+    . == "Yes,variables" ~ "y",
+    . == "Yes,details" ~ "y",
+    . == "Yes,which" ~ "y",
+    . == "Yes,how" ~ "y",
+    . == "Yes,deal" ~ "y",
+    . == "Yes,specification" ~ "y",
+    . == "Yes,construction" ~ "y",
+    TRUE ~ .
+  ))
+
+```
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
