@@ -254,7 +254,7 @@ data_olmo_raw_selected <- data_olmo_raw %>%
 sapply(data_olmo_raw_selected, class)
 
 
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected %>%
+data_olmo_selected_mutated <- data_olmo_raw_selected %>%
   mutate_if(is.character, ~ case_when(
     . == "No" ~ "n",
     . == "Yes" ~ "y",
@@ -311,26 +311,27 @@ except if
 ### IV 1
 ```{r}
 
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
+    pre_niv1_1 = case_when(
+      pre_niv1_3 == "No, none of the elements" & is.na(pre_niv1_1) ~ "n", 
+      pre_niv1_2 == "y" & is.na(pre_niv1_1) ~ "n",                         
+      TRUE ~ pre_niv1_1                    
+    ),
+    
+    pre_niv1_2 = case_when(
+      pre_niv1_3 == "No, none of the elements" & is.na(pre_niv1_2) ~ "n", 
+      pre_niv1_1 == "y" & is.na(pre_niv1_2) ~ "n",                         
+      TRUE ~ pre_niv1_2                    
+    ),
+    
     pre_pre_mi1 = ifelse(is.na(pre_pre_mi1), "x", pre_pre_mi1),
     pre_mi1 = ifelse(is.na(pre_mi1), "x", pre_mi1),
     pre_iv1 = ifelse(is.na(pre_iv1), "x", pre_iv1),
     c_pre_iv1 = ifelse(is.na(c_pre_iv1), "x", c_pre_iv1),
-    
-  
-    pre_niv1_1 = case_when(
-      pre_niv1_3 == "No, none of the elements" & is.na(pre_niv1_1) ~ "n", 
-      pre_niv1_2 == "y" & is.na(pre_niv1_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_niv1_1), "x", pre_niv1_1)                   
-    ),
-    
- 
-    pre_niv1_2 = case_when(
-      pre_niv1_3 == "No, none of the elements" & is.na(pre_niv1_2) ~ "n", 
-      pre_niv1_1 == "y" & is.na(pre_niv1_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_niv1_2), "x", pre_niv1_2)                    
-    ),
+    pre_niv1_1 = ifelse(is.na(pre_niv1_1), "x", pre_niv1_1),
+    pre_niv1_2 = ifelse(is.na(pre_niv1_2), "x", pre_niv1_2)
+    # pre_niv1_3 = ifelse(is.na(pre_niv1_3), "x", pre_niv1_3)
 )
 
 
@@ -340,50 +341,58 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## IV 2
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pre_pre_mi2 = ifelse(is.na(pre_pre_mi2), "x", pre_pre_mi2),
-    pre_mi2 = ifelse(is.na(pre_mi2), "x", pre_mi2),
-    pre_iv2 = ifelse(is.na(pre_iv2), "x", pre_iv2),
-    c_pre_iv2 = ifelse(is.na(c_pre_iv2), "x", c_pre_iv2),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_niv2_1 = case_when(
       pre_niv2_3 == "No, none of the elements" & is.na(pre_niv2_1) ~ "n", 
       pre_niv2_2 == "y" & is.na(pre_niv2_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_niv2_1), "x", pre_niv2_1)                   
+      TRUE ~ pre_niv2_1                    
     ),
     
     pre_niv2_2 = case_when(
       pre_niv2_3 == "No, none of the elements" & is.na(pre_niv2_2) ~ "n", 
       pre_niv2_1 == "y" & is.na(pre_niv2_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_niv2_2), "x", pre_niv2_2)                    
+      TRUE ~ pre_niv2_2                    
     ),
+    
+    pre_pre_mi2 = ifelse(is.na(pre_pre_mi2), "x", pre_pre_mi2),
+    pre_mi2 = ifelse(is.na(pre_mi2), "x", pre_mi2),
+    pre_iv2 = ifelse(is.na(pre_iv2), "x", pre_iv2),
+    c_pre_iv2 = ifelse(is.na(c_pre_iv2), "x", c_pre_iv2),
+    pre_niv2_1 = ifelse(is.na(pre_niv2_1), "x", pre_niv2_1),
+    pre_niv2_2 = ifelse(is.na(pre_niv2_2), "x", pre_niv2_2)
+    # pre_niv2_3 = ifelse(is.na(pre_niv2_3), "x", pre_niv2_3)
 )
+
 
 ```
 
 ## TV
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pre_pre_mt = ifelse(is.na(pre_pre_mt), "x", pre_pre_mt),
-    pre_mt = ifelse(is.na(pre_mt), "x", pre_mt),
-    pre_tv = ifelse(is.na(pre_tv), "x", pre_tv),
-    c_pre_tv = ifelse(is.na(c_pre_tv), "x", c_pre_tv),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
     pre_ntv_1 = case_when(
       pre_ntv_3 == "No, none of the elements" & is.na(pre_ntv_1) ~ "n", 
       pre_ntv_2 == "y" & is.na(pre_ntv_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_ntv_1), "x", pre_ntv_1)                   
+      TRUE ~ pre_ntv_1                    
     ),
  
     pre_ntv_2 = case_when(
       pre_ntv_3 == "No, none of the elements" & is.na(pre_ntv_2) ~ "n", 
       pre_ntv_1 == "y" & is.na(pre_ntv_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_ntv_2), "x", pre_ntv_2)                    
+      TRUE ~ pre_ntv_2                    
     ),
 
+    pre_pre_mt = ifelse(is.na(pre_pre_mt), "x", pre_pre_mt),
+    pre_mt = ifelse(is.na(pre_mt), "x", pre_mt),
+    pre_tv = ifelse(is.na(pre_tv), "x", pre_tv),
+    c_pre_tv = ifelse(is.na(c_pre_tv), "x", c_pre_tv),
+    pre_ntv_1 = ifelse(is.na(pre_ntv_1), "x", pre_ntv_1),
+    pre_ntv_2 = ifelse(is.na(pre_ntv_2), "x", pre_ntv_2)
+    # pre_ntv_3 = ifelse(is.na(pre_ntv_3), "x", pre_ntv_3)
 )
+
 
 
 ```
@@ -391,50 +400,55 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## DV
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pre_dv = ifelse(is.na(pre_dv), "x", pre_dv),
-    c_pre_dv = ifelse(is.na(c_pre_dv), "x", c_pre_dv),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_ndv_1 = case_when(
       pre_ndv_3 == "No, none of the elements" & is.na(pre_ndv_1) ~ "n", 
       pre_ndv_2 == "y" & is.na(pre_ndv_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_ndv_1), "x", pre_ndv_1)                   
+      TRUE ~ pre_ndv_1                    
     ),
     
     pre_ndv_2 = case_when(
       pre_ndv_3 == "No, none of the elements" & is.na(pre_ndv_2) ~ "n", 
       pre_ndv_1 == "y" & is.na(pre_ndv_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_ndv_2), "x", pre_ndv_2)                    
+      TRUE ~ pre_ndv_2                    
     ),
     
-  
+    pre_dv = ifelse(is.na(pre_dv), "x", pre_dv),
+    c_pre_dv = ifelse(is.na(c_pre_dv), "x", c_pre_dv),
+    pre_ndv_1 = ifelse(is.na(pre_ndv_1), "x", pre_ndv_1),
+    pre_ndv_2 = ifelse(is.na(pre_ndv_2), "x", pre_ndv_2)
+    # pre_ndv_3 = ifelse(is.na(pre_ndv_3), "x", pre_ndv_3)
 )
-
 
 ```
 
 ## CV
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pre_pre_mc = ifelse(is.na(pre_pre_mc), "x", pre_pre_mc),
-    pre_mc = ifelse(is.na(pre_mc), "x", pre_mc),
-    pre_cv = ifelse(is.na(pre_cv), "x", pre_cv),
-    c_pre_cv = ifelse(is.na(c_pre_cv), "x", c_pre_cv),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_ncv_1 = case_when(
       pre_ncv_3 == "No, none of the elements" & is.na(pre_ncv_1) ~ "n", 
       pre_ncv_2 == "y" & is.na(pre_ncv_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_ncv_1), "x", pre_ncv_1)                   
+      TRUE ~ pre_ncv_1                    
     ),
     
     pre_ncv_2 = case_when(
       pre_ncv_3 == "No, none of the elements" & is.na(pre_ncv_2) ~ "n", 
       pre_ncv_1 == "y" & is.na(pre_ncv_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_ncv_2), "x", pre_ncv_2)                    
+      TRUE ~ pre_ncv_2                    
     ),
     
+    pre_pre_mc = ifelse(is.na(pre_pre_mc), "x", pre_pre_mc),
+    pre_mc = ifelse(is.na(pre_mc), "x", pre_mc),
+    pre_cv = ifelse(is.na(pre_cv), "x", pre_cv),
+    c_pre_cv = ifelse(is.na(c_pre_cv), "x", c_pre_cv),
+    pre_ncv_1 = ifelse(is.na(pre_ncv_1), "x", pre_ncv_1),
+    pre_ncv_2 = ifelse(is.na(pre_ncv_2), "x", pre_ncv_2)
+    # pre_ncv_3 = ifelse(is.na(pre_ncv_3), "x", pre_ncv_3)
 )
+
 
 
 ```
@@ -442,21 +456,25 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## DCP
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-  
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_dcp_1 = case_when(
       pre_dcp_3 == "No, none of the elements" & is.na(pre_dcp_1) ~ "n", 
       pre_dcp_2 == "y" & is.na(pre_dcp_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_dcp_1), "x", pre_dcp_1)                   
+      TRUE ~ pre_dcp_1                   
     ),
     
     pre_dcp_2 = case_when(
       pre_dcp_3 == "No, none of the elements" & is.na(pre_dcp_2) ~ "n", 
       pre_dcp_1 == "y" & is.na(pre_dcp_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_dcp_2), "x", pre_dcp_2)                    
+      TRUE ~ pre_dcp_2                    
     ),
 
+    pre_dcp_1 = ifelse(is.na(pre_dcp_1), "x", pre_dcp_1),
+    pre_dcp_2 = ifelse(is.na(pre_dcp_2), "x", pre_dcp_2)
+    # pre_dcp_3 = ifelse(is.na(pre_dcp_3), "x", pre_dcp_3)
 )
+
 
 
 ```
@@ -466,22 +484,25 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 achtung pre_iec (pre_iec_1) hatte eine andere Beschriftung im variabel-lexikon von olmo, und nur yes, deshalb eventuell später droppen
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pre_pa = ifelse(is.na(pre_pa), "x", pre_pa),
-    pre_iec = ifelse(is.na(pre_iec), "x", pre_iec),
-  
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_imd_1 = case_when(
       pre_imd_3 == "No, none of the elements" & is.na(pre_imd_1) ~ "n", 
       pre_imd_2 == "y" & is.na(pre_imd_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_imd_1), "x", pre_imd_1)                   
+      TRUE ~ pre_imd_1                   
     ),
     
     pre_imd_2 = case_when(
       pre_imd_3 == "No, none of the elements" & is.na(pre_imd_2) ~ "n", 
       pre_imd_1 == "y" & is.na(pre_imd_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pre_imd_2), "x", pre_imd_2)                    
+      TRUE ~ pre_imd_2                    
     ),
-   
+    
+    pre_pa = ifelse(is.na(pre_pa), "x", pre_pa),
+    pre_iec = ifelse(is.na(pre_iec), "x", pre_iec),
+    pre_imd_1 = ifelse(is.na(pre_imd_1), "x", pre_imd_1),
+    pre_imd_2 = ifelse(is.na(pre_imd_2), "x", pre_imd_2)
+    # pre_imd_3 = ifelse(is.na(pre_imd_3), "x", pre_imd_3)
 )
 
 
@@ -491,35 +512,40 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## SM
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_sm_1 = case_when(
       pre_sm_4 == "No, none of the elements" & is.na(pre_sm_1) ~ "n",  
       (pre_sm_2 == "y" | pre_sm_3 == "y") & is.na(pre_sm_1) ~ "n",       
-      TRUE ~ pre_sm_1                    
+      TRUE ~ pre_sm_1                   
     ),
     
     pre_sm_2 = case_when(
       pre_sm_4 == "No, none of the elements" & is.na(pre_sm_2) ~ "n",  
       (pre_sm_1 == "y" | pre_sm_3 == "y") & is.na(pre_sm_2) ~ "n",       
-      TRUE ~ pre_sm_2                    
+      TRUE ~ pre_sm_2                        
     ),
     
     pre_sm_3 = case_when(
       pre_sm_4 == "No, none of the elements" & is.na(pre_sm_3) ~ "n",  
       (pre_sm_1 == "y" | pre_sm_2 == "y") & is.na(pre_sm_3) ~ "n",       
-      TRUE ~ pre_sm_3                    
+      TRUE ~ pre_sm_3                       
     ),
 
+    pre_sm_1 = ifelse(is.na(pre_sm_1), "x", pre_sm_1),
+    pre_sm_2 = ifelse(is.na(pre_sm_2), "x", pre_sm_2),
+    pre_sm_3 = ifelse(is.na(pre_sm_3), "x", pre_sm_3)
+    # pre_sm_4 = ifelse(is.na(pre_sm_4), "x", pre_sm_4)
 )
+
 
 ```
 
 ## ic /vsa
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-   pre_ic = ifelse(is.na(pre_ic), "x", pre_ic),
-   
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pre_vsa_1 = case_when(
       pre_vsa_4 == "No, none of the elements" & is.na(pre_vsa_1) ~ "n",  
       (pre_vsa_2 == "y" | pre_vsa_3 == "y") & is.na(pre_vsa_1) ~ "n",       
@@ -537,7 +563,12 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
       (pre_vsa_1 == "y" | pre_vsa_2 == "y") & is.na(pre_vsa_3) ~ "n",       
       TRUE ~ pre_vsa_3                    
     ),
-   
+    
+    pre_ic = ifelse(is.na(pre_ic), "x", pre_ic),
+    pre_vsa_1 = ifelse(is.na(pre_vsa_1), "x", pre_vsa_1),
+    pre_vsa_2 = ifelse(is.na(pre_vsa_2), "x", pre_vsa_2),
+    pre_vsa_3 = ifelse(is.na(pre_vsa_3), "x", pre_vsa_3)
+    # pre_vsa_4 = ifelse(is.na(pre_vsa_4), "x", pre_vsa_4)
 )
 
 
@@ -547,24 +578,27 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## IV 1
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
-    pap_pap_mi1 = ifelse(is.na(pap_pap_mi1), "x", pap_pap_mi1),
-    pap_mi1 = ifelse(is.na(pap_mi1), "x", pap_mi1),
-    pap_iv1 = ifelse(is.na(pap_iv1), "x", pap_iv1),
-    c_pap_iv1 = ifelse(is.na(c_pap_iv1), "x", c_pap_iv1),
-    
     pap_niv1_1 = case_when(
       pap_niv1_3 == "No, none of the elements" & is.na(pap_niv1_1) ~ "n", 
       pap_niv1_2 == "y" & is.na(pap_niv1_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_niv1_1), "x", pap_niv1_1)                   
+      TRUE ~ pap_niv1_1                   
     ),
     
     pap_niv1_2 = case_when(
       pap_niv1_3 == "No, none of the elements" & is.na(pap_niv1_2) ~ "n", 
       pap_niv1_1 == "y" & is.na(pap_niv1_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_niv1_2), "x", pap_niv1_2)                    
-    )
+      TRUE ~ pap_niv1_2                    
+    ),
+    
+    pap_pap_mi1 = ifelse(is.na(pap_pap_mi1), "x", pap_pap_mi1),
+    pap_mi1 = ifelse(is.na(pap_mi1), "x", pap_mi1),
+    pap_iv1 = ifelse(is.na(pap_iv1), "x", pap_iv1),
+    c_pap_iv1 = ifelse(is.na(c_pap_iv1), "x", c_pap_iv1),
+    pap_niv1_1 = ifelse(is.na(pap_niv1_1), "x", pap_niv1_1),
+    pap_niv1_2 = ifelse(is.na(pap_niv1_2), "x", pap_niv1_2)
+    # pap_niv1_3 = ifelse(is.na(pap_niv1_3), "x", pap_niv1_3)
 )
 
 
@@ -574,25 +608,27 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## IV 2
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pap_pap_mi2 = ifelse(is.na(pap_pap_mi2), "x", pap_pap_mi2),
-    pap_mi2 = ifelse(is.na(pap_mi2), "x", pap_mi2),
-    pap_iv2 = ifelse(is.na(pap_iv2), "x", pap_iv2),
-    c_pap_iv2 = ifelse(is.na(c_pap_iv2), "x", c_pap_iv2),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pap_niv2_1 = case_when(
       pap_niv2_3 == "No, none of the elements" & is.na(pap_niv2_1) ~ "n", 
       pap_niv2_2 == "y" & is.na(pap_niv2_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_niv2_1), "x", pap_niv2_1)                   
+      TRUE ~ pap_niv2_1                   
     ),
     
     pap_niv2_2 = case_when(
       pap_niv2_3 == "No, none of the elements" & is.na(pap_niv2_2) ~ "n", 
       pap_niv2_1 == "y" & is.na(pap_niv2_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_niv2_2), "x", pap_niv2_2)                    
+      TRUE ~ pap_niv2_2                    
     ),
-
- 
+    
+    pap_pap_mi2 = ifelse(is.na(pap_pap_mi2), "x", pap_pap_mi2),
+    pap_mi2 = ifelse(is.na(pap_mi2), "x", pap_mi2),
+    pap_iv2 = ifelse(is.na(pap_iv2), "x", pap_iv2),
+    c_pap_iv2 = ifelse(is.na(c_pap_iv2), "x", c_pap_iv2),
+    pap_niv2_1 = ifelse(is.na(pap_niv2_1), "x", pap_niv2_1),
+    pap_niv2_2 = ifelse(is.na(pap_niv2_2), "x", pap_niv2_2)
+    # pap_niv2_3 = ifelse(is.na(pap_niv2_3), "x", pap_niv2_3)
 )
 
 
@@ -602,24 +638,27 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## TV
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pap_pap_mt = ifelse(is.na(pap_pap_mt), "x", pap_pap_mt),
-    pap_mt = ifelse(is.na(pap_mt), "x", pap_mt),
-    pap_tv = ifelse(is.na(pap_tv), "x", pap_tv),
-    c_pap_tv = ifelse(is.na(c_pap_tv), "x", c_pap_tv),
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
     pap_ntv_1 = case_when(
       pap_ntv_3 == "No, none of the elements" & is.na(pap_ntv_1) ~ "n", 
       pap_ntv_2 == "y" & is.na(pap_ntv_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_ntv_1), "x", pap_ntv_1)                   
+      TRUE ~ pap_ntv_1                   
     ),
 
     pap_ntv_2 = case_when(
       pap_ntv_3 == "No, none of the elements" & is.na(pap_ntv_2) ~ "n", 
       pap_ntv_1 == "y" & is.na(pap_ntv_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_ntv_2), "x", pap_ntv_2)                    
+      TRUE ~ pap_ntv_2                    
     ),
 
+    pap_pap_mt = ifelse(is.na(pap_pap_mt), "x", pap_pap_mt),
+    pap_mt = ifelse(is.na(pap_mt), "x", pap_mt),
+    pap_tv = ifelse(is.na(pap_tv), "x", pap_tv),
+    c_pap_tv = ifelse(is.na(c_pap_tv), "x", c_pap_tv),
+    pap_ntv_1 = ifelse(is.na(pap_ntv_1), "x", pap_ntv_1),
+    pap_ntv_2 = ifelse(is.na(pap_ntv_2), "x", pap_ntv_2)
+    # pap_ntv_3 = ifelse(is.na(pap_ntv_3), "x", pap_ntv_3)
 )
 
 
@@ -629,22 +668,25 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## dv
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pap_dv = ifelse(is.na(pap_dv), "x", pap_dv),
-    c_pap_dv = ifelse(is.na(c_pap_dv), "x", c_pap_dv),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pap_ndv_1 = case_when(
       pap_ndv_3 == "No, none of the elements" & is.na(pap_ndv_1) ~ "n", 
       pap_ndv_2 == "y" & is.na(pap_ndv_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_ndv_1), "x", pap_ndv_1)                   
+      TRUE ~ pap_ndv_1                   
     ),
     
     pap_ndv_2 = case_when(
       pap_ndv_3 == "No, none of the elements" & is.na(pap_ndv_2) ~ "n", 
       pap_ndv_1 == "y" & is.na(pap_ndv_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_ndv_2), "x", pap_ndv_2)                    
+      TRUE ~ pap_ndv_2                    
     ),
     
+    pap_dv = ifelse(is.na(pap_dv), "x", pap_dv),
+    c_pap_dv = ifelse(is.na(c_pap_dv), "x", c_pap_dv),
+    pap_ndv_1 = ifelse(is.na(pap_ndv_1), "x", pap_ndv_1),
+    pap_ndv_2 = ifelse(is.na(pap_ndv_2), "x", pap_ndv_2)
+    # pap_ndv_3 = ifelse(is.na(pap_ndv_3), "x", pap_ndv_3)
 )
 
 
@@ -654,24 +696,27 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## CV
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pap_pap_mc = ifelse(is.na(pap_pap_mc), "x", pap_pap_mc),
-    pap_mc = ifelse(is.na(pap_mc), "x", pap_mc),
-    pap_cv = ifelse(is.na(pap_cv), "x", pap_cv),
-    c_pap_cv = ifelse(is.na(c_pap_cv), "x", c_pap_cv),
-    
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pap_ncv_1 = case_when(
       pap_ncv_3 == "No, none of the elements" & is.na(pap_ncv_1) ~ "n", 
       pap_ncv_2 == "y" & is.na(pap_ncv_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_ncv_1), "x", pap_ncv_1)                   
+      TRUE ~ pap_ncv_1                   
     ),
     
     pap_ncv_2 = case_when(
       pap_ncv_3 == "No, none of the elements" & is.na(pap_ncv_2) ~ "n", 
       pap_ncv_1 == "y" & is.na(pap_ncv_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_ncv_2), "x", pap_ncv_2)                    
+      TRUE ~ pap_ncv_2                    
     ),
-   
+    
+    pap_pap_mc = ifelse(is.na(pap_pap_mc), "x", pap_pap_mc),
+    pap_mc = ifelse(is.na(pap_mc), "x", pap_mc),
+    pap_cv = ifelse(is.na(pap_cv), "x", pap_cv),
+    c_pap_cv = ifelse(is.na(c_pap_cv), "x", c_pap_cv),
+    pap_ncv_1 = ifelse(is.na(pap_ncv_1), "x", pap_ncv_1),
+    pap_ncv_2 = ifelse(is.na(pap_ncv_2), "x", pap_ncv_2)
+    # pap_ncv_3 = ifelse(is.na(pap_ncv_3), "x", pap_ncv_3)
 )
 
 
@@ -681,20 +726,23 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## DCP
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
     pap_dcp_1 = case_when(
       pap_dcp_3 == "No, none of the elements" & is.na(pap_dcp_1) ~ "n", 
       pap_dcp_2 == "y" & is.na(pap_dcp_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_dcp_1), "x", pap_dcp_1)                   
+      TRUE ~ pap_dcp_1                   
     ),
     
     pap_dcp_2 = case_when(
       pap_dcp_3 == "No, none of the elements" & is.na(pap_dcp_2) ~ "n", 
       pap_dcp_1 == "y" & is.na(pap_dcp_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_dcp_2), "x", pap_dcp_2)                    
+      TRUE ~ pap_dcp_2                    
     ),
 
+    pap_dcp_1 = ifelse(is.na(pap_dcp_1), "x", pap_dcp_1),
+    pap_dcp_2 = ifelse(is.na(pap_dcp_2), "x", pap_dcp_2)
+    # pap_dcp_3 = ifelse(is.na(pap_dcp_3), "x", pap_dcp_3)
 )
 
 ```
@@ -703,23 +751,25 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## PA/IEC/IMD
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-    pap_pa = ifelse(is.na(pap_pa), "x", pap_pa),
-    pap_iec = ifelse(is.na(pap_iec), "x", pap_iec),
-  
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pap_imd_1 = case_when(
       pap_imd_3 == "No, none of the elements" & is.na(pap_imd_1) ~ "n", 
       pap_imd_2 == "y" & is.na(pap_imd_1) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_imd_1), "x", pap_imd_1)                   
+      TRUE ~ pap_imd_1                   
     ),
     
     pap_imd_2 = case_when(
       pap_imd_3 == "No, none of the elements" & is.na(pap_imd_2) ~ "n", 
       pap_imd_1 == "y" & is.na(pap_imd_2) ~ "n",                         
-      TRUE ~ ifelse(is.na(pap_imd_2), "x", pap_imd_2)                    
+      TRUE ~ pap_imd_2                    
     ),
     
-    pap_imd_3 = ifelse(is.na(pap_imd_3), "x", pap_imd_3)
+    pap_pa = ifelse(is.na(pap_pa), "x", pap_pa),
+    pap_iec = ifelse(is.na(pap_iec), "x", pap_iec),
+    pap_imd_1 = ifelse(is.na(pap_imd_1), "x", pap_imd_1),
+    pap_imd_2 = ifelse(is.na(pap_imd_2), "x", pap_imd_2),
+    #pap_imd_3 = ifelse(is.na(pap_imd_3), "x", pap_imd_3)
 )
 
 
@@ -729,7 +779,8 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## SM
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pap_sm_1 = case_when(
       pap_sm_4 == "No, none of the elements" & is.na(pap_sm_1) ~ "n",  
       (pap_sm_2 == "y" | pap_sm_3 == "y") & is.na(pap_sm_1) ~ "n",       
@@ -748,6 +799,10 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
       TRUE ~ pap_sm_3                    
     ),
 
+    pap_sm_1 = ifelse(is.na(pap_sm_1), "x", pap_sm_1),
+    pap_sm_2 = ifelse(is.na(pap_sm_2), "x", pap_sm_2),
+    pap_sm_3 = ifelse(is.na(pap_sm_3), "x", pap_sm_3)
+    # pap_sm_4 = ifelse(is.na(pap_sm_4), "x", pap_sm_4)
 )
 
 
@@ -756,9 +811,8 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 ## Ic/vsa
 
 ```{r}
-data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
-   pap_ic = ifelse(is.na(pap_ic), "x", pap_ic),
-   
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
     pap_vsa_1 = case_when(
       pap_vsa_4 == "No, none of the elements" & is.na(pap_vsa_1) ~ "n",  
       (pap_vsa_2 == "y" | pap_vsa_3 == "y") & is.na(pap_vsa_1) ~ "n",       
@@ -777,7 +831,171 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
       TRUE ~ pap_vsa_3                    
     ),
     
-    pap_vsa_4 = ifelse(is.na(pap_vsa_4), "x", pap_vsa_4)
+    pap_ic = ifelse(is.na(pap_ic), "x", pap_ic),
+    pap_vsa_1 = ifelse(is.na(pap_vsa_1), "x", pap_vsa_1),
+    pap_vsa_2 = ifelse(is.na(pap_vsa_2), "x", pap_vsa_2),
+    pap_vsa_3 = ifelse(is.na(pap_vsa_3), "x", pap_vsa_3)
+    # pap_vsa_4 = ifelse(is.na(pap_vsa_4), "x", pap_vsa_4)
+)
+
+
+```
+
+# MATch Mutate
+## Iv 1
+
+```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_iv1_0 = case_when(
+      match_iv1_4 == "No, none of the elements are consistent" & is.na(match_iv1_0) ~ "n",  
+      (match_iv1_1 == "y" | match_iv1_2 == "y" | match_iv1_3 == "y") & is.na(match_iv1_0) ~ "n",       
+      TRUE ~ match_iv1_0                    
+    ),
+    
+    match_iv1_1 = case_when(
+      match_iv1_4 == "No, none of the elements are consistent" & is.na(match_iv1_1) ~ "n",  
+      (match_iv1_0 == "y" | match_iv1_2 == "y" | match_iv1_3 == "y") & is.na(match_iv1_1) ~ "n",       
+      TRUE ~ match_iv1_1                    
+    ),
+    
+    match_iv1_2 = case_when(
+      match_iv1_4 == "No, none of the elements are consistent" & is.na(match_iv1_2) ~ "n",  
+      (match_iv1_0 == "y" | match_iv1_1 == "y" | match_iv1_3 == "y") & is.na(match_iv1_2) ~ "n",       
+      TRUE ~ match_iv1_2                    
+    ),
+    
+    match_iv1_3 = case_when(
+      match_iv1_4 == "No, none of the elements are consistent" & is.na(match_iv1_3) ~ "n",  
+      (match_iv1_0 == "y" | match_iv1_1 == "y" | match_iv1_2 == "y") & is.na(match_iv1_3) ~ "n",       
+      TRUE ~ match_iv1_3                    
+    ),
+
+    match_mi1 = ifelse(is.na(match_mi1), "x", match_mi1),
+    match_iv1_0 = ifelse(is.na(match_iv1_0), "x", match_iv1_0),
+    match_iv1_1 = ifelse(is.na(match_iv1_1), "x", match_iv1_1),
+    match_iv1_2 = ifelse(is.na(match_iv1_2), "x", match_iv1_2),
+    match_iv1_3 = ifelse(is.na(match_iv1_3), "x", match_iv1_3)
+    # match_iv1_4 = ifelse(is.na(match_iv1_4), "x", match_iv1_4)
+)
+
+
+```
+
+## IV 2
+
+```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_iv2_0 = case_when(
+      match_iv2_4 == "No, none of the elements are consistent" & is.na(match_iv2_0) ~ "n",  
+      (match_iv2_1 == "y" | match_iv2_2 == "y" | match_iv2_3 == "y") & is.na(match_iv2_0) ~ "n",       
+      TRUE ~ match_iv2_0                    
+    ),
+    
+    match_iv2_1 = case_when(
+      match_iv2_4 == "No, none of the elements are consistent" & is.na(match_iv2_1) ~ "n",  
+      (match_iv2_0 == "y" | match_iv2_2 == "y" | match_iv2_3 == "y") & is.na(match_iv2_1) ~ "n",       
+      TRUE ~ match_iv2_1                    
+    ),
+    
+    match_iv2_2 = case_when(
+      match_iv2_4 == "No, none of the elements are consistent" & is.na(match_iv2_2) ~ "n",  
+      (match_iv2_0 == "y" | match_iv2_1 == "y" | match_iv2_3 == "y") & is.na(match_iv2_2) ~ "n",       
+      TRUE ~ match_iv2_2                    
+    ),
+    
+    match_iv2_3 = case_when(
+      match_iv2_4 == "No, none of the elements are consistent" & is.na(match_iv2_3) ~ "n",  
+      (match_iv2_0 == "y" | match_iv2_1 == "y" | match_iv2_2 == "y") & is.na(match_iv2_3) ~ "n",       
+      TRUE ~ match_iv2_3                    
+    ),
+
+    match_mi2 = ifelse(is.na(match_mi2), "x", match_mi2),
+    match_iv2_0 = ifelse(is.na(match_iv2_0), "x", match_iv2_0),
+    match_iv2_1 = ifelse(is.na(match_iv2_1), "x", match_iv2_1),
+    match_iv2_2 = ifelse(is.na(match_iv2_2), "x", match_iv2_2),
+    match_iv2_3 = ifelse(is.na(match_iv2_3), "x", match_iv2_3)
+    # match_iv2_4 = ifelse(is.na(match_iv2_4), "x", match_iv2_4)
+)
+
+
+```
+
+## TV
+
+```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_tv_0 = case_when(
+      match_tv_4 == "No, none of the elements are consistent" & is.na(match_tv_0) ~ "n",  
+      (match_tv_1 == "y" | match_tv_2 == "y" | match_tv_3 == "y") & is.na(match_tv_0) ~ "n",       
+      TRUE ~ match_tv_0                    
+    ),
+    
+    match_tv_1 = case_when(
+      match_tv_4 == "No, none of the elements are consistent" & is.na(match_tv_1) ~ "n",  
+      (match_tv_0 == "y" | match_tv_2 == "y" | match_tv_3 == "y") & is.na(match_tv_1) ~ "n",       
+      TRUE ~ match_tv_1                    
+    ),
+    
+    match_tv_2 = case_when(
+      match_tv_4 == "No, none of the elements are consistent" & is.na(match_tv_2) ~ "n",  
+      (match_tv_0 == "y" | match_tv_1 == "y" | match_tv_3 == "y") & is.na(match_tv_2) ~ "n",       
+      TRUE ~ match_tv_2                    
+    ),
+    
+    match_tv_3 = case_when(
+      match_tv_4 == "No, none of the elements are consistent" & is.na(match_tv_3) ~ "n",  
+      (match_tv_0 == "y" | match_tv_1 == "y" | match_tv_2 == "y") & is.na(match_tv_3) ~ "n",       
+      TRUE ~ match_tv_3                    
+    ),
+
+    match_mt = ifelse(is.na(match_mt), "x", match_mt),
+    match_tv_0 = ifelse(is.na(match_tv_0), "x", match_tv_0),
+    match_tv_1 = ifelse(is.na(match_tv_1), "x", match_tv_1),
+    match_tv_2 = ifelse(is.na(match_tv_2), "x", match_tv_2),
+    match_tv_3 = ifelse(is.na(match_tv_3), "x", match_tv_3)
+    # match_tv_4 = ifelse(is.na(match_tv_4), "x", match_tv_4)
+)
+
+
+```
+
+## DV
+
+```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_dv_0 = case_when(
+      match_dv_4 == "No, none of the elements are consistent" & is.na(match_dv_0) ~ "n",  
+      (match_dv_1 == "y" | match_dv_2 == "y" | match_dv_3 == "y") & is.na(match_dv_0) ~ "n",       
+      TRUE ~ match_dv_0                    
+    ),
+    
+    match_dv_1 = case_when(
+      match_dv_4 == "No, none of the elements are consistent" & is.na(match_dv_1) ~ "n",  
+      (match_dv_0 == "y" | match_dv_2 == "y" | match_dv_3 == "y") & is.na(match_dv_1) ~ "n",       
+      TRUE ~ match_dv_1                    
+    ),
+    
+    match_dv_2 = case_when(
+      match_dv_4 == "No, none of the elements are consistent" & is.na(match_dv_2) ~ "n",  
+      (match_dv_0 == "y" | match_dv_1 == "y" | match_dv_3 == "y") & is.na(match_dv_2) ~ "n",       
+      TRUE ~ match_dv_2                    
+    ),
+    
+    match_dv_3 = case_when(
+      match_dv_4 == "No, none of the elements" & is.na(match_dv_3) ~ "n",  
+      (match_dv_0 == "y" | match_dv_1 == "y" | match_dv_2 == "y") & is.na(match_dv_3) ~ "n",       
+      TRUE ~ match_dv_3                    
+    ),
+
+    match_dv_0 = ifelse(is.na(match_dv_0), "x", match_dv_0),
+    match_dv_1 = ifelse(is.na(match_dv_1), "x", match_dv_1),
+    match_dv_2 = ifelse(is.na(match_dv_2), "x", match_dv_2),
+    match_dv_3 = ifelse(is.na(match_dv_3), "x", match_dv_3)
+    # match_dv_4 = ifelse(is.na(match_dv_4), "x", match_dv_4)
 )
 
 
@@ -790,6 +1008,15 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 
 ```
 
+
+## IV 2
+
+```{r}
+
+
+```
+
+
 ## IV 2
 
 ```{r}
@@ -803,11 +1030,3 @@ data_olmo_raw_selected_mutated <- data_olmo_raw_selected_mutated %>% mutate(
 
 
 ```
-
-## IV 2
-
-```{r}
-
-
-```
-
