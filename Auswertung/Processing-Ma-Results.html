@@ -397,8 +397,10 @@ versionen renamen - PreDCP_1_TEXT komische Zahlen verändern</p>
 library(openxlsx)</code></pre>
 <pre><code>## Warning: Paket &#39;openxlsx&#39; wurde unter R Version 4.3.2 erstellt</code></pre>
 </div>
-<div id="read-data" class="section level1">
-<h1>Read data</h1>
+<div id="clean-data_results" class="section level1">
+<h1>clean data_results</h1>
+<div id="read-data" class="section level2">
+<h2>Read data</h2>
 <pre class="r"><code>data_results_raw &lt;- read_excel(&quot;../data/DATA_Resultate_raw.xlsx&quot;) |&gt;
   janitor::clean_names()</code></pre>
 <pre><code>## New names:
@@ -429,7 +431,7 @@ library(openxlsx)</code></pre>
 ## • `` -&gt; `...174`
 ## • `` -&gt; `...178`
 ## • `` -&gt; `...182`</code></pre>
-<p>#select and remove unwanted columns</p>
+<p>##select and remove unwanted columns</p>
 <pre class="r"><code>data_results_filtered &lt;- data_results_raw %&gt;%
   select(   
     -prereg_vorhanden,
@@ -450,8 +452,8 @@ library(openxlsx)</code></pre>
     -starts_with(&quot;x&quot;)
     )</code></pre>
 </div>
-<div id="kategorien-alphabetic-säubern" class="section level1">
-<h1>kategorien alphabetic säubern</h1>
+<div id="kategorien-alphabetic-säubern" class="section level2">
+<h2>kategorien alphabetic säubern</h2>
 <pre class="r"><code>categories_alphabetic &lt;- c(&quot;pre_pre_mi1&quot;, &quot;pre_mi1&quot;, &quot;pre_iv1&quot;, &quot;c_pre_iv1&quot;, &quot;pre_niv1_1&quot;, &quot;pre_niv1_2&quot;, 
                             &quot;pre_pre_mi2&quot;, &quot;pre_mi2&quot;, &quot;pre_iv2&quot;, &quot;c_pre_iv2&quot;, &quot;pre_niv2_1&quot;, &quot;pre_niv2_2&quot;, 
                             &quot;pre_pre_mt&quot;, &quot;pre_mt&quot;, &quot;pre_tv&quot;, &quot;c_pre_tv&quot;, &quot;pre_ntv_1&quot;, &quot;pre_ntv_2&quot;, 
@@ -472,604 +474,18 @@ library(openxlsx)</code></pre>
                             &quot;match_tv_2&quot;, &quot;match_tv_3&quot;, &quot;match_dv_0&quot;, &quot;match_dv_1&quot;, &quot;match_dv_2&quot;, 
                             &quot;match_dv_3&quot;, &quot;match_mc&quot;, &quot;match_cv_0&quot;, &quot;match_cv_1&quot;, &quot;match_cv_2&quot;, 
                             &quot;match_cv_3&quot;, &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, &quot;match_iec_1&quot;, &quot;match_imd_1&quot;, 
-                            &quot;match_imd_2&quot;, &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;, &quot;match_vsa_1&quot;, 
+                            &quot;match_imd_2&quot;,  &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;, &quot;match_vsa_1&quot;, 
                             &quot;match_vsa_2&quot;, &quot;match_vsa_3&quot;, &quot;match_ic&quot;)
 
 
 frequencies_categories &lt;- lapply(data_results_filtered[categories_alphabetic], table)
 
 
-frequencies_categories</code></pre>
-<pre><code>## $pre_pre_mi1
-## 
-##   n   y   Y 
-##  50 258   1 
-## 
-## $pre_mi1
-## 
-##   c   n   x   y   Y 
-##   1   6  50 251   1 
-## 
-## $pre_iv1
-## 
-##   x   X   y 
-## 172   1 136 
-## 
-## $c_pre_iv1
-## 
-##   n   x   X   y 
-##  90 171   1  47 
-## 
-## $pre_niv1_1
-## 
-##   n   x   X   y 
-##   6 180   1 122 
-## 
-## $pre_niv1_2
-## 
-##   n   x   X   y 
-##   6 180   1 122 
-## 
-## $pre_pre_mi2
-## 
-##   n   x   y   Y 
-##  92  53 163   1 
-## 
-## $pre_mi2
-## 
-##   n   x   y   Y 
-##   4 144 160   1 
-## 
-## $pre_iv2
-## 
-##   n   x   X   y 
-##  11 164   1 133 
-## 
-## $c_pre_iv2
-## 
-##   n   x   X   y 
-##  77 174   1  57 
-## 
-## $pre_niv2_1
-## 
-##   n   x   X   y 
-##  21 188   1  99 
-## 
-## $pre_niv2_2
-## 
-##   n   x   X   y 
-##  21 188   1  99 
-## 
-## $pre_pre_mt
-## 
-##   n   x   y 
-## 166 128  15 
-## 
-## $pre_mt
-## 
-##   x   y 
-## 294  15 
-## 
-## $pre_tv
-## 
-##   n   x   y 
-##  15 160 134 
-## 
-## $c_pre_tv
-## 
-##   n   x   y 
-##  54 172  83 
-## 
-## $pre_ntv_1
-## 
-##   n   x   y 
-##  29 217  63 
-## 
-## $pre_ntv_2
-## 
-##   n   x   y 
-##  29 217  63 
-## 
-## $pre_dv
-## 
-##   y 
-## 309 
-## 
-## $c_pre_dv
-## 
-##   n   y 
-## 134 175 
-## 
-## $pre_ndv_1
-## 
-##   n   x   y 
-##  12  88 209 
-## 
-## $pre_ndv_2
-## 
-##   n   x   y 
-##  12  88 209 
-## 
-## $pre_pre_mc
-## 
-##   n   x   y 
-## 264  44   1 
-## 
-## $pre_mc
-## 
-##   x   y 
-## 308   1 
-## 
-## $pre_cv
-## 
-##   n   x   y 
-##  18  67 224 
-## 
-## $c_pre_cv
-## 
-##   n   x   y 
-##  51  82 176 
-## 
-## $pre_ncv_1
-## 
-##   n   x   y 
-##  55 155  99 
-## 
-## $pre_ncv_2
-## 
-##   n   x   y 
-##  55 155  99 
-## 
-## $pre_dcp_1
-## 
-##   n   y 
-##  10 299 
-## 
-## $pre_dcp_2
-## 
-##   n   y 
-##   8 301 
-## 
-## $pre_pa
-## 
-##   n   y  yy 
-##  48 260   1 
-## 
-## $pre_iec_1
-## 
-##   n   y 
-##  10 299 
-## 
-## $pre_imd_1
-## 
-##   n   y 
-##  61 248 
-## 
-## $pre_imd_2
-## 
-##   n   y 
-##  53 256 
-## 
-## $pre_sm_1
-## 
-##   y 
-## 309 
-## 
-## $pre_sm_2
-## 
-##   y 
-## 309 
-## 
-## $pre_sm_3
-## 
-##   n   y 
-##  25 284 
-## 
-## $pre_vsa_1
-## 
-##   n   y 
-##  43 266 
-## 
-## $pre_vsa_2
-## 
-##   n   y 
-##  45 264 
-## 
-## $pre_vsa_3
-## 
-##   n   y 
-##  47 262 
-## 
-## $pre_ic
-## 
-##   n   y 
-##   1 308 
-## 
-## $pap_pap_mi1
-## 
-##   n   y 
-##  49 260 
-## 
-## $pap_mi1
-## 
-##   n   x   y 
-##   1  49 259 
-## 
-## $pap_iv1
-## 
-##   x   y 
-## 174 135 
-## 
-## $c_pap_iv1
-## 
-##   n   x   y 
-##  84 174  51 
-## 
-## $pap_niv1_1
-## 
-##   n   x   y 
-##   4 185 120 
-## 
-## $pap_niv1_2
-## 
-##   n   x   y 
-##   4 185 120 
-## 
-## $pap_pap_mi2
-## 
-##   m   n   x   y 
-##   1  94  52 162 
-## 
-## $pap_mi2
-## 
-##   x   y 
-## 147 162 
-## 
-## $pap_iv2
-## 
-##   n   x   y 
-##  11 162 136 
-## 
-## $c_pap_iv2
-## 
-##   n   x   y 
-##  77 174  58 
-## 
-## $pap_niv2_1
-## 
-##   n   x   y 
-##  18 187 104 
-## 
-## $pap_niv2_2
-## 
-##   n   x   y 
-##  18 187 104 
-## 
-## $pap_pap_mt
-## 
-##   n   x   y 
-## 168 126  15 
-## 
-## $pap_mt
-## 
-##   n   x   y 
-##   1 293  15 
-## 
-## $pap_tv
-## 
-##   n   x   y 
-##  15 159 135 
-## 
-## $c_pap_tv
-## 
-##   n   x   y 
-##  52 171  86 
-## 
-## $pap_ntv_1
-## 
-##   n   x   y 
-##  20 217  72 
-## 
-## $pap_ntv_2
-## 
-##   n   x   y 
-##  20 217  72 
-## 
-## $pap_dv
-## 
-##   y 
-## 309 
-## 
-## $c_pap_dv
-## 
-##   n   y 
-## 131 178 
-## 
-## $pap_ndv_1
-## 
-##   n   x   y 
-##   8  88 213 
-## 
-## $pap_ndv_2
-## 
-##   n   x   y 
-##   8  88 213 
-## 
-## $pap_pap_mc
-## 
-##   n   x   y 
-## 267  41   1 
-## 
-## $pap_mc
-## 
-##   x   y 
-## 308   1 
-## 
-## $pap_cv
-## 
-##   n   x   y 
-##  25  61 223 
-## 
-## $c_pap_cv
-## 
-##   n   x   y 
-##  49  81 179 
-## 
-## $pap_ncv_1
-## 
-##   n   x   y 
-##  44 153 112 
-## 
-## $pap_ncv_2
-## 
-##   n   x   y 
-##  44 153 112 
-## 
-## $pap_dcp_1
-## 
-##   n   y 
-##   3 306 
-## 
-## $pap_dcp_2
-## 
-##   n   y 
-##   1 308 
-## 
-## $pap_pa
-## 
-##   n   y 
-##  39 270 
-## 
-## $pap_iec_1
-## 
-##   n   y 
-##   1 308 
-## 
-## $pap_imd_1
-## 
-##   n   y 
-##  40 269 
-## 
-## $pap_imd_2
-## 
-##   n   y 
-##  33 276 
-## 
-## $pap_sm_1
-## 
-##   y 
-## 309 
-## 
-## $pap_sm_2
-## 
-##   y 
-## 309 
-## 
-## $pap_sm_3
-## 
-##   n   y 
-##  15 294 
-## 
-## $pap_vsa_1
-## 
-##   n   y 
-##  31 278 
-## 
-## $pap_vsa_2
-## 
-##   n   y 
-##  32 277 
-## 
-## $pap_vsa_3
-## 
-##   n   y 
-##  34 275 
-## 
-## $pap_ic
-## 
-##   n   y 
-##   1 308 
-## 
-## $match_mi1
-## 
-##   n   x   y 
-##  15  35 259 
-## 
-## $match_iv1_0
-## 
-##   n   x   y 
-##   8 174 127 
-## 
-## $match_iv1_1
-## 
-##   n   x   y 
-##   8 179 122 
-## 
-## $match_iv1_2
-## 
-##   n   x   y 
-##  10 188 111 
-## 
-## $match_iv1_3
-## 
-##   n   x   y 
-##   7 258  44 
-## 
-## $match_mi2
-## 
-##   n   x   y 
-##   4 175 130 
-## 
-## $match_iv2_0
-## 
-##   n   x   y 
-##   3 239  67 
-## 
-## $match_iv2_1
-## 
-##   n   x   y 
-##   2 243  64 
-## 
-## $match_iv2_2
-## 
-##   n   x   y 
-##   3 250  56 
-## 
-## $match_iv2_3
-## 
-##   n   x   y 
-##   2 287  20 
-## 
-## $match_mt
-## 
-##   x   y 
-## 297  12 
-## 
-## $match_tv_0
-## 
-##   n   x   y 
-##   2 288  19 
-## 
-## $match_tv_1
-## 
-##   n   x   y 
-##   1 290  18 
-## 
-## $match_tv_2
-## 
-##   n   x   y 
-##   2 292  15 
-## 
-## $match_tv_3
-## 
-##   n   x   y 
-##   1 305   3 
-## 
-## $match_dv_0
-## 
-##   n   x   y 
-##  12   2 295 
-## 
-## $match_dv_1
-## 
-##   n   x   y 
-##  17  29 263 
-## 
-## $match_dv_2
-## 
-##   n   x   y 
-##  17  32 260 
-## 
-## $match_dv_3
-## 
-##   n   x   y 
-##   6 207  96 
-## 
-## $match_mc
-## 
-##   n   x   y 
-##   3 275  31 
-## 
-## $match_cv_0
-## 
-##   n   x   y 
-##   6 218  85 
-## 
-## $match_cv_1
-## 
-##   n   x   y 
-##   2 232  75 
-## 
-## $match_cv_2
-## 
-##   n   x   y 
-##   5 239  65 
-## 
-## $match_cv_3
-## 
-##   n   x   y 
-##   3 286  20 
-## 
-## $match_dcp_1
-## 
-##   n   y 
-## 161 148 
-## 
-## $match_dcp_2
-## 
-##   n   x   y 
-##  36  34 239 
-## 
-## $match_iec_1
-## 
-##   n   x   y 
-##  24  21 264 
-## 
-## $match_imd_1
-## 
-##   n   x   y 
-##  37  61 211 
-## 
-## $match_imd_2
-## 
-##   n   x   y 
-##  38  73 198 
-## 
-## $match_sm_1
-## 
-##   n   x   y 
-##  24   1 284 
-## 
-## $match_sm_2
-## 
-##   n   x   y 
-##  10   4 295 
-## 
-## $match_sm_3
-## 
-##   n   x   y 
-##  36  35 238 
-## 
-## $match_vsa_1
-## 
-##   n   x   y 
-##  21  64 224 
-## 
-## $match_vsa_2
-## 
-##   n   x   y 
-##  27  71 211 
-## 
-## $match_vsa_3
-## 
-##   n   x   y 
-##  26  70 213 
-## 
-## $match_ic
-## 
-##   n   x   y 
-##   9  11 289</code></pre>
-<pre class="r"><code>clean_value &lt;- function(x) {
+#frequencies_categories
+
+
+
+clean_value &lt;- function(x) {
   cleaned &lt;- tolower(x)     
   cleaned &lt;- gsub(&quot;yy&quot;, &quot;y&quot;, cleaned)  
   cleaned &lt;- gsub(&quot;xx&quot;, &quot;x&quot;, cleaned)  
@@ -1084,597 +500,12 @@ data_results_filtered_clean &lt;- data_results_filtered %&gt;%
 frequencies_categories_cleaned &lt;- lapply(data_results_filtered_clean[categories_alphabetic], table)
 
 
-frequencies_categories_cleaned</code></pre>
-<pre><code>## $pre_pre_mi1
-## 
-##   n   y 
-##  50 259 
-## 
-## $pre_mi1
-## 
-##   c   n   x   y 
-##   1   6  50 252 
-## 
-## $pre_iv1
-## 
-##   x   y 
-## 173 136 
-## 
-## $c_pre_iv1
-## 
-##   n   x   y 
-##  90 172  47 
-## 
-## $pre_niv1_1
-## 
-##   n   x   y 
-##   6 181 122 
-## 
-## $pre_niv1_2
-## 
-##   n   x   y 
-##   6 181 122 
-## 
-## $pre_pre_mi2
-## 
-##   n   x   y 
-##  92  53 164 
-## 
-## $pre_mi2
-## 
-##   n   x   y 
-##   4 144 161 
-## 
-## $pre_iv2
-## 
-##   n   x   y 
-##  11 165 133 
-## 
-## $c_pre_iv2
-## 
-##   n   x   y 
-##  77 175  57 
-## 
-## $pre_niv2_1
-## 
-##   n   x   y 
-##  21 189  99 
-## 
-## $pre_niv2_2
-## 
-##   n   x   y 
-##  21 189  99 
-## 
-## $pre_pre_mt
-## 
-##   n   x   y 
-## 166 128  15 
-## 
-## $pre_mt
-## 
-##   x   y 
-## 294  15 
-## 
-## $pre_tv
-## 
-##   n   x   y 
-##  15 160 134 
-## 
-## $c_pre_tv
-## 
-##   n   x   y 
-##  54 172  83 
-## 
-## $pre_ntv_1
-## 
-##   n   x   y 
-##  29 217  63 
-## 
-## $pre_ntv_2
-## 
-##   n   x   y 
-##  29 217  63 
-## 
-## $pre_dv
-## 
-##   y 
-## 309 
-## 
-## $c_pre_dv
-## 
-##   n   y 
-## 134 175 
-## 
-## $pre_ndv_1
-## 
-##   n   x   y 
-##  12  88 209 
-## 
-## $pre_ndv_2
-## 
-##   n   x   y 
-##  12  88 209 
-## 
-## $pre_pre_mc
-## 
-##   n   x   y 
-## 264  44   1 
-## 
-## $pre_mc
-## 
-##   x   y 
-## 308   1 
-## 
-## $pre_cv
-## 
-##   n   x   y 
-##  18  67 224 
-## 
-## $c_pre_cv
-## 
-##   n   x   y 
-##  51  82 176 
-## 
-## $pre_ncv_1
-## 
-##   n   x   y 
-##  55 155  99 
-## 
-## $pre_ncv_2
-## 
-##   n   x   y 
-##  55 155  99 
-## 
-## $pre_dcp_1
-## 
-##   n   y 
-##  10 299 
-## 
-## $pre_dcp_2
-## 
-##   n   y 
-##   8 301 
-## 
-## $pre_pa
-## 
-##   n   y 
-##  48 261 
-## 
-## $pre_iec_1
-## 
-##   n   y 
-##  10 299 
-## 
-## $pre_imd_1
-## 
-##   n   y 
-##  61 248 
-## 
-## $pre_imd_2
-## 
-##   n   y 
-##  53 256 
-## 
-## $pre_sm_1
-## 
-##   y 
-## 309 
-## 
-## $pre_sm_2
-## 
-##   y 
-## 309 
-## 
-## $pre_sm_3
-## 
-##   n   y 
-##  25 284 
-## 
-## $pre_vsa_1
-## 
-##   n   y 
-##  43 266 
-## 
-## $pre_vsa_2
-## 
-##   n   y 
-##  45 264 
-## 
-## $pre_vsa_3
-## 
-##   n   y 
-##  47 262 
-## 
-## $pre_ic
-## 
-##   n   y 
-##   1 308 
-## 
-## $pap_pap_mi1
-## 
-##   n   y 
-##  49 260 
-## 
-## $pap_mi1
-## 
-##   n   x   y 
-##   1  49 259 
-## 
-## $pap_iv1
-## 
-##   x   y 
-## 174 135 
-## 
-## $c_pap_iv1
-## 
-##   n   x   y 
-##  84 174  51 
-## 
-## $pap_niv1_1
-## 
-##   n   x   y 
-##   4 185 120 
-## 
-## $pap_niv1_2
-## 
-##   n   x   y 
-##   4 185 120 
-## 
-## $pap_pap_mi2
-## 
-##   m   n   x   y 
-##   1  94  52 162 
-## 
-## $pap_mi2
-## 
-##   x   y 
-## 147 162 
-## 
-## $pap_iv2
-## 
-##   n   x   y 
-##  11 162 136 
-## 
-## $c_pap_iv2
-## 
-##   n   x   y 
-##  77 174  58 
-## 
-## $pap_niv2_1
-## 
-##   n   x   y 
-##  18 187 104 
-## 
-## $pap_niv2_2
-## 
-##   n   x   y 
-##  18 187 104 
-## 
-## $pap_pap_mt
-## 
-##   n   x   y 
-## 168 126  15 
-## 
-## $pap_mt
-## 
-##   n   x   y 
-##   1 293  15 
-## 
-## $pap_tv
-## 
-##   n   x   y 
-##  15 159 135 
-## 
-## $c_pap_tv
-## 
-##   n   x   y 
-##  52 171  86 
-## 
-## $pap_ntv_1
-## 
-##   n   x   y 
-##  20 217  72 
-## 
-## $pap_ntv_2
-## 
-##   n   x   y 
-##  20 217  72 
-## 
-## $pap_dv
-## 
-##   y 
-## 309 
-## 
-## $c_pap_dv
-## 
-##   n   y 
-## 131 178 
-## 
-## $pap_ndv_1
-## 
-##   n   x   y 
-##   8  88 213 
-## 
-## $pap_ndv_2
-## 
-##   n   x   y 
-##   8  88 213 
-## 
-## $pap_pap_mc
-## 
-##   n   x   y 
-## 267  41   1 
-## 
-## $pap_mc
-## 
-##   x   y 
-## 308   1 
-## 
-## $pap_cv
-## 
-##   n   x   y 
-##  25  61 223 
-## 
-## $c_pap_cv
-## 
-##   n   x   y 
-##  49  81 179 
-## 
-## $pap_ncv_1
-## 
-##   n   x   y 
-##  44 153 112 
-## 
-## $pap_ncv_2
-## 
-##   n   x   y 
-##  44 153 112 
-## 
-## $pap_dcp_1
-## 
-##   n   y 
-##   3 306 
-## 
-## $pap_dcp_2
-## 
-##   n   y 
-##   1 308 
-## 
-## $pap_pa
-## 
-##   n   y 
-##  39 270 
-## 
-## $pap_iec_1
-## 
-##   n   y 
-##   1 308 
-## 
-## $pap_imd_1
-## 
-##   n   y 
-##  40 269 
-## 
-## $pap_imd_2
-## 
-##   n   y 
-##  33 276 
-## 
-## $pap_sm_1
-## 
-##   y 
-## 309 
-## 
-## $pap_sm_2
-## 
-##   y 
-## 309 
-## 
-## $pap_sm_3
-## 
-##   n   y 
-##  15 294 
-## 
-## $pap_vsa_1
-## 
-##   n   y 
-##  31 278 
-## 
-## $pap_vsa_2
-## 
-##   n   y 
-##  32 277 
-## 
-## $pap_vsa_3
-## 
-##   n   y 
-##  34 275 
-## 
-## $pap_ic
-## 
-##   n   y 
-##   1 308 
-## 
-## $match_mi1
-## 
-##   n   x   y 
-##  15  35 259 
-## 
-## $match_iv1_0
-## 
-##   n   x   y 
-##   8 174 127 
-## 
-## $match_iv1_1
-## 
-##   n   x   y 
-##   8 179 122 
-## 
-## $match_iv1_2
-## 
-##   n   x   y 
-##  10 188 111 
-## 
-## $match_iv1_3
-## 
-##   n   x   y 
-##   7 258  44 
-## 
-## $match_mi2
-## 
-##   n   x   y 
-##   4 175 130 
-## 
-## $match_iv2_0
-## 
-##   n   x   y 
-##   3 239  67 
-## 
-## $match_iv2_1
-## 
-##   n   x   y 
-##   2 243  64 
-## 
-## $match_iv2_2
-## 
-##   n   x   y 
-##   3 250  56 
-## 
-## $match_iv2_3
-## 
-##   n   x   y 
-##   2 287  20 
-## 
-## $match_mt
-## 
-##   x   y 
-## 297  12 
-## 
-## $match_tv_0
-## 
-##   n   x   y 
-##   2 288  19 
-## 
-## $match_tv_1
-## 
-##   n   x   y 
-##   1 290  18 
-## 
-## $match_tv_2
-## 
-##   n   x   y 
-##   2 292  15 
-## 
-## $match_tv_3
-## 
-##   n   x   y 
-##   1 305   3 
-## 
-## $match_dv_0
-## 
-##   n   x   y 
-##  12   2 295 
-## 
-## $match_dv_1
-## 
-##   n   x   y 
-##  17  29 263 
-## 
-## $match_dv_2
-## 
-##   n   x   y 
-##  17  32 260 
-## 
-## $match_dv_3
-## 
-##   n   x   y 
-##   6 207  96 
-## 
-## $match_mc
-## 
-##   n   x   y 
-##   3 275  31 
-## 
-## $match_cv_0
-## 
-##   n   x   y 
-##   6 218  85 
-## 
-## $match_cv_1
-## 
-##   n   x   y 
-##   2 232  75 
-## 
-## $match_cv_2
-## 
-##   n   x   y 
-##   5 239  65 
-## 
-## $match_cv_3
-## 
-##   n   x   y 
-##   3 286  20 
-## 
-## $match_dcp_1
-## 
-##   n   y 
-## 161 148 
-## 
-## $match_dcp_2
-## 
-##   n   x   y 
-##  36  34 239 
-## 
-## $match_iec_1
-## 
-##   n   x   y 
-##  24  21 264 
-## 
-## $match_imd_1
-## 
-##   n   x   y 
-##  37  61 211 
-## 
-## $match_imd_2
-## 
-##   n   x   y 
-##  38  73 198 
-## 
-## $match_sm_1
-## 
-##   n   x   y 
-##  24   1 284 
-## 
-## $match_sm_2
-## 
-##   n   x   y 
-##  10   4 295 
-## 
-## $match_sm_3
-## 
-##   n   x   y 
-##  36  35 238 
-## 
-## $match_vsa_1
-## 
-##   n   x   y 
-##  21  64 224 
-## 
-## $match_vsa_2
-## 
-##   n   x   y 
-##  27  71 211 
-## 
-## $match_vsa_3
-## 
-##   n   x   y 
-##  26  70 213 
-## 
-## $match_ic
-## 
-##   n   x   y 
-##   9  11 289</code></pre>
-<pre class="r"><code>replace_with_exclude &lt;- function(x) {
+#frequencies_categories_cleaned
+
+
+
+
+replace_with_exclude &lt;- function(x) {
   ifelse(x %in% c(&quot;x&quot;, &quot;y&quot;, &quot;n&quot;), x, &quot;exclude&quot;)
 }
 
@@ -1685,596 +516,8 @@ data_results_filtered_clean_exclude &lt;- data_results_filtered_clean %&gt;%
 # Check frequencies after cleaning
 frequencies_categories_cleaned_exclude &lt;- lapply(data_results_filtered_clean_exclude[categories_alphabetic], table)
 
-frequencies_categories_cleaned_exclude</code></pre>
-<pre><code>## $pre_pre_mi1
-## 
-## exclude       n       y 
-##      21      50     259 
-## 
-## $pre_mi1
-## 
-## exclude       n       x       y 
-##      22       6      50     252 
-## 
-## $pre_iv1
-## 
-## exclude       x       y 
-##      21     173     136 
-## 
-## $c_pre_iv1
-## 
-## exclude       n       x       y 
-##      21      90     172      47 
-## 
-## $pre_niv1_1
-## 
-## exclude       n       x       y 
-##      21       6     181     122 
-## 
-## $pre_niv1_2
-## 
-## exclude       n       x       y 
-##      21       6     181     122 
-## 
-## $pre_pre_mi2
-## 
-## exclude       n       x       y 
-##      21      92      53     164 
-## 
-## $pre_mi2
-## 
-## exclude       n       x       y 
-##      21       4     144     161 
-## 
-## $pre_iv2
-## 
-## exclude       n       x       y 
-##      21      11     165     133 
-## 
-## $c_pre_iv2
-## 
-## exclude       n       x       y 
-##      21      77     175      57 
-## 
-## $pre_niv2_1
-## 
-## exclude       n       x       y 
-##      21      21     189      99 
-## 
-## $pre_niv2_2
-## 
-## exclude       n       x       y 
-##      21      21     189      99 
-## 
-## $pre_pre_mt
-## 
-## exclude       n       x       y 
-##      21     166     128      15 
-## 
-## $pre_mt
-## 
-## exclude       x       y 
-##      21     294      15 
-## 
-## $pre_tv
-## 
-## exclude       n       x       y 
-##      21      15     160     134 
-## 
-## $c_pre_tv
-## 
-## exclude       n       x       y 
-##      21      54     172      83 
-## 
-## $pre_ntv_1
-## 
-## exclude       n       x       y 
-##      21      29     217      63 
-## 
-## $pre_ntv_2
-## 
-## exclude       n       x       y 
-##      21      29     217      63 
-## 
-## $pre_dv
-## 
-## exclude       y 
-##      21     309 
-## 
-## $c_pre_dv
-## 
-## exclude       n       y 
-##      21     134     175 
-## 
-## $pre_ndv_1
-## 
-## exclude       n       x       y 
-##      21      12      88     209 
-## 
-## $pre_ndv_2
-## 
-## exclude       n       x       y 
-##      21      12      88     209 
-## 
-## $pre_pre_mc
-## 
-## exclude       n       x       y 
-##      21     264      44       1 
-## 
-## $pre_mc
-## 
-## exclude       x       y 
-##      21     308       1 
-## 
-## $pre_cv
-## 
-## exclude       n       x       y 
-##      21      18      67     224 
-## 
-## $c_pre_cv
-## 
-## exclude       n       x       y 
-##      21      51      82     176 
-## 
-## $pre_ncv_1
-## 
-## exclude       n       x       y 
-##      21      55     155      99 
-## 
-## $pre_ncv_2
-## 
-## exclude       n       x       y 
-##      21      55     155      99 
-## 
-## $pre_dcp_1
-## 
-## exclude       n       y 
-##      21      10     299 
-## 
-## $pre_dcp_2
-## 
-## exclude       n       y 
-##      21       8     301 
-## 
-## $pre_pa
-## 
-## exclude       n       y 
-##      21      48     261 
-## 
-## $pre_iec_1
-## 
-## exclude       n       y 
-##      21      10     299 
-## 
-## $pre_imd_1
-## 
-## exclude       n       y 
-##      21      61     248 
-## 
-## $pre_imd_2
-## 
-## exclude       n       y 
-##      21      53     256 
-## 
-## $pre_sm_1
-## 
-## exclude       y 
-##      21     309 
-## 
-## $pre_sm_2
-## 
-## exclude       y 
-##      21     309 
-## 
-## $pre_sm_3
-## 
-## exclude       n       y 
-##      21      25     284 
-## 
-## $pre_vsa_1
-## 
-## exclude       n       y 
-##      21      43     266 
-## 
-## $pre_vsa_2
-## 
-## exclude       n       y 
-##      21      45     264 
-## 
-## $pre_vsa_3
-## 
-## exclude       n       y 
-##      21      47     262 
-## 
-## $pre_ic
-## 
-## exclude       n       y 
-##      21       1     308 
-## 
-## $pap_pap_mi1
-## 
-## exclude       n       y 
-##      21      49     260 
-## 
-## $pap_mi1
-## 
-## exclude       n       x       y 
-##      21       1      49     259 
-## 
-## $pap_iv1
-## 
-## exclude       x       y 
-##      21     174     135 
-## 
-## $c_pap_iv1
-## 
-## exclude       n       x       y 
-##      21      84     174      51 
-## 
-## $pap_niv1_1
-## 
-## exclude       n       x       y 
-##      21       4     185     120 
-## 
-## $pap_niv1_2
-## 
-## exclude       n       x       y 
-##      21       4     185     120 
-## 
-## $pap_pap_mi2
-## 
-## exclude       n       x       y 
-##      22      94      52     162 
-## 
-## $pap_mi2
-## 
-## exclude       x       y 
-##      21     147     162 
-## 
-## $pap_iv2
-## 
-## exclude       n       x       y 
-##      21      11     162     136 
-## 
-## $c_pap_iv2
-## 
-## exclude       n       x       y 
-##      21      77     174      58 
-## 
-## $pap_niv2_1
-## 
-## exclude       n       x       y 
-##      21      18     187     104 
-## 
-## $pap_niv2_2
-## 
-## exclude       n       x       y 
-##      21      18     187     104 
-## 
-## $pap_pap_mt
-## 
-## exclude       n       x       y 
-##      21     168     126      15 
-## 
-## $pap_mt
-## 
-## exclude       n       x       y 
-##      21       1     293      15 
-## 
-## $pap_tv
-## 
-## exclude       n       x       y 
-##      21      15     159     135 
-## 
-## $c_pap_tv
-## 
-## exclude       n       x       y 
-##      21      52     171      86 
-## 
-## $pap_ntv_1
-## 
-## exclude       n       x       y 
-##      21      20     217      72 
-## 
-## $pap_ntv_2
-## 
-## exclude       n       x       y 
-##      21      20     217      72 
-## 
-## $pap_dv
-## 
-## exclude       y 
-##      21     309 
-## 
-## $c_pap_dv
-## 
-## exclude       n       y 
-##      21     131     178 
-## 
-## $pap_ndv_1
-## 
-## exclude       n       x       y 
-##      21       8      88     213 
-## 
-## $pap_ndv_2
-## 
-## exclude       n       x       y 
-##      21       8      88     213 
-## 
-## $pap_pap_mc
-## 
-## exclude       n       x       y 
-##      21     267      41       1 
-## 
-## $pap_mc
-## 
-## exclude       x       y 
-##      21     308       1 
-## 
-## $pap_cv
-## 
-## exclude       n       x       y 
-##      21      25      61     223 
-## 
-## $c_pap_cv
-## 
-## exclude       n       x       y 
-##      21      49      81     179 
-## 
-## $pap_ncv_1
-## 
-## exclude       n       x       y 
-##      21      44     153     112 
-## 
-## $pap_ncv_2
-## 
-## exclude       n       x       y 
-##      21      44     153     112 
-## 
-## $pap_dcp_1
-## 
-## exclude       n       y 
-##      21       3     306 
-## 
-## $pap_dcp_2
-## 
-## exclude       n       y 
-##      21       1     308 
-## 
-## $pap_pa
-## 
-## exclude       n       y 
-##      21      39     270 
-## 
-## $pap_iec_1
-## 
-## exclude       n       y 
-##      21       1     308 
-## 
-## $pap_imd_1
-## 
-## exclude       n       y 
-##      21      40     269 
-## 
-## $pap_imd_2
-## 
-## exclude       n       y 
-##      21      33     276 
-## 
-## $pap_sm_1
-## 
-## exclude       y 
-##      21     309 
-## 
-## $pap_sm_2
-## 
-## exclude       y 
-##      21     309 
-## 
-## $pap_sm_3
-## 
-## exclude       n       y 
-##      21      15     294 
-## 
-## $pap_vsa_1
-## 
-## exclude       n       y 
-##      21      31     278 
-## 
-## $pap_vsa_2
-## 
-## exclude       n       y 
-##      21      32     277 
-## 
-## $pap_vsa_3
-## 
-## exclude       n       y 
-##      21      34     275 
-## 
-## $pap_ic
-## 
-## exclude       n       y 
-##      21       1     308 
-## 
-## $match_mi1
-## 
-## exclude       n       x       y 
-##      21      15      35     259 
-## 
-## $match_iv1_0
-## 
-## exclude       n       x       y 
-##      21       8     174     127 
-## 
-## $match_iv1_1
-## 
-## exclude       n       x       y 
-##      21       8     179     122 
-## 
-## $match_iv1_2
-## 
-## exclude       n       x       y 
-##      21      10     188     111 
-## 
-## $match_iv1_3
-## 
-## exclude       n       x       y 
-##      21       7     258      44 
-## 
-## $match_mi2
-## 
-## exclude       n       x       y 
-##      21       4     175     130 
-## 
-## $match_iv2_0
-## 
-## exclude       n       x       y 
-##      21       3     239      67 
-## 
-## $match_iv2_1
-## 
-## exclude       n       x       y 
-##      21       2     243      64 
-## 
-## $match_iv2_2
-## 
-## exclude       n       x       y 
-##      21       3     250      56 
-## 
-## $match_iv2_3
-## 
-## exclude       n       x       y 
-##      21       2     287      20 
-## 
-## $match_mt
-## 
-## exclude       x       y 
-##      21     297      12 
-## 
-## $match_tv_0
-## 
-## exclude       n       x       y 
-##      21       2     288      19 
-## 
-## $match_tv_1
-## 
-## exclude       n       x       y 
-##      21       1     290      18 
-## 
-## $match_tv_2
-## 
-## exclude       n       x       y 
-##      21       2     292      15 
-## 
-## $match_tv_3
-## 
-## exclude       n       x       y 
-##      21       1     305       3 
-## 
-## $match_dv_0
-## 
-## exclude       n       x       y 
-##      21      12       2     295 
-## 
-## $match_dv_1
-## 
-## exclude       n       x       y 
-##      21      17      29     263 
-## 
-## $match_dv_2
-## 
-## exclude       n       x       y 
-##      21      17      32     260 
-## 
-## $match_dv_3
-## 
-## exclude       n       x       y 
-##      21       6     207      96 
-## 
-## $match_mc
-## 
-## exclude       n       x       y 
-##      21       3     275      31 
-## 
-## $match_cv_0
-## 
-## exclude       n       x       y 
-##      21       6     218      85 
-## 
-## $match_cv_1
-## 
-## exclude       n       x       y 
-##      21       2     232      75 
-## 
-## $match_cv_2
-## 
-## exclude       n       x       y 
-##      21       5     239      65 
-## 
-## $match_cv_3
-## 
-## exclude       n       x       y 
-##      21       3     286      20 
-## 
-## $match_dcp_1
-## 
-## exclude       n       y 
-##      21     161     148 
-## 
-## $match_dcp_2
-## 
-## exclude       n       x       y 
-##      21      36      34     239 
-## 
-## $match_iec_1
-## 
-## exclude       n       x       y 
-##      21      24      21     264 
-## 
-## $match_imd_1
-## 
-## exclude       n       x       y 
-##      21      37      61     211 
-## 
-## $match_imd_2
-## 
-## exclude       n       x       y 
-##      21      38      73     198 
-## 
-## $match_sm_1
-## 
-## exclude       n       x       y 
-##      21      24       1     284 
-## 
-## $match_sm_2
-## 
-## exclude       n       x       y 
-##      21      10       4     295 
-## 
-## $match_sm_3
-## 
-## exclude       n       x       y 
-##      21      36      35     238 
-## 
-## $match_vsa_1
-## 
-## exclude       n       x       y 
-##      21      21      64     224 
-## 
-## $match_vsa_2
-## 
-## exclude       n       x       y 
-##      21      27      71     211 
-## 
-## $match_vsa_3
-## 
-## exclude       n       x       y 
-##      21      26      70     213 
-## 
-## $match_ic
-## 
-## exclude       n       x       y 
-##      21       9      11     289</code></pre>
+#frequencies_categories_cleaned_exclude</code></pre>
+</div>
 <div id="kategorien-numeric-säubern" class="section level2">
 <h2>kategorien numeric säubern</h2>
 <pre class="r"><code># List of column names that need to be converted to numeric
@@ -2298,166 +541,930 @@ data_results_filtered_clean_exclude_numeric &lt;- data_results_filtered_clean_ex
 <pre class="r"><code># Check frequencies after cleaning
 frequencies_categories_cleaned_exclude_numeric &lt;- lapply(data_results_filtered_clean_exclude_numeric[categories_numeric], table)
 
-frequencies_categories_cleaned_exclude_numeric</code></pre>
-<pre><code>## $pre_dcp_1_text
-## 
-##     100    1000     102    1030     110    1100    1116      12     120  120.18 
-##      18       8       1       1       1       1       1       1       6       1 
-##    1200     125     126     128    1300     135    1350    1361     140    1400 
-##       1       1       2       3       1       1       1       1       3       1 
-##     146     149     150    1500     152     154      16     160    1600     165 
-##       1       1       7       2       1       1       2       7       1       1 
-##    1673     176     180     184     191     192      20     200    2000     203 
-##       1       1       2       1       1       2       1      19       2       1 
-##     212     216     220     223    2300     236      24     240     250    2500 
-##       1       1       1       1       1       1       2       5       8       1 
-##     257     260     264     270     280     282      30     300     302     310 
-##       1       2       1       3       3       1       1      18       1       1 
-##      32     328     330     336     339      34     343     345      35     350 
-##       1       2       1       2       1       1       1       1       1       8 
-##     352     360     372     386      40     400     410      43     450      46 
-##       1       1       2       1       3      14       1       1       1       1 
-##     460     473      48     480      49     492      50     500     518     524 
-##       1       1       4       1       1       1       5       7       1       1 
-##     531     554     570     575      58     580      60     600     620     630 
-##       1       1       1       1       1       1      11       8       3       1 
-##      72      75     750     775      79     791     799      80     800     824 
-##       1       1       1       1       1       1       1       2       2       2 
-##      84     851      88      90     900      92     930     972 exclude 
-##       1       1       2       4       2       1       1       1      44 
-## 
-## $pap_dcp_1_text
-## 
-##     100    1004    1006     101     103     104     106     107    1088    1111 
-##       9       1       1       2       1       3       1       2       2       1 
-##    1116     112     113     114     116      12     120     123    1230    1232 
-##       1       1       1       1       1       1       3       2       1       1 
-##    1252     126     127    1279     128    1295     136    1361     137     140 
-##       1       1       5       2       1       1       2       1       1       1 
-##    1400     141      15     150    1500     152     154    1547     157    1630 
-##       1       1       1       3       2       2       1       1       2       1 
-##     165     167    1673     168     170    1708     173     174    1747     179 
-##       2       3       2       2       1       1       1       2       1       1 
-##     180    1803     185     191     200     201     202     203     204     208 
-##       1       1       1       1       3       1       1       1       1       3 
-##     216     222     224     227    2274    2300     231     236     238      24 
-##       2       2       1       1       2       1       1       1       1       1 
-##     240     243     244     246     254      26     262     264     270     272 
-##       5       1       1       1       1       1       1       2       3       2 
-##     273     276     280     282     284     285    2898      29     291     295 
-##       1       1       1       1       1       1       1       1       1       2 
-##     296     298     301     302     305     306     307     308     309     312 
-##       1       1       1       1       1       1       1       1       1       1 
-##     314      32     320     324     325     329     332     335     339      34 
-##       1       1       1       1       2       1       1       1       1       1 
-##     342     350     351     352     356     366     372     374     375     379 
-##       2       2       1       1       1       1       1       1       2       1 
-##      38     383     386     398     399     400     401     403     404     406 
-##       2       1       1       1       1       4       1       1       1       1 
-##     407     408    4123     429      45      46     464     470     471     473 
-##       1       1       1       1       1       1       1       1       2       1 
-##      48     490     492     499      50     500     502     523     545      55 
-##       4       3       1       3       4       1       2       2       1       1 
-##     554      58     580     585      60     600     602     603      61     610 
-##       1       1       1       1       4       5       2       1       1       2 
-##     613     618      62      63     641     666      69      72     746     769 
-##       1       2       1       2       1       1       1       2       1       1 
-##     775      79     791     799      80     801      82     825     827     851 
-##       1       3       1       1       3       1       2       1       1       1 
-##      86      87     879     880     916     930      94      97     973     974 
-##       3       2       2       1       1       1       1       1       1       1 
-##      98     996 exclude 
-##       2       1      46 
-## 
-## $s_pre_iv
-## 
-##       0       1       2 exclude 
-##      10      19     250      51 
-## 
-## $s_pre_dv
-## 
-##       0       1       2 exclude 
-##       1       4     274      51 
-## 
-## $s_pre_dcp
-## 
-##       0       1       2 exclude 
-##       2      17     260      51 
-## 
-## $s_pre_smu
-## 
-##       1       2 exclude 
-##      48     231      51 
-## 
-## $s_pre_sic
-## 
-##       0       1       2 exclude 
-##       1      33     245      51 
-## 
-## $s_pap_iv
-## 
-##       0       1       2 exclude 
-##       7      15     257      51 
-## 
-## $s_pap_dv
-## 
-##       0       1       2 exclude 
-##       2       2     275      51 
-## 
-## $s_pap_dcp
-## 
-##       1       2 exclude 
-##       8     271      51 
-## 
-## $s_pap_smu
-## 
-##       1       2 exclude 
-##      32     246      52 
-## 
-## $s_pap_sic
-## 
-##       1       2 exclude 
-##      27     251      52 
-## 
-## $prompt_version_a_strictness_prereg
-## 
-##       1       2 exclude 
-##      10      20     300 
-## 
-## $prompt_version_a_strictness_pubstud
-## 
-##       2 exclude 
-##      30     300 
-## 
-## $con_iv
-## 
-##       0       1 exclude 
-##      17     262      51 
-## 
-## $con_dv
-## 
-##       0       1 exclude 
-##      20     259      51 
-## 
-## $con_dcp
-## 
-##       0       1 exclude 
-##     159     120      51 
-## 
-## $con_smu
-## 
-##       0       1 exclude 
-##      38     240      52 
-## 
-## $con_sic
-## 
-##       0       1 exclude 
-##      14     260      56 
-## 
-## $global_consistency_esimate
-## 
-##     1.5     2.5       3     3.5       4     4.5     4.8     4.9       5 exclude 
-##       1       1       1       8       2       5       5       1       6     300</code></pre>
+#frequencies_categories_cleaned_exclude_numeric</code></pre>
+</div>
+<div id="finish-data_results_finito" class="section level2">
+<h2>finish data_results_finito</h2>
+<pre class="r"><code># Ändere die Werte &quot;v4&quot; und &quot;V4&quot; in der Spalte prompt_version zu &quot;D&quot;
+data_results_finito &lt;- data_results_filtered_clean_exclude_numeric %&gt;%
+  mutate(prompt_version = ifelse(prompt_version %in% c(&quot;v4&quot;, &quot;V4&quot;), &quot;D&quot;, prompt_version))
+
+# Neue Spalte master_exclude hinzufügen und standardmäßig auf &quot;include&quot; setzen
+data_results_finito &lt;- data_results_finito %&gt;%
+  mutate(master_exclude = ifelse(is.na(date_gpt), &quot;exclude&quot;, &quot;include&quot;))</code></pre>
+</div>
+</div>
+<div id="clean-olmos-data" class="section level1">
+<h1>clean olmos data</h1>
+<div id="read-olmos-data" class="section level2">
+<h2>read olmos data</h2>
+<pre class="r"><code>DATA_olmo_raw &lt;- read_excel(&quot;../data/Data Preregistration Effectiveness.xlsx&quot;) |&gt;
+  janitor::clean_names()</code></pre>
+<pre><code>## New names:
+## • `` -&gt; `...310`
+## • `` -&gt; `...311`
+## • `` -&gt; `...312`
+## • `` -&gt; `...313`</code></pre>
+<pre class="r"><code>data_olmo_raw &lt;- DATA_olmo_raw[seq(3, nrow(DATA_olmo_raw), 3), ] # select only reconciled data</code></pre>
+</div>
+<div id="select-only-wanted-colums" class="section level2">
+<h2>select only wanted colums</h2>
+<pre class="r"><code>olmo_selected_columns &lt;- c(
+  &quot;psp&quot;, &quot;coder&quot;, &quot;pre_pre_mi1&quot;, &quot;pre_mi1&quot;, &quot;pre_iv1&quot;, &quot;c_pre_iv1&quot;, &quot;pre_niv1_1&quot;, 
+  &quot;pre_niv1_2&quot;, &quot;pre_niv1_3&quot;, &quot;pre_pre_mi2&quot;, &quot;pre_mi2&quot;, &quot;pre_iv2&quot;, &quot;c_pre_iv2&quot;, 
+  &quot;pre_niv2_1&quot;, &quot;pre_niv2_2&quot;, &quot;pre_niv2_3&quot;, &quot;pre_pre_mt&quot;, &quot;pre_mt&quot;, &quot;pre_tv&quot;, 
+  &quot;c_pre_tv&quot;, &quot;pre_ntv_1&quot;, &quot;pre_ntv_2&quot;, &quot;pre_ntv_3&quot;, &quot;pre_dv&quot;, &quot;c_pre_dv&quot;, 
+  &quot;pre_ndv_1&quot;, &quot;pre_ndv_2&quot;, &quot;pre_ndv_3&quot;, &quot;pre_pre_mc&quot;, &quot;pre_mc&quot;, &quot;pre_cv&quot;, 
+  &quot;c_pre_cv&quot;, &quot;pre_ncv_1&quot;, &quot;pre_ncv_2&quot;, &quot;pre_ncv_3&quot;, &quot;pre_dcp_1&quot;, &quot;pre_dcp_2&quot;, 
+  &quot;pre_dcp_3&quot;, &quot;pre_dcp_1_text&quot;, &quot;pre_pa&quot;, &quot;pre_iec&quot;, 
+  &quot;pre_imd_1&quot;, &quot;pre_imd_2&quot;, &quot;pre_imd_3&quot;,
+  &quot;pre_sm_1&quot;, &quot;pre_sm_2&quot;, &quot;pre_sm_3&quot;, &quot;pre_sm_4&quot;, &quot;pre_vsa_1&quot;, &quot;pre_vsa_2&quot;, 
+  &quot;pre_vsa_3&quot;, &quot;pre_vsa_4&quot;, &quot;pre_ic&quot;, &quot;pap_pap_mi1&quot;, &quot;pap_mi1&quot;, &quot;pap_iv1&quot;, &quot;c_pap_iv1&quot;, 
+  &quot;pap_niv1_1&quot;, &quot;pap_niv1_2&quot;, &quot;pap_niv1_3&quot;, &quot;pap_pap_mi2&quot;, &quot;pap_mi2&quot;, &quot;pap_iv2&quot;, 
+  &quot;c_pap_iv2&quot;, &quot;pap_niv2_1&quot;, &quot;pap_niv2_2&quot;, &quot;pap_niv2_3&quot;, &quot;pap_pap_mt&quot;, &quot;pap_mt&quot;, 
+  &quot;pap_tv&quot;, &quot;c_pap_tv&quot;, &quot;pap_ntv_1&quot;, &quot;pap_ntv_2&quot;, &quot;pap_ntv_3&quot;, &quot;pap_dv&quot;, &quot;c_pap_dv&quot;, 
+  &quot;pap_ndv_1&quot;, &quot;pap_ndv_2&quot;, &quot;pap_ndv_3&quot;, &quot;pap_pap_mc&quot;, &quot;pap_mc&quot;, &quot;pap_cv&quot;, &quot;c_pap_cv&quot;, 
+  &quot;pap_ncv_1&quot;, &quot;pap_ncv_2&quot;, &quot;pap_ncv_3&quot;, &quot;pap_dcp_1&quot;, &quot;pap_dcp_2&quot;, &quot;pap_dcp_3&quot;, 
+  &quot;pap_dcp_1_text&quot;, &quot;pap_pa&quot;, &quot;pap_iec&quot;,
+  &quot;pap_imd_1&quot;, &quot;pap_imd_2&quot;, &quot;pap_imd_3&quot;, &quot;pap_sm_1&quot;, 
+  &quot;pap_sm_2&quot;, &quot;pap_sm_3&quot;, &quot;pap_sm_4&quot;, &quot;pap_vsa_1&quot;, &quot;pap_vsa_2&quot;, &quot;pap_vsa_3&quot;, 
+  &quot;pap_vsa_4&quot;, &quot;pap_ic&quot;, &quot;match_mi1&quot;, &quot;match_iv1_0&quot;, &quot;match_iv1_1&quot;, &quot;match_iv1_2&quot;, 
+  &quot;match_iv1_3&quot;, &quot;match_iv1_4&quot;, &quot;match_mi2&quot;, &quot;match_iv2_0&quot;, &quot;match_iv2_1&quot;, 
+  &quot;match_iv2_2&quot;, &quot;match_iv2_3&quot;, &quot;match_iv2_4&quot;, &quot;match_mt&quot;, &quot;match_tv_0&quot;, 
+  &quot;match_tv_1&quot;, &quot;match_tv_2&quot;, &quot;match_tv_3&quot;, &quot;match_tv_4&quot;, &quot;match_dv_0&quot;, &quot;match_dv_1&quot;, 
+  &quot;match_dv_2&quot;, &quot;match_dv_3&quot;, &quot;match_dv_4&quot;, &quot;match_mc&quot;, &quot;match_cv_0&quot;, &quot;match_cv_1&quot;, 
+  &quot;match_cv_2&quot;, &quot;match_cv_3&quot;, &quot;match_cv_4&quot;, &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, 
+  &quot;match_dcp_3&quot;, &quot;match_iec&quot;, 
+  &quot;match_imd_1&quot;, &quot;match_imd_2&quot;, &quot;match_imd_3&quot;,&quot;match_sm_1&quot;, 
+  &quot;match_sm_2&quot;, &quot;match_sm_3&quot;, &quot;match_sm_4&quot;, &quot;match_vsa_1&quot;, &quot;match_vsa_2&quot;, 
+  &quot;match_vsa_3&quot;, &quot;match_vsa_4&quot;, &quot;match_ic&quot;
+)
+
+
+data_olmo_raw_selected &lt;- data_olmo_raw %&gt;%
+  select(all_of(olmo_selected_columns)) 
+
+
+#✖ Columns `pre_iec_1`, `pap_iec_1`, and `match_iec_1` don&#39;t exist.!!!!</code></pre>
+</div>
+<div id="mutate-answers" class="section level2">
+<h2>mutate answers</h2>
+<div id="renaming" class="section level3">
+<h3>renaming</h3>
+<pre class="r"><code># Liste der Datentypen aller Variablen
+sapply(data_olmo_raw_selected, class)</code></pre>
+<pre><code>##            psp          coder    pre_pre_mi1        pre_mi1        pre_iv1 
+##      &quot;numeric&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      c_pre_iv1     pre_niv1_1     pre_niv1_2     pre_niv1_3    pre_pre_mi2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##        pre_mi2        pre_iv2      c_pre_iv2     pre_niv2_1     pre_niv2_2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##     pre_niv2_3     pre_pre_mt         pre_mt         pre_tv       c_pre_tv 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      pre_ntv_1      pre_ntv_2      pre_ntv_3         pre_dv       c_pre_dv 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      pre_ndv_1      pre_ndv_2      pre_ndv_3     pre_pre_mc         pre_mc 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##         pre_cv       c_pre_cv      pre_ncv_1      pre_ncv_2      pre_ncv_3 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      pre_dcp_1      pre_dcp_2      pre_dcp_3 pre_dcp_1_text         pre_pa 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##        pre_iec      pre_imd_1      pre_imd_2      pre_imd_3       pre_sm_1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##       pre_sm_2       pre_sm_3       pre_sm_4      pre_vsa_1      pre_vsa_2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      pre_vsa_3      pre_vsa_4         pre_ic    pap_pap_mi1        pap_mi1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##        pap_iv1      c_pap_iv1     pap_niv1_1     pap_niv1_2     pap_niv1_3 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##    pap_pap_mi2        pap_mi2        pap_iv2      c_pap_iv2     pap_niv2_1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##     pap_niv2_2     pap_niv2_3     pap_pap_mt         pap_mt         pap_tv 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##       c_pap_tv      pap_ntv_1      pap_ntv_2      pap_ntv_3         pap_dv 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;      &quot;logical&quot;    &quot;character&quot; 
+##       c_pap_dv      pap_ndv_1      pap_ndv_2      pap_ndv_3     pap_pap_mc 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##         pap_mc         pap_cv       c_pap_cv      pap_ncv_1      pap_ncv_2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      pap_ncv_3      pap_dcp_1      pap_dcp_2      pap_dcp_3 pap_dcp_1_text 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##         pap_pa        pap_iec      pap_imd_1      pap_imd_2      pap_imd_3 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##       pap_sm_1       pap_sm_2       pap_sm_3       pap_sm_4      pap_vsa_1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      pap_vsa_2      pap_vsa_3      pap_vsa_4         pap_ic      match_mi1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##    match_iv1_0    match_iv1_1    match_iv1_2    match_iv1_3    match_iv1_4 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##      match_mi2    match_iv2_0    match_iv2_1    match_iv2_2    match_iv2_3 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##    match_iv2_4       match_mt     match_tv_0     match_tv_1     match_tv_2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##     match_tv_3     match_tv_4     match_dv_0     match_dv_1     match_dv_2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##     match_dv_3     match_dv_4       match_mc     match_cv_0     match_cv_1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##     match_cv_2     match_cv_3     match_cv_4    match_dcp_1    match_dcp_2 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##    match_dcp_3      match_iec    match_imd_1    match_imd_2    match_imd_3 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##     match_sm_1     match_sm_2     match_sm_3     match_sm_4    match_vsa_1 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
+##    match_vsa_2    match_vsa_3    match_vsa_4       match_ic 
+##    &quot;character&quot;    &quot;character&quot;      &quot;logical&quot;    &quot;character&quot;</code></pre>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_raw_selected %&gt;%
+  mutate_if(is.character, ~ case_when(
+    . == &quot;No&quot; ~ &quot;n&quot;,
+    . == &quot;Yes&quot; ~ &quot;y&quot;,
+    . == &quot;Composite&quot; ~ &quot;y&quot;,
+    . == &quot;Non-composite&quot; ~ &quot;n&quot;,
+    . == &quot;Yes, procedure&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, values&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, sample size&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, sampling frame&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, definition&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, model&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, variables&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, details&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, which&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, how&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, deal&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, specification&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, construction&quot; ~ &quot;y&quot;,
+    . == &quot;Yes, method&quot; ~ &quot;y&quot;,
+    TRUE ~ .
+  ))</code></pre>
+</div>
+<div id="possibilities" class="section level3">
+<h3>2 possibilities</h3>
+<p>for defining what counts as an x (because an answer is not
+applicable) or as an “n” there are many dependencies to account for, and
+two main possibilities:</p>
+<ol style="list-style-type: lower-alpha">
+<li>desribe all dependencies:</li>
+</ol>
+<ul>
+<li>if pre_pre_mi1 = n then NA of pre_mi1 -&gt; x</li>
+<li>if pre_pre_mi1 = y then NA of pre_iv1, c_pre_iv1, pre_niv1_1,
+pre_niv1_2, pre_niv1_3 -&gt; x</li>
+<li>if pre_pre_mi1 = n &amp; c_pre_iv1 = y then NA of pre_niv1_1,
+pre_niv1_2, pre_niv1_3 -&gt; x</li>
+<li>if pre_iv1 = n then NA of c_pre_iv1, pre_niv1_1, pre_niv1_2,
+pre_niv1_3 -&gt; x</li>
+<li>if pre_niv1_3 = no,none then NA of pre_niv1_1, pre_niv1_2 -&gt;
+n</li>
+<li>if pre_niv1_1 or pre_niv1_2 = y then NA of pre_niv1_1 or pre_niv1_2
+-&gt; n</li>
+</ul>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>simpler version</li>
+</ol>
+<ul>
+<li>if NA -&gt; x</li>
+</ul>
+<p>except if</p>
+<ul>
+<li>if pre_niv1_3 = no,none then NA of pre_niv1_1, pre_niv1_2 -&gt;
+n</li>
+<li>if pre_niv1_1 or pre_niv1_2 = y then NA of pre_niv1_1 or pre_niv1_2
+-&gt; n</li>
+</ul>
+</div>
+<div id="iv-1" class="section level3">
+<h3>IV 1</h3>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_niv1_1 = case_when(
+      pre_niv1_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_niv1_1) ~ &quot;n&quot;, 
+      pre_niv1_2 == &quot;y&quot; &amp; is.na(pre_niv1_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_niv1_1                    
+    ),
+    
+    pre_niv1_2 = case_when(
+      pre_niv1_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_niv1_2) ~ &quot;n&quot;, 
+      pre_niv1_1 == &quot;y&quot; &amp; is.na(pre_niv1_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_niv1_2                    
+    ),
+    
+    pre_pre_mi1 = ifelse(is.na(pre_pre_mi1), &quot;x&quot;, pre_pre_mi1),
+    pre_mi1 = ifelse(is.na(pre_mi1), &quot;x&quot;, pre_mi1),
+    pre_iv1 = ifelse(is.na(pre_iv1), &quot;x&quot;, pre_iv1),
+    c_pre_iv1 = ifelse(is.na(c_pre_iv1), &quot;x&quot;, c_pre_iv1),
+    pre_niv1_1 = ifelse(is.na(pre_niv1_1), &quot;x&quot;, pre_niv1_1),
+    pre_niv1_2 = ifelse(is.na(pre_niv1_2), &quot;x&quot;, pre_niv1_2)
+    # pre_niv1_3 = ifelse(is.na(pre_niv1_3), &quot;x&quot;, pre_niv1_3)
+)</code></pre>
+</div>
+</div>
+<div id="iv-2" class="section level2">
+<h2>IV 2</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_niv2_1 = case_when(
+      pre_niv2_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_niv2_1) ~ &quot;n&quot;, 
+      pre_niv2_2 == &quot;y&quot; &amp; is.na(pre_niv2_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_niv2_1                    
+    ),
+    
+    pre_niv2_2 = case_when(
+      pre_niv2_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_niv2_2) ~ &quot;n&quot;, 
+      pre_niv2_1 == &quot;y&quot; &amp; is.na(pre_niv2_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_niv2_2                    
+    ),
+    
+    pre_pre_mi2 = ifelse(is.na(pre_pre_mi2), &quot;x&quot;, pre_pre_mi2),
+    pre_mi2 = ifelse(is.na(pre_mi2), &quot;x&quot;, pre_mi2),
+    pre_iv2 = ifelse(is.na(pre_iv2), &quot;x&quot;, pre_iv2),
+    c_pre_iv2 = ifelse(is.na(c_pre_iv2), &quot;x&quot;, c_pre_iv2),
+    pre_niv2_1 = ifelse(is.na(pre_niv2_1), &quot;x&quot;, pre_niv2_1),
+    pre_niv2_2 = ifelse(is.na(pre_niv2_2), &quot;x&quot;, pre_niv2_2)
+    # pre_niv2_3 = ifelse(is.na(pre_niv2_3), &quot;x&quot;, pre_niv2_3)
+)</code></pre>
+</div>
+<div id="tv" class="section level2">
+<h2>TV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_ntv_1 = case_when(
+      pre_ntv_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_ntv_1) ~ &quot;n&quot;, 
+      pre_ntv_2 == &quot;y&quot; &amp; is.na(pre_ntv_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_ntv_1                    
+    ),
+ 
+    pre_ntv_2 = case_when(
+      pre_ntv_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_ntv_2) ~ &quot;n&quot;, 
+      pre_ntv_1 == &quot;y&quot; &amp; is.na(pre_ntv_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_ntv_2                    
+    ),
+
+    pre_pre_mt = ifelse(is.na(pre_pre_mt), &quot;x&quot;, pre_pre_mt),
+    pre_mt = ifelse(is.na(pre_mt), &quot;x&quot;, pre_mt),
+    pre_tv = ifelse(is.na(pre_tv), &quot;x&quot;, pre_tv),
+    c_pre_tv = ifelse(is.na(c_pre_tv), &quot;x&quot;, c_pre_tv),
+    pre_ntv_1 = ifelse(is.na(pre_ntv_1), &quot;x&quot;, pre_ntv_1),
+    pre_ntv_2 = ifelse(is.na(pre_ntv_2), &quot;x&quot;, pre_ntv_2)
+    # pre_ntv_3 = ifelse(is.na(pre_ntv_3), &quot;x&quot;, pre_ntv_3)
+)</code></pre>
+</div>
+<div id="dv" class="section level2">
+<h2>DV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_ndv_1 = case_when(
+      pre_ndv_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_ndv_1) ~ &quot;n&quot;, 
+      pre_ndv_2 == &quot;y&quot; &amp; is.na(pre_ndv_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_ndv_1                    
+    ),
+    
+    pre_ndv_2 = case_when(
+      pre_ndv_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_ndv_2) ~ &quot;n&quot;, 
+      pre_ndv_1 == &quot;y&quot; &amp; is.na(pre_ndv_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_ndv_2                    
+    ),
+    
+    pre_dv = ifelse(is.na(pre_dv), &quot;x&quot;, pre_dv),
+    c_pre_dv = ifelse(is.na(c_pre_dv), &quot;x&quot;, c_pre_dv),
+    pre_ndv_1 = ifelse(is.na(pre_ndv_1), &quot;x&quot;, pre_ndv_1),
+    pre_ndv_2 = ifelse(is.na(pre_ndv_2), &quot;x&quot;, pre_ndv_2)
+    # pre_ndv_3 = ifelse(is.na(pre_ndv_3), &quot;x&quot;, pre_ndv_3)
+)</code></pre>
+</div>
+<div id="cv" class="section level2">
+<h2>CV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_ncv_1 = case_when(
+      pre_ncv_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_ncv_1) ~ &quot;n&quot;, 
+      pre_ncv_2 == &quot;y&quot; &amp; is.na(pre_ncv_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_ncv_1                    
+    ),
+    
+    pre_ncv_2 = case_when(
+      pre_ncv_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_ncv_2) ~ &quot;n&quot;, 
+      pre_ncv_1 == &quot;y&quot; &amp; is.na(pre_ncv_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_ncv_2                    
+    ),
+    
+    pre_pre_mc = ifelse(is.na(pre_pre_mc), &quot;x&quot;, pre_pre_mc),
+    pre_mc = ifelse(is.na(pre_mc), &quot;x&quot;, pre_mc),
+    pre_cv = ifelse(is.na(pre_cv), &quot;x&quot;, pre_cv),
+    c_pre_cv = ifelse(is.na(c_pre_cv), &quot;x&quot;, c_pre_cv),
+    pre_ncv_1 = ifelse(is.na(pre_ncv_1), &quot;x&quot;, pre_ncv_1),
+    pre_ncv_2 = ifelse(is.na(pre_ncv_2), &quot;x&quot;, pre_ncv_2)
+    # pre_ncv_3 = ifelse(is.na(pre_ncv_3), &quot;x&quot;, pre_ncv_3)
+)</code></pre>
+</div>
+<div id="dcp" class="section level2">
+<h2>DCP</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_dcp_1 = case_when(
+      pre_dcp_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_dcp_1) ~ &quot;n&quot;, 
+      pre_dcp_2 == &quot;y&quot; &amp; is.na(pre_dcp_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_dcp_1                   
+    ),
+    
+    pre_dcp_2 = case_when(
+      pre_dcp_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_dcp_2) ~ &quot;n&quot;, 
+      pre_dcp_1 == &quot;y&quot; &amp; is.na(pre_dcp_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_dcp_2                    
+    ),
+
+    pre_dcp_1 = ifelse(is.na(pre_dcp_1), &quot;x&quot;, pre_dcp_1),
+    pre_dcp_2 = ifelse(is.na(pre_dcp_2), &quot;x&quot;, pre_dcp_2)
+    # pre_dcp_3 = ifelse(is.na(pre_dcp_3), &quot;x&quot;, pre_dcp_3)
+)</code></pre>
+</div>
+<div id="paiecimd" class="section level2">
+<h2>PA/IEC/IMD</h2>
+<p>achtung pre_iec (pre_iec_1) hatte eine andere Beschriftung im
+variabel-lexikon von olmo, und nur yes, deshalb eventuell später
+droppen</p>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_imd_1 = case_when(
+      pre_imd_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_imd_1) ~ &quot;n&quot;, 
+      pre_imd_2 == &quot;y&quot; &amp; is.na(pre_imd_1) ~ &quot;n&quot;,                         
+      TRUE ~ pre_imd_1                   
+    ),
+    
+    pre_imd_2 = case_when(
+      pre_imd_3 == &quot;No, none of the elements&quot; &amp; is.na(pre_imd_2) ~ &quot;n&quot;, 
+      pre_imd_1 == &quot;y&quot; &amp; is.na(pre_imd_2) ~ &quot;n&quot;,                         
+      TRUE ~ pre_imd_2                    
+    ),
+    
+    pre_pa = ifelse(is.na(pre_pa), &quot;x&quot;, pre_pa),
+    pre_iec = ifelse(is.na(pre_iec), &quot;x&quot;, pre_iec),
+    pre_imd_1 = ifelse(is.na(pre_imd_1), &quot;x&quot;, pre_imd_1),
+    pre_imd_2 = ifelse(is.na(pre_imd_2), &quot;x&quot;, pre_imd_2)
+    # pre_imd_3 = ifelse(is.na(pre_imd_3), &quot;x&quot;, pre_imd_3)
+)</code></pre>
+</div>
+<div id="sm" class="section level2">
+<h2>SM</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_sm_1 = case_when(
+      pre_sm_4 == &quot;No, none of the elements&quot; &amp; is.na(pre_sm_1) ~ &quot;n&quot;,  
+      (pre_sm_2 == &quot;y&quot; | pre_sm_3 == &quot;y&quot;) &amp; is.na(pre_sm_1) ~ &quot;n&quot;,       
+      TRUE ~ pre_sm_1                   
+    ),
+    
+    pre_sm_2 = case_when(
+      pre_sm_4 == &quot;No, none of the elements&quot; &amp; is.na(pre_sm_2) ~ &quot;n&quot;,  
+      (pre_sm_1 == &quot;y&quot; | pre_sm_3 == &quot;y&quot;) &amp; is.na(pre_sm_2) ~ &quot;n&quot;,       
+      TRUE ~ pre_sm_2                        
+    ),
+    
+    pre_sm_3 = case_when(
+      pre_sm_4 == &quot;No, none of the elements&quot; &amp; is.na(pre_sm_3) ~ &quot;n&quot;,  
+      (pre_sm_1 == &quot;y&quot; | pre_sm_2 == &quot;y&quot;) &amp; is.na(pre_sm_3) ~ &quot;n&quot;,       
+      TRUE ~ pre_sm_3                       
+    ),
+
+    pre_sm_1 = ifelse(is.na(pre_sm_1), &quot;x&quot;, pre_sm_1),
+    pre_sm_2 = ifelse(is.na(pre_sm_2), &quot;x&quot;, pre_sm_2),
+    pre_sm_3 = ifelse(is.na(pre_sm_3), &quot;x&quot;, pre_sm_3)
+    # pre_sm_4 = ifelse(is.na(pre_sm_4), &quot;x&quot;, pre_sm_4)
+)</code></pre>
+</div>
+<div id="ic-vsa" class="section level2">
+<h2>ic /vsa</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pre_vsa_1 = case_when(
+      pre_vsa_4 == &quot;No, none of the elements&quot; &amp; is.na(pre_vsa_1) ~ &quot;n&quot;,  
+      (pre_vsa_2 == &quot;y&quot; | pre_vsa_3 == &quot;y&quot;) &amp; is.na(pre_vsa_1) ~ &quot;n&quot;,       
+      TRUE ~ pre_vsa_1                    
+    ),
+    
+    pre_vsa_2 = case_when(
+      pre_vsa_4 == &quot;No, none of the elements&quot; &amp; is.na(pre_vsa_2) ~ &quot;n&quot;,  
+      (pre_vsa_1 == &quot;y&quot; | pre_vsa_3 == &quot;y&quot;) &amp; is.na(pre_vsa_2) ~ &quot;n&quot;,       
+      TRUE ~ pre_vsa_2                    
+    ),
+    
+    pre_vsa_3 = case_when(
+      pre_vsa_4 == &quot;No, none of the elements&quot; &amp; is.na(pre_vsa_3) ~ &quot;n&quot;,  
+      (pre_vsa_1 == &quot;y&quot; | pre_vsa_2 == &quot;y&quot;) &amp; is.na(pre_vsa_3) ~ &quot;n&quot;,       
+      TRUE ~ pre_vsa_3                    
+    ),
+    
+    pre_ic = ifelse(is.na(pre_ic), &quot;x&quot;, pre_ic),
+    pre_vsa_1 = ifelse(is.na(pre_vsa_1), &quot;x&quot;, pre_vsa_1),
+    pre_vsa_2 = ifelse(is.na(pre_vsa_2), &quot;x&quot;, pre_vsa_2),
+    pre_vsa_3 = ifelse(is.na(pre_vsa_3), &quot;x&quot;, pre_vsa_3)
+    # pre_vsa_4 = ifelse(is.na(pre_vsa_4), &quot;x&quot;, pre_vsa_4)
+)</code></pre>
+</div>
+</div>
+<div id="pap-mutation" class="section level1">
+<h1>PAP mutation</h1>
+<div id="iv-1-1" class="section level2">
+<h2>IV 1</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_niv1_1 = case_when(
+      pap_niv1_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_niv1_1) ~ &quot;n&quot;, 
+      pap_niv1_2 == &quot;y&quot; &amp; is.na(pap_niv1_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_niv1_1                   
+    ),
+    
+    pap_niv1_2 = case_when(
+      pap_niv1_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_niv1_2) ~ &quot;n&quot;, 
+      pap_niv1_1 == &quot;y&quot; &amp; is.na(pap_niv1_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_niv1_2                    
+    ),
+    
+    pap_pap_mi1 = ifelse(is.na(pap_pap_mi1), &quot;x&quot;, pap_pap_mi1),
+    pap_mi1 = ifelse(is.na(pap_mi1), &quot;x&quot;, pap_mi1),
+    pap_iv1 = ifelse(is.na(pap_iv1), &quot;x&quot;, pap_iv1),
+    c_pap_iv1 = ifelse(is.na(c_pap_iv1), &quot;x&quot;, c_pap_iv1),
+    pap_niv1_1 = ifelse(is.na(pap_niv1_1), &quot;x&quot;, pap_niv1_1),
+    pap_niv1_2 = ifelse(is.na(pap_niv1_2), &quot;x&quot;, pap_niv1_2)
+    # pap_niv1_3 = ifelse(is.na(pap_niv1_3), &quot;x&quot;, pap_niv1_3)
+)</code></pre>
+</div>
+<div id="iv-2-1" class="section level2">
+<h2>IV 2</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_niv2_1 = case_when(
+      pap_niv2_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_niv2_1) ~ &quot;n&quot;, 
+      pap_niv2_2 == &quot;y&quot; &amp; is.na(pap_niv2_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_niv2_1                   
+    ),
+    
+    pap_niv2_2 = case_when(
+      pap_niv2_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_niv2_2) ~ &quot;n&quot;, 
+      pap_niv2_1 == &quot;y&quot; &amp; is.na(pap_niv2_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_niv2_2                    
+    ),
+    
+    pap_pap_mi2 = ifelse(is.na(pap_pap_mi2), &quot;x&quot;, pap_pap_mi2),
+    pap_mi2 = ifelse(is.na(pap_mi2), &quot;x&quot;, pap_mi2),
+    pap_iv2 = ifelse(is.na(pap_iv2), &quot;x&quot;, pap_iv2),
+    c_pap_iv2 = ifelse(is.na(c_pap_iv2), &quot;x&quot;, c_pap_iv2),
+    pap_niv2_1 = ifelse(is.na(pap_niv2_1), &quot;x&quot;, pap_niv2_1),
+    pap_niv2_2 = ifelse(is.na(pap_niv2_2), &quot;x&quot;, pap_niv2_2)
+    # pap_niv2_3 = ifelse(is.na(pap_niv2_3), &quot;x&quot;, pap_niv2_3)
+)</code></pre>
+</div>
+<div id="tv-1" class="section level2">
+<h2>TV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_ntv_1 = case_when(
+      pap_ntv_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_ntv_1) ~ &quot;n&quot;, 
+      pap_ntv_2 == &quot;y&quot; &amp; is.na(pap_ntv_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_ntv_1                   
+    ),
+
+    pap_ntv_2 = case_when(
+      pap_ntv_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_ntv_2) ~ &quot;n&quot;, 
+      pap_ntv_1 == &quot;y&quot; &amp; is.na(pap_ntv_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_ntv_2                    
+    ),
+
+    pap_pap_mt = ifelse(is.na(pap_pap_mt), &quot;x&quot;, pap_pap_mt),
+    pap_mt = ifelse(is.na(pap_mt), &quot;x&quot;, pap_mt),
+    pap_tv = ifelse(is.na(pap_tv), &quot;x&quot;, pap_tv),
+    c_pap_tv = ifelse(is.na(c_pap_tv), &quot;x&quot;, c_pap_tv),
+    pap_ntv_1 = ifelse(is.na(pap_ntv_1), &quot;x&quot;, pap_ntv_1),
+    pap_ntv_2 = ifelse(is.na(pap_ntv_2), &quot;x&quot;, pap_ntv_2)
+    # pap_ntv_3 = ifelse(is.na(pap_ntv_3), &quot;x&quot;, pap_ntv_3)
+)</code></pre>
+</div>
+<div id="dv-1" class="section level2">
+<h2>dv</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_ndv_1 = case_when(
+      pap_ndv_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_ndv_1) ~ &quot;n&quot;, 
+      pap_ndv_2 == &quot;y&quot; &amp; is.na(pap_ndv_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_ndv_1                   
+    ),
+    
+    pap_ndv_2 = case_when(
+      pap_ndv_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_ndv_2) ~ &quot;n&quot;, 
+      pap_ndv_1 == &quot;y&quot; &amp; is.na(pap_ndv_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_ndv_2                    
+    ),
+    
+    pap_dv = ifelse(is.na(pap_dv), &quot;x&quot;, pap_dv),
+    c_pap_dv = ifelse(is.na(c_pap_dv), &quot;x&quot;, c_pap_dv),
+    pap_ndv_1 = ifelse(is.na(pap_ndv_1), &quot;x&quot;, pap_ndv_1),
+    pap_ndv_2 = ifelse(is.na(pap_ndv_2), &quot;x&quot;, pap_ndv_2)
+    # pap_ndv_3 = ifelse(is.na(pap_ndv_3), &quot;x&quot;, pap_ndv_3)
+)</code></pre>
+</div>
+<div id="cv-1" class="section level2">
+<h2>CV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_ncv_1 = case_when(
+      pap_ncv_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_ncv_1) ~ &quot;n&quot;, 
+      pap_ncv_2 == &quot;y&quot; &amp; is.na(pap_ncv_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_ncv_1                   
+    ),
+    
+    pap_ncv_2 = case_when(
+      pap_ncv_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_ncv_2) ~ &quot;n&quot;, 
+      pap_ncv_1 == &quot;y&quot; &amp; is.na(pap_ncv_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_ncv_2                    
+    ),
+    
+    pap_pap_mc = ifelse(is.na(pap_pap_mc), &quot;x&quot;, pap_pap_mc),
+    pap_mc = ifelse(is.na(pap_mc), &quot;x&quot;, pap_mc),
+    pap_cv = ifelse(is.na(pap_cv), &quot;x&quot;, pap_cv),
+    c_pap_cv = ifelse(is.na(c_pap_cv), &quot;x&quot;, c_pap_cv),
+    pap_ncv_1 = ifelse(is.na(pap_ncv_1), &quot;x&quot;, pap_ncv_1),
+    pap_ncv_2 = ifelse(is.na(pap_ncv_2), &quot;x&quot;, pap_ncv_2)
+    # pap_ncv_3 = ifelse(is.na(pap_ncv_3), &quot;x&quot;, pap_ncv_3)
+)</code></pre>
+</div>
+<div id="dcp-1" class="section level2">
+<h2>DCP</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_dcp_1 = case_when(
+      pap_dcp_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_dcp_1) ~ &quot;n&quot;, 
+      pap_dcp_2 == &quot;y&quot; &amp; is.na(pap_dcp_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_dcp_1                   
+    ),
+    
+    pap_dcp_2 = case_when(
+      pap_dcp_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_dcp_2) ~ &quot;n&quot;, 
+      pap_dcp_1 == &quot;y&quot; &amp; is.na(pap_dcp_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_dcp_2                    
+    ),
+
+    pap_dcp_1 = ifelse(is.na(pap_dcp_1), &quot;x&quot;, pap_dcp_1),
+    pap_dcp_2 = ifelse(is.na(pap_dcp_2), &quot;x&quot;, pap_dcp_2)
+    # pap_dcp_3 = ifelse(is.na(pap_dcp_3), &quot;x&quot;, pap_dcp_3)
+)</code></pre>
+</div>
+<div id="paiecimd-1" class="section level2">
+<h2>PA/IEC/IMD</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_imd_1 = case_when(
+      pap_imd_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_imd_1) ~ &quot;n&quot;, 
+      pap_imd_2 == &quot;y&quot; &amp; is.na(pap_imd_1) ~ &quot;n&quot;,                         
+      TRUE ~ pap_imd_1                   
+    ),
+    
+    pap_imd_2 = case_when(
+      pap_imd_3 == &quot;No, none of the elements&quot; &amp; is.na(pap_imd_2) ~ &quot;n&quot;, 
+      pap_imd_1 == &quot;y&quot; &amp; is.na(pap_imd_2) ~ &quot;n&quot;,                         
+      TRUE ~ pap_imd_2                    
+    ),
+    
+    pap_pa = ifelse(is.na(pap_pa), &quot;x&quot;, pap_pa),
+    pap_iec = ifelse(is.na(pap_iec), &quot;x&quot;, pap_iec),
+    pap_imd_1 = ifelse(is.na(pap_imd_1), &quot;x&quot;, pap_imd_1),
+    pap_imd_2 = ifelse(is.na(pap_imd_2), &quot;x&quot;, pap_imd_2),
+    #pap_imd_3 = ifelse(is.na(pap_imd_3), &quot;x&quot;, pap_imd_3)
+)</code></pre>
+</div>
+<div id="sm-1" class="section level2">
+<h2>SM</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_sm_1 = case_when(
+      pap_sm_4 == &quot;No, none of the elements&quot; &amp; is.na(pap_sm_1) ~ &quot;n&quot;,  
+      (pap_sm_2 == &quot;y&quot; | pap_sm_3 == &quot;y&quot;) &amp; is.na(pap_sm_1) ~ &quot;n&quot;,       
+      TRUE ~ pap_sm_1                    
+    ),
+    
+    pap_sm_2 = case_when(
+      pap_sm_4 == &quot;No, none of the elements&quot; &amp; is.na(pap_sm_2) ~ &quot;n&quot;,  
+      (pap_sm_1 == &quot;y&quot; | pap_sm_3 == &quot;y&quot;) &amp; is.na(pap_sm_2) ~ &quot;n&quot;,       
+      TRUE ~ pap_sm_2                    
+    ),
+    
+    pap_sm_3 = case_when(
+      pap_sm_4 == &quot;No, none of the elements&quot; &amp; is.na(pap_sm_3) ~ &quot;n&quot;,  
+      (pap_sm_1 == &quot;y&quot; | pap_sm_2 == &quot;y&quot;) &amp; is.na(pap_sm_3) ~ &quot;n&quot;,       
+      TRUE ~ pap_sm_3                    
+    ),
+
+    pap_sm_1 = ifelse(is.na(pap_sm_1), &quot;x&quot;, pap_sm_1),
+    pap_sm_2 = ifelse(is.na(pap_sm_2), &quot;x&quot;, pap_sm_2),
+    pap_sm_3 = ifelse(is.na(pap_sm_3), &quot;x&quot;, pap_sm_3)
+    # pap_sm_4 = ifelse(is.na(pap_sm_4), &quot;x&quot;, pap_sm_4)
+)</code></pre>
+</div>
+<div id="icvsa" class="section level2">
+<h2>Ic/vsa</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    pap_vsa_1 = case_when(
+      pap_vsa_4 == &quot;No, none of the elements&quot; &amp; is.na(pap_vsa_1) ~ &quot;n&quot;,  
+      (pap_vsa_2 == &quot;y&quot; | pap_vsa_3 == &quot;y&quot;) &amp; is.na(pap_vsa_1) ~ &quot;n&quot;,       
+      TRUE ~ pap_vsa_1                    
+    ),
+    
+    pap_vsa_2 = case_when(
+      pap_vsa_4 == &quot;No, none of the elements&quot; &amp; is.na(pap_vsa_2) ~ &quot;n&quot;,  
+      (pap_vsa_1 == &quot;y&quot; | pap_vsa_3 == &quot;y&quot;) &amp; is.na(pap_vsa_2) ~ &quot;n&quot;,       
+      TRUE ~ pap_vsa_2                    
+    ),
+    
+    pap_vsa_3 = case_when(
+      pap_vsa_4 == &quot;No, none of the elements&quot; &amp; is.na(pap_vsa_3) ~ &quot;n&quot;,  
+      (pap_vsa_1 == &quot;y&quot; | pap_vsa_2 == &quot;y&quot;) &amp; is.na(pap_vsa_3) ~ &quot;n&quot;,       
+      TRUE ~ pap_vsa_3                    
+    ),
+    
+    pap_ic = ifelse(is.na(pap_ic), &quot;x&quot;, pap_ic),
+    pap_vsa_1 = ifelse(is.na(pap_vsa_1), &quot;x&quot;, pap_vsa_1),
+    pap_vsa_2 = ifelse(is.na(pap_vsa_2), &quot;x&quot;, pap_vsa_2),
+    pap_vsa_3 = ifelse(is.na(pap_vsa_3), &quot;x&quot;, pap_vsa_3)
+    # pap_vsa_4 = ifelse(is.na(pap_vsa_4), &quot;x&quot;, pap_vsa_4)
+)</code></pre>
+</div>
+</div>
+<div id="match-mutate" class="section level1">
+<h1>MATch Mutate</h1>
+<div id="iv-1-2" class="section level2">
+<h2>Iv 1</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_iv1_0 = case_when(
+      match_iv1_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv1_0) ~ &quot;n&quot;,  
+      (match_iv1_1 == &quot;y&quot; | match_iv1_2 == &quot;y&quot; | match_iv1_3 == &quot;y&quot;) &amp; is.na(match_iv1_0) ~ &quot;n&quot;,       
+      TRUE ~ match_iv1_0                    
+    ),
+    
+    match_iv1_1 = case_when(
+      match_iv1_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv1_1) ~ &quot;n&quot;,  
+      (match_iv1_0 == &quot;y&quot; | match_iv1_2 == &quot;y&quot; | match_iv1_3 == &quot;y&quot;) &amp; is.na(match_iv1_1) ~ &quot;n&quot;,       
+      TRUE ~ match_iv1_1                    
+    ),
+    
+    match_iv1_2 = case_when(
+      match_iv1_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv1_2) ~ &quot;n&quot;,  
+      (match_iv1_0 == &quot;y&quot; | match_iv1_1 == &quot;y&quot; | match_iv1_3 == &quot;y&quot;) &amp; is.na(match_iv1_2) ~ &quot;n&quot;,       
+      TRUE ~ match_iv1_2                    
+    ),
+    
+    match_iv1_3 = case_when(
+      match_iv1_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv1_3) ~ &quot;n&quot;,  
+      (match_iv1_0 == &quot;y&quot; | match_iv1_1 == &quot;y&quot; | match_iv1_2 == &quot;y&quot;) &amp; is.na(match_iv1_3) ~ &quot;n&quot;,       
+      TRUE ~ match_iv1_3                    
+    ),
+
+    match_mi1 = ifelse(is.na(match_mi1), &quot;x&quot;, match_mi1),
+    match_iv1_0 = ifelse(is.na(match_iv1_0), &quot;x&quot;, match_iv1_0),
+    match_iv1_1 = ifelse(is.na(match_iv1_1), &quot;x&quot;, match_iv1_1),
+    match_iv1_2 = ifelse(is.na(match_iv1_2), &quot;x&quot;, match_iv1_2),
+    match_iv1_3 = ifelse(is.na(match_iv1_3), &quot;x&quot;, match_iv1_3)
+    # match_iv1_4 = ifelse(is.na(match_iv1_4), &quot;x&quot;, match_iv1_4)
+)</code></pre>
+</div>
+<div id="iv-2-2" class="section level2">
+<h2>IV 2</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_iv2_0 = case_when(
+      match_iv2_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv2_0) ~ &quot;n&quot;,  
+      (match_iv2_1 == &quot;y&quot; | match_iv2_2 == &quot;y&quot; | match_iv2_3 == &quot;y&quot;) &amp; is.na(match_iv2_0) ~ &quot;n&quot;,       
+      TRUE ~ match_iv2_0                    
+    ),
+    
+    match_iv2_1 = case_when(
+      match_iv2_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv2_1) ~ &quot;n&quot;,  
+      (match_iv2_0 == &quot;y&quot; | match_iv2_2 == &quot;y&quot; | match_iv2_3 == &quot;y&quot;) &amp; is.na(match_iv2_1) ~ &quot;n&quot;,       
+      TRUE ~ match_iv2_1                    
+    ),
+    
+    match_iv2_2 = case_when(
+      match_iv2_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv2_2) ~ &quot;n&quot;,  
+      (match_iv2_0 == &quot;y&quot; | match_iv2_1 == &quot;y&quot; | match_iv2_3 == &quot;y&quot;) &amp; is.na(match_iv2_2) ~ &quot;n&quot;,       
+      TRUE ~ match_iv2_2                    
+    ),
+    
+    match_iv2_3 = case_when(
+      match_iv2_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_iv2_3) ~ &quot;n&quot;,  
+      (match_iv2_0 == &quot;y&quot; | match_iv2_1 == &quot;y&quot; | match_iv2_2 == &quot;y&quot;) &amp; is.na(match_iv2_3) ~ &quot;n&quot;,       
+      TRUE ~ match_iv2_3                    
+    ),
+
+    match_mi2 = ifelse(is.na(match_mi2), &quot;x&quot;, match_mi2),
+    match_iv2_0 = ifelse(is.na(match_iv2_0), &quot;x&quot;, match_iv2_0),
+    match_iv2_1 = ifelse(is.na(match_iv2_1), &quot;x&quot;, match_iv2_1),
+    match_iv2_2 = ifelse(is.na(match_iv2_2), &quot;x&quot;, match_iv2_2),
+    match_iv2_3 = ifelse(is.na(match_iv2_3), &quot;x&quot;, match_iv2_3)
+    # match_iv2_4 = ifelse(is.na(match_iv2_4), &quot;x&quot;, match_iv2_4)
+)</code></pre>
+</div>
+<div id="tv-2" class="section level2">
+<h2>TV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_tv_0 = case_when(
+      match_tv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_tv_0) ~ &quot;n&quot;,  
+      (match_tv_1 == &quot;y&quot; | match_tv_2 == &quot;y&quot; | match_tv_3 == &quot;y&quot;) &amp; is.na(match_tv_0) ~ &quot;n&quot;,       
+      TRUE ~ match_tv_0                    
+    ),
+    
+    match_tv_1 = case_when(
+      match_tv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_tv_1) ~ &quot;n&quot;,  
+      (match_tv_0 == &quot;y&quot; | match_tv_2 == &quot;y&quot; | match_tv_3 == &quot;y&quot;) &amp; is.na(match_tv_1) ~ &quot;n&quot;,       
+      TRUE ~ match_tv_1                    
+    ),
+    
+    match_tv_2 = case_when(
+      match_tv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_tv_2) ~ &quot;n&quot;,  
+      (match_tv_0 == &quot;y&quot; | match_tv_1 == &quot;y&quot; | match_tv_3 == &quot;y&quot;) &amp; is.na(match_tv_2) ~ &quot;n&quot;,       
+      TRUE ~ match_tv_2                    
+    ),
+    
+    match_tv_3 = case_when(
+      match_tv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_tv_3) ~ &quot;n&quot;,  
+      (match_tv_0 == &quot;y&quot; | match_tv_1 == &quot;y&quot; | match_tv_2 == &quot;y&quot;) &amp; is.na(match_tv_3) ~ &quot;n&quot;,       
+      TRUE ~ match_tv_3                    
+    ),
+
+    match_mt = ifelse(is.na(match_mt), &quot;x&quot;, match_mt),
+    match_tv_0 = ifelse(is.na(match_tv_0), &quot;x&quot;, match_tv_0),
+    match_tv_1 = ifelse(is.na(match_tv_1), &quot;x&quot;, match_tv_1),
+    match_tv_2 = ifelse(is.na(match_tv_2), &quot;x&quot;, match_tv_2),
+    match_tv_3 = ifelse(is.na(match_tv_3), &quot;x&quot;, match_tv_3)
+    # match_tv_4 = ifelse(is.na(match_tv_4), &quot;x&quot;, match_tv_4)
+)</code></pre>
+</div>
+<div id="dv-2" class="section level2">
+<h2>DV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_dv_0 = case_when(
+      match_dv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_dv_0) ~ &quot;n&quot;,  
+      (match_dv_1 == &quot;y&quot; | match_dv_2 == &quot;y&quot; | match_dv_3 == &quot;y&quot;) &amp; is.na(match_dv_0) ~ &quot;n&quot;,       
+      TRUE ~ match_dv_0                    
+    ),
+    
+    match_dv_1 = case_when(
+      match_dv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_dv_1) ~ &quot;n&quot;,  
+      (match_dv_0 == &quot;y&quot; | match_dv_2 == &quot;y&quot; | match_dv_3 == &quot;y&quot;) &amp; is.na(match_dv_1) ~ &quot;n&quot;,       
+      TRUE ~ match_dv_1                    
+    ),
+    
+    match_dv_2 = case_when(
+      match_dv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_dv_2) ~ &quot;n&quot;,  
+      (match_dv_0 == &quot;y&quot; | match_dv_1 == &quot;y&quot; | match_dv_3 == &quot;y&quot;) &amp; is.na(match_dv_2) ~ &quot;n&quot;,       
+      TRUE ~ match_dv_2                    
+    ),
+    
+    match_dv_3 = case_when(
+      match_dv_4 == &quot;No, none of the elements&quot; &amp; is.na(match_dv_3) ~ &quot;n&quot;,  
+      (match_dv_0 == &quot;y&quot; | match_dv_1 == &quot;y&quot; | match_dv_2 == &quot;y&quot;) &amp; is.na(match_dv_3) ~ &quot;n&quot;,       
+      TRUE ~ match_dv_3                    
+    ),
+
+    match_dv_0 = ifelse(is.na(match_dv_0), &quot;x&quot;, match_dv_0),
+    match_dv_1 = ifelse(is.na(match_dv_1), &quot;x&quot;, match_dv_1),
+    match_dv_2 = ifelse(is.na(match_dv_2), &quot;x&quot;, match_dv_2),
+    match_dv_3 = ifelse(is.na(match_dv_3), &quot;x&quot;, match_dv_3)
+    # match_dv_4 = ifelse(is.na(match_dv_4), &quot;x&quot;, match_dv_4)
+)</code></pre>
+</div>
+<div id="cv-2" class="section level2">
+<h2>CV</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_cv_0 = case_when(
+      match_cv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_cv_0) ~ &quot;n&quot;,  
+      (match_cv_1 == &quot;y&quot; | match_cv_2 == &quot;y&quot; | match_cv_3 == &quot;y&quot;) &amp; is.na(match_cv_0) ~ &quot;n&quot;,       
+      TRUE ~ match_cv_0                    
+    ),
+    
+    match_cv_1 = case_when(
+      match_cv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_cv_1) ~ &quot;n&quot;,  
+      (match_cv_0 == &quot;y&quot; | match_cv_2 == &quot;y&quot; | match_cv_3 == &quot;y&quot;) &amp; is.na(match_cv_1) ~ &quot;n&quot;,       
+      TRUE ~ match_cv_1                    
+    ),
+    
+    match_cv_2 = case_when(
+      match_cv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_cv_2) ~ &quot;n&quot;,  
+      (match_cv_0 == &quot;y&quot; | match_cv_1 == &quot;y&quot; | match_cv_3 == &quot;y&quot;) &amp; is.na(match_cv_2) ~ &quot;n&quot;,       
+      TRUE ~ match_cv_2                    
+    ),
+    
+    match_cv_3 = case_when(
+      match_cv_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_cv_3) ~ &quot;n&quot;,  
+      (match_cv_0 == &quot;y&quot; | match_cv_1 == &quot;y&quot; | match_cv_2 == &quot;y&quot;) &amp; is.na(match_cv_3) ~ &quot;n&quot;,       
+      TRUE ~ match_cv_3                    
+    ),
+
+    match_mc = ifelse(is.na(match_mc), &quot;x&quot;, match_mc),
+    match_cv_0 = ifelse(is.na(match_cv_0), &quot;x&quot;, match_cv_0),
+    match_cv_1 = ifelse(is.na(match_cv_1), &quot;x&quot;, match_cv_1),
+    match_cv_2 = ifelse(is.na(match_cv_2), &quot;x&quot;, match_cv_2),
+    match_cv_3 = ifelse(is.na(match_cv_3), &quot;x&quot;, match_cv_3)
+    # match_cv_4 = ifelse(is.na(match_cv_4), &quot;x&quot;, match_cv_4)
+)</code></pre>
+</div>
+<div id="dcpiec" class="section level2">
+<h2>dcp/iec</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_dcp_1 = case_when(
+      match_dcp_3 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_dcp_1) ~ &quot;n&quot;,  
+      (match_dcp_2 == &quot;y&quot;) &amp; is.na(match_dcp_1) ~ &quot;n&quot;,       
+      TRUE ~ match_dcp_1                    
+    ),
+    
+    match_dcp_2 = case_when(
+      match_dcp_3 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_dcp_2) ~ &quot;n&quot;,  
+      (match_dcp_1 == &quot;y&quot;) &amp; is.na(match_dcp_2) ~ &quot;n&quot;,       
+      TRUE ~ match_dcp_2                    
+    ),
+    
+  
+
+    match_iec = ifelse(is.na(match_iec), &quot;x&quot;, match_iec),
+    match_dcp_1 = ifelse(is.na(match_dcp_1), &quot;x&quot;, match_dcp_1),
+    match_dcp_2 = ifelse(is.na(match_dcp_2), &quot;x&quot;, match_dcp_2),
+    #match_dcp_3 = ifelse(is.na(match_dcp_3), &quot;x&quot;, match_dcp_3)
+)</code></pre>
+</div>
+<div id="imd-sm" class="section level2">
+<h2>IMD &amp; SM</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_imd_1 = case_when(
+      match_imd_3 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_imd_1) ~ &quot;n&quot;,  
+      match_imd_2 == &quot;y&quot; &amp; is.na(match_imd_1) ~ &quot;n&quot;,       
+      TRUE ~ match_imd_1                    
+    ),
+    
+    match_imd_2 = case_when(
+      match_imd_3 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_imd_2) ~ &quot;n&quot;,  
+      match_imd_1 == &quot;y&quot; &amp; is.na(match_imd_2) ~ &quot;n&quot;,       
+      TRUE ~ match_imd_2                    
+    ),
+    
+  
+    
+    match_sm_1 = case_when(
+      match_sm_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_sm_1) ~ &quot;n&quot;,  
+      (match_sm_2 == &quot;y&quot; | match_sm_3 == &quot;y&quot;) &amp; is.na(match_sm_1) ~ &quot;n&quot;,       
+      TRUE ~ match_sm_1                    
+    ),
+    
+    match_sm_2 = case_when(
+      match_sm_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_sm_2) ~ &quot;n&quot;,  
+      (match_sm_1 == &quot;y&quot; | match_sm_3 == &quot;y&quot;) &amp; is.na(match_sm_2) ~ &quot;n&quot;,       
+      TRUE ~ match_sm_2                    
+    ),
+    
+    match_sm_3 = case_when(
+      match_sm_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_sm_3) ~ &quot;n&quot;,  
+      (match_sm_1 == &quot;y&quot; | match_sm_2 == &quot;y&quot;) &amp; is.na(match_sm_3) ~ &quot;n&quot;,       
+      TRUE ~ match_sm_3                    
+    ),
+
+    match_imd_1 = ifelse(is.na(match_imd_1), &quot;x&quot;, match_imd_1),
+    match_imd_2 = ifelse(is.na(match_imd_2), &quot;x&quot;, match_imd_2),
+    #match_imd_3 = ifelse(is.na(match_imd_3), &quot;x&quot;, match_imd_3),
+    match_sm_1 = ifelse(is.na(match_sm_1), &quot;x&quot;, match_sm_1),
+    match_sm_2 = ifelse(is.na(match_sm_2), &quot;x&quot;, match_sm_2),
+    match_sm_3 = ifelse(is.na(match_sm_3), &quot;x&quot;, match_sm_3)
+    # match_sm_4 = ifelse(is.na(match_sm_4), &quot;x&quot;, match_sm_4)
+)</code></pre>
+</div>
+<div id="vsa-ic" class="section level2">
+<h2>VSA &amp; IC</h2>
+<pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
+
+    match_vsa_1 = case_when(
+      match_vsa_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_vsa_1) ~ &quot;n&quot;,  
+      (match_vsa_2 == &quot;y&quot; | match_vsa_3 == &quot;y&quot;) &amp; is.na(match_vsa_1) ~ &quot;n&quot;,       
+      TRUE ~ match_vsa_1                    
+    ),
+    
+    match_vsa_2 = case_when(
+      match_vsa_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_vsa_2) ~ &quot;n&quot;,  
+      (match_vsa_1 == &quot;y&quot; | match_vsa_3 == &quot;y&quot;) &amp; is.na(match_vsa_2) ~ &quot;n&quot;,       
+      TRUE ~ match_vsa_2                    
+    ),
+    
+    match_vsa_3 = case_when(
+      match_vsa_4 == &quot;No, none of the elements are consistent&quot; &amp; is.na(match_vsa_3) ~ &quot;n&quot;,  
+      (match_vsa_1 == &quot;y&quot; | match_vsa_2 == &quot;y&quot;) &amp; is.na(match_vsa_3) ~ &quot;n&quot;,       
+      TRUE ~ match_vsa_3                    
+    ),
+    
+    match_ic = ifelse(is.na(match_ic), &quot;x&quot;, match_ic),
+    match_vsa_1 = ifelse(is.na(match_vsa_1), &quot;x&quot;, match_vsa_1),
+    match_vsa_2 = ifelse(is.na(match_vsa_2), &quot;x&quot;, match_vsa_2),
+    match_vsa_3 = ifelse(is.na(match_vsa_3), &quot;x&quot;, match_vsa_3)
+    # match_vsa_4 = ifelse(is.na(match_vsa_4), &quot;x&quot;, match_vsa_4)
+)</code></pre>
 </div>
 <div id="section" class="section level2">
 <h2></h2>
@@ -2469,9 +1476,6 @@ frequencies_categories_cleaned_exclude_numeric</code></pre>
 <h2></h2>
 </div>
 <div id="section-3" class="section level2">
-<h2></h2>
-</div>
-<div id="section-4" class="section level2">
 <h2></h2>
 </div>
 </div>

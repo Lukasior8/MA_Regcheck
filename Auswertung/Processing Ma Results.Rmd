@@ -35,13 +35,13 @@ library(openxlsx)
 
 ```
 
-# clean data_results
+# clean GPT data_gpt
 
 ## Read  data
 
 
 ```{r}
-data_results_raw <- read_excel("../data/DATA_Resultate_raw.xlsx") |>
+data_gpt_raw <- read_excel("../data/DATA_Resultate_raw.xlsx") |>
   janitor::clean_names()
 ```
 
@@ -49,7 +49,7 @@ data_results_raw <- read_excel("../data/DATA_Resultate_raw.xlsx") |>
 
 
 ```{r}
-data_results_filtered <- data_results_raw %>%
+data_gpt_filtered <- data_gpt_raw %>%
   select(   
     -prereg_vorhanden,
     -paper_vorhanden,
@@ -78,7 +78,7 @@ data_results_filtered <- data_results_raw %>%
 
 ```{r}
 
-categories_alphabetic <- c("pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pre_niv1_1", "pre_niv1_2", 
+gpt_categories_alphabetic <- c("pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pre_niv1_1", "pre_niv1_2", 
                             "pre_pre_mi2", "pre_mi2", "pre_iv2", "c_pre_iv2", "pre_niv2_1", "pre_niv2_2", 
                             "pre_pre_mt", "pre_mt", "pre_tv", "c_pre_tv", "pre_ntv_1", "pre_ntv_2", 
                             "pre_dv", "c_pre_dv", "pre_ndv_1", "pre_ndv_2", 
@@ -98,11 +98,11 @@ categories_alphabetic <- c("pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pr
                             "match_tv_2", "match_tv_3", "match_dv_0", "match_dv_1", "match_dv_2", 
                             "match_dv_3", "match_mc", "match_cv_0", "match_cv_1", "match_cv_2", 
                             "match_cv_3", "match_dcp_1", "match_dcp_2", "match_iec_1", "match_imd_1", 
-                            "match_imd_2", "match_sm_1", "match_sm_2", "match_sm_3", "match_vsa_1", 
+                            "match_imd_2",  "match_sm_1", "match_sm_2", "match_sm_3", "match_vsa_1", 
                             "match_vsa_2", "match_vsa_3", "match_ic")
 
 
-frequencies_categories <- lapply(data_results_filtered[categories_alphabetic], table)
+gpt_frequencies_categories <- lapply(data_gpt_filtered[gpt_categories_alphabetic], table)
 
 
 #frequencies_categories
@@ -118,13 +118,13 @@ clean_value <- function(x) {
 }
 
 
-data_results_filtered_clean <- data_results_filtered %>%
-  mutate_at(vars(one_of(categories_alphabetic)), clean_value)
+data_gpt_filtered_clean <- data_gpt_filtered %>%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), clean_value)
 
-frequencies_categories_cleaned <- lapply(data_results_filtered_clean[categories_alphabetic], table)
+gpt_frequencies_categories_cleaned <- lapply(data_gpt_filtered_clean[gpt_categories_alphabetic], table)
 
 
-#frequencies_categories_cleaned
+#gpt_frequencies_categories_cleaned
 
 
 
@@ -134,13 +134,13 @@ replace_with_exclude <- function(x) {
 }
 
 
-data_results_filtered_clean_exclude <- data_results_filtered_clean %>%
-  mutate_at(vars(one_of(categories_alphabetic)), replace_with_exclude)
+data_gpt_filtered_clean_exclude <- data_gpt_filtered_clean %>%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), replace_with_exclude)
 
 # Check frequencies after cleaning
-frequencies_categories_cleaned_exclude <- lapply(data_results_filtered_clean_exclude[categories_alphabetic], table)
+gpt_frequencies_categories_cleaned_exclude <- lapply(data_gpt_filtered_clean_exclude[gpt_categories_alphabetic], table)
 
-#frequencies_categories_cleaned_exclude
+#gpt_frequencies_categories_cleaned_exclude
 ```
 
 ## kategorien numeric säubern
@@ -148,38 +148,38 @@ frequencies_categories_cleaned_exclude <- lapply(data_results_filtered_clean_exc
 ```{r}
 
 # List of column names that need to be converted to numeric
-categories_numeric <- c("pre_dcp_1_text", "pap_dcp_1_text", "s_pre_iv", "s_pre_dv", 
+gpt_categories_numeric <- c("pre_dcp_1_text", "pap_dcp_1_text", "s_pre_iv", "s_pre_dv", 
                         "s_pre_dcp", "s_pre_smu", "s_pre_sic", "s_pap_iv", "s_pap_dv", 
                         "s_pap_dcp", "s_pap_smu", "s_pap_sic", "prompt_version_a_strictness_prereg", 
                         "prompt_version_a_strictness_pubstud", "con_iv", "con_dv", 
                         "con_dcp", "con_smu", "con_sic", "global_consistency_esimate")
 
 # Convert to numeric and replace non-numeric with 'exclude'
-data_results_filtered_clean_exclude_numeric <- data_results_filtered_clean_exclude %>%
-  mutate_at(vars(one_of(categories_numeric)), 
+data_gpt_filtered_clean_exclude_numeric <- data_gpt_filtered_clean_exclude %>%
+  mutate_at(vars(one_of(gpt_categories_numeric)), 
             ~ifelse(is.na(as.numeric(.)), "exclude", as.numeric(.)))
 
 # Check frequencies after cleaning
-frequencies_categories_cleaned_exclude_numeric <- lapply(data_results_filtered_clean_exclude_numeric[categories_numeric], table)
+gpt_frequencies_categories_cleaned_exclude_numeric <- lapply(data_gpt_filtered_clean_exclude_numeric[gpt_categories_numeric], table)
 
-#frequencies_categories_cleaned_exclude_numeric
+#gpt_frequencies_categories_cleaned_exclude_numeric
 
 
 ```
 
 
-## finish data_results_finito
+## finish data_gpt_finito
 
 ```{r}
 
 
 
 # Ändere die Werte "v4" und "V4" in der Spalte prompt_version zu "D"
-data_results_finito <- data_results_filtered_clean_exclude_numeric %>%
+data_gpt_finito <- data_gpt_filtered_clean_exclude_numeric %>%
   mutate(prompt_version = ifelse(prompt_version %in% c("v4", "V4"), "D", prompt_version))
 
 # Neue Spalte master_exclude hinzufügen und standardmäßig auf "include" setzen
-data_results_finito <- data_results_finito %>%
+data_gpt_finito <- data_gpt_finito %>%
   mutate(master_exclude = ifelse(is.na(date_gpt), "exclude", "include"))
 
 
@@ -228,7 +228,7 @@ olmo_selected_columns <- c(
   "match_dv_2", "match_dv_3", "match_dv_4", "match_mc", "match_cv_0", "match_cv_1", 
   "match_cv_2", "match_cv_3", "match_cv_4", "match_dcp_1", "match_dcp_2", 
   "match_dcp_3", "match_iec", 
-  "match_imd_1", "match_imd_2", "match_sm_1", 
+  "match_imd_1", "match_imd_2", "match_imd_3","match_sm_1", 
   "match_sm_2", "match_sm_3", "match_sm_4", "match_vsa_1", "match_vsa_2", 
   "match_vsa_3", "match_vsa_4", "match_ic"
 )
@@ -338,7 +338,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## IV 2
+### IV 2
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -367,7 +367,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## TV
+### TV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -397,7 +397,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## DV
+### DV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -423,7 +423,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## CV
+### CV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -453,7 +453,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## DCP
+### DCP
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -479,7 +479,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## PA/IEC/IMD
+### PA/IEC/IMD
 
 achtung pre_iec (pre_iec_1) hatte eine andere Beschriftung im variabel-lexikon von olmo, und nur yes, deshalb eventuell später droppen
 
@@ -509,7 +509,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## SM
+### SM
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -541,7 +541,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## ic /vsa
+### ic /vsa
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -574,8 +574,8 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-# PAP mutation
-## IV 1
+## PAP mutation
+### IV 1
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -605,7 +605,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## IV 2
+### IV 2
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -635,7 +635,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## TV
+### TV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -665,7 +665,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## dv
+### dv
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -693,7 +693,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## CV
+### CV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -723,7 +723,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## DCP
+### DCP
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -748,7 +748,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## PA/IEC/IMD
+### PA/IEC/IMD
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -776,7 +776,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 ```
 
 
-## SM
+### SM
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -808,7 +808,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## Ic/vsa
+### Ic/vsa
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -841,8 +841,8 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-# MATch Mutate
-## Iv 1
+## MATch Mutate
+### Iv 1
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -882,7 +882,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## IV 2
+### IV 2
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -922,7 +922,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## TV
+### TV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -962,7 +962,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## DV
+### DV
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -1001,32 +1001,244 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-## IV 2
+### CV
 
 ```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_cv_0 = case_when(
+      match_cv_4 == "No, none of the elements are consistent" & is.na(match_cv_0) ~ "n",  
+      (match_cv_1 == "y" | match_cv_2 == "y" | match_cv_3 == "y") & is.na(match_cv_0) ~ "n",       
+      TRUE ~ match_cv_0                    
+    ),
+    
+    match_cv_1 = case_when(
+      match_cv_4 == "No, none of the elements are consistent" & is.na(match_cv_1) ~ "n",  
+      (match_cv_0 == "y" | match_cv_2 == "y" | match_cv_3 == "y") & is.na(match_cv_1) ~ "n",       
+      TRUE ~ match_cv_1                    
+    ),
+    
+    match_cv_2 = case_when(
+      match_cv_4 == "No, none of the elements are consistent" & is.na(match_cv_2) ~ "n",  
+      (match_cv_0 == "y" | match_cv_1 == "y" | match_cv_3 == "y") & is.na(match_cv_2) ~ "n",       
+      TRUE ~ match_cv_2                    
+    ),
+    
+    match_cv_3 = case_when(
+      match_cv_4 == "No, none of the elements are consistent" & is.na(match_cv_3) ~ "n",  
+      (match_cv_0 == "y" | match_cv_1 == "y" | match_cv_2 == "y") & is.na(match_cv_3) ~ "n",       
+      TRUE ~ match_cv_3                    
+    ),
+
+    match_mc = ifelse(is.na(match_mc), "x", match_mc),
+    match_cv_0 = ifelse(is.na(match_cv_0), "x", match_cv_0),
+    match_cv_1 = ifelse(is.na(match_cv_1), "x", match_cv_1),
+    match_cv_2 = ifelse(is.na(match_cv_2), "x", match_cv_2),
+    match_cv_3 = ifelse(is.na(match_cv_3), "x", match_cv_3)
+    # match_cv_4 = ifelse(is.na(match_cv_4), "x", match_cv_4)
+)
 
 
 ```
 
 
-## IV 2
+### dcp/iec
 
 ```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_dcp_1 = case_when(
+      match_dcp_3 == "No, none of the elements are consistent" & is.na(match_dcp_1) ~ "n",  
+      (match_dcp_2 == "y") & is.na(match_dcp_1) ~ "n",       
+      TRUE ~ match_dcp_1                    
+    ),
+    
+    match_dcp_2 = case_when(
+      match_dcp_3 == "No, none of the elements are consistent" & is.na(match_dcp_2) ~ "n",  
+      (match_dcp_1 == "y") & is.na(match_dcp_2) ~ "n",       
+      TRUE ~ match_dcp_2                    
+    ),
+    
+  
+
+    match_iec = ifelse(is.na(match_iec), "x", match_iec),
+    match_dcp_1 = ifelse(is.na(match_dcp_1), "x", match_dcp_1),
+    match_dcp_2 = ifelse(is.na(match_dcp_2), "x", match_dcp_2),
+    #match_dcp_3 = ifelse(is.na(match_dcp_3), "x", match_dcp_3)
+)
 
 
 ```
 
 
-## IV 2
+### IMD & SM
 
 ```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_imd_1 = case_when(
+      match_imd_3 == "No, none of the elements are consistent" & is.na(match_imd_1) ~ "n",  
+      match_imd_2 == "y" & is.na(match_imd_1) ~ "n",       
+      TRUE ~ match_imd_1                    
+    ),
+    
+    match_imd_2 = case_when(
+      match_imd_3 == "No, none of the elements are consistent" & is.na(match_imd_2) ~ "n",  
+      match_imd_1 == "y" & is.na(match_imd_2) ~ "n",       
+      TRUE ~ match_imd_2                    
+    ),
+    
+  
+    
+    match_sm_1 = case_when(
+      match_sm_4 == "No, none of the elements are consistent" & is.na(match_sm_1) ~ "n",  
+      (match_sm_2 == "y" | match_sm_3 == "y") & is.na(match_sm_1) ~ "n",       
+      TRUE ~ match_sm_1                    
+    ),
+    
+    match_sm_2 = case_when(
+      match_sm_4 == "No, none of the elements are consistent" & is.na(match_sm_2) ~ "n",  
+      (match_sm_1 == "y" | match_sm_3 == "y") & is.na(match_sm_2) ~ "n",       
+      TRUE ~ match_sm_2                    
+    ),
+    
+    match_sm_3 = case_when(
+      match_sm_4 == "No, none of the elements are consistent" & is.na(match_sm_3) ~ "n",  
+      (match_sm_1 == "y" | match_sm_2 == "y") & is.na(match_sm_3) ~ "n",       
+      TRUE ~ match_sm_3                    
+    ),
+
+    match_imd_1 = ifelse(is.na(match_imd_1), "x", match_imd_1),
+    match_imd_2 = ifelse(is.na(match_imd_2), "x", match_imd_2),
+    #match_imd_3 = ifelse(is.na(match_imd_3), "x", match_imd_3),
+    match_sm_1 = ifelse(is.na(match_sm_1), "x", match_sm_1),
+    match_sm_2 = ifelse(is.na(match_sm_2), "x", match_sm_2),
+    match_sm_3 = ifelse(is.na(match_sm_3), "x", match_sm_3)
+    # match_sm_4 = ifelse(is.na(match_sm_4), "x", match_sm_4)
+)
 
 
 ```
 
-## IV 2
+### VSA & IC
 
 ```{r}
+data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
+
+    match_vsa_1 = case_when(
+      match_vsa_4 == "No, none of the elements are consistent" & is.na(match_vsa_1) ~ "n",  
+      (match_vsa_2 == "y" | match_vsa_3 == "y") & is.na(match_vsa_1) ~ "n",       
+      TRUE ~ match_vsa_1                    
+    ),
+    
+    match_vsa_2 = case_when(
+      match_vsa_4 == "No, none of the elements are consistent" & is.na(match_vsa_2) ~ "n",  
+      (match_vsa_1 == "y" | match_vsa_3 == "y") & is.na(match_vsa_2) ~ "n",       
+      TRUE ~ match_vsa_2                    
+    ),
+    
+    match_vsa_3 = case_when(
+      match_vsa_4 == "No, none of the elements are consistent" & is.na(match_vsa_3) ~ "n",  
+      (match_vsa_1 == "y" | match_vsa_2 == "y") & is.na(match_vsa_3) ~ "n",       
+      TRUE ~ match_vsa_3                    
+    ),
+    
+    match_ic = ifelse(is.na(match_ic), "x", match_ic),
+    match_vsa_1 = ifelse(is.na(match_vsa_1), "x", match_vsa_1),
+    match_vsa_2 = ifelse(is.na(match_vsa_2), "x", match_vsa_2),
+    match_vsa_3 = ifelse(is.na(match_vsa_3), "x", match_vsa_3)
+    # match_vsa_4 = ifelse(is.na(match_vsa_4), "x", match_vsa_4)
+)
+
+
+```
+
+
+
+### rename
+
+```{r}
+
+data_olmo_finito <- data_olmo_selected_mutated 
+
+```
+
+
+#Data mergen
+
+## 
+
+## 
+
+```{r}
+
+data_merged <- merge(data_gpt_finito, data_olmo_finito, by = "psp", suffixes = c("_gpt", "_olmo"))
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+compare_columns <- function(gpt_val, olmo_val) {
+  if (is.na(gpt_val) || is.na(olmo_val)) {
+    return("X")
+  }
+  
+  if (gpt_val == olmo_val) {
+    if (gpt_val == "Y") {
+      return("Y")
+    } else if (gpt_val == "N") {
+      return("N")
+    } else {
+      return("X")
+    }
+  } else {
+    if (gpt_val == "Y" && olmo_val == "N") {
+      return("P")
+    } else if (gpt_val == "N" && olmo_val == "Y") {
+      return("Q")
+    } else if (gpt_val == "Y" && olmo_val == "X") {
+      return("FY")
+    } else if (gpt_val == "N" && olmo_val == "X") {
+      return("FN")
+    } else if (gpt_val == "X" && olmo_val == "N") {
+      return("FXN")
+    } else if (gpt_val == "X" && olmo_val == "Y") {
+      return("FXY")
+    }
+  }
+}
+
+
+
+# Neue DataFrame für die Vergleiche erstellen
+comparison_results <- data_merged[ , "psp", drop=FALSE]
+
+# Für jede Spalte den Vergleich durchführen
+for (col in gpt_categories_alphabetic) {
+  comparison_results[[col]] <- mapply(compare_columns, 
+                                      data_merged[[paste0(col, "_gpt")]], 
+                                      data_merged[[paste0(col, "_olmo")]])
+}
+
+# Ergebnis anzeigen
+head(comparison_results)
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
 
 
 ```
