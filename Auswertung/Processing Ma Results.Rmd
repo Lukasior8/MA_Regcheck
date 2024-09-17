@@ -196,6 +196,15 @@ DATA_olmo_raw <- read_excel("../data/Data Preregistration Effectiveness.xlsx") |
 
 data_olmo_raw <- DATA_olmo_raw[seq(3, nrow(DATA_olmo_raw), 3), ] # select only reconciled data
 
+
+#rename  so that "pre_iec", "pap_iec and "match_iec" colum in olmo are also called pre_iec_1`, `pap_iec_1`, and `match_iec_1` like gpt
+data_olmo_raw <- data_olmo_raw %>%
+  rename(
+    pre_iec_1 = pre_iec,
+    pap_iec_1 = pap_iec,
+    match_iec_1 = match_iec
+  )
+
 ```
 
 
@@ -209,7 +218,7 @@ olmo_selected_columns <- c(
   "c_pre_tv", "pre_ntv_1", "pre_ntv_2", "pre_ntv_3", "pre_dv", "c_pre_dv", 
   "pre_ndv_1", "pre_ndv_2", "pre_ndv_3", "pre_pre_mc", "pre_mc", "pre_cv", 
   "c_pre_cv", "pre_ncv_1", "pre_ncv_2", "pre_ncv_3", "pre_dcp_1", "pre_dcp_2", 
-  "pre_dcp_3", "pre_dcp_1_text", "pre_pa", "pre_iec", 
+  "pre_dcp_3", "pre_dcp_1_text", "pre_pa", "pre_iec_1", 
   "pre_imd_1", "pre_imd_2", "pre_imd_3",
   "pre_sm_1", "pre_sm_2", "pre_sm_3", "pre_sm_4", "pre_vsa_1", "pre_vsa_2", 
   "pre_vsa_3", "pre_vsa_4", "pre_ic", "pap_pap_mi1", "pap_mi1", "pap_iv1", "c_pap_iv1", 
@@ -218,7 +227,7 @@ olmo_selected_columns <- c(
   "pap_tv", "c_pap_tv", "pap_ntv_1", "pap_ntv_2", "pap_ntv_3", "pap_dv", "c_pap_dv", 
   "pap_ndv_1", "pap_ndv_2", "pap_ndv_3", "pap_pap_mc", "pap_mc", "pap_cv", "c_pap_cv", 
   "pap_ncv_1", "pap_ncv_2", "pap_ncv_3", "pap_dcp_1", "pap_dcp_2", "pap_dcp_3", 
-  "pap_dcp_1_text", "pap_pa", "pap_iec",
+  "pap_dcp_1_text", "pap_pa", "pap_iec_1",
   "pap_imd_1", "pap_imd_2", "pap_imd_3", "pap_sm_1", 
   "pap_sm_2", "pap_sm_3", "pap_sm_4", "pap_vsa_1", "pap_vsa_2", "pap_vsa_3", 
   "pap_vsa_4", "pap_ic", "match_mi1", "match_iv1_0", "match_iv1_1", "match_iv1_2", 
@@ -227,7 +236,7 @@ olmo_selected_columns <- c(
   "match_tv_1", "match_tv_2", "match_tv_3", "match_tv_4", "match_dv_0", "match_dv_1", 
   "match_dv_2", "match_dv_3", "match_dv_4", "match_mc", "match_cv_0", "match_cv_1", 
   "match_cv_2", "match_cv_3", "match_cv_4", "match_dcp_1", "match_dcp_2", 
-  "match_dcp_3", "match_iec", 
+  "match_dcp_3", "match_iec_1", 
   "match_imd_1", "match_imd_2", "match_imd_3","match_sm_1", 
   "match_sm_2", "match_sm_3", "match_sm_4", "match_vsa_1", "match_vsa_2", 
   "match_vsa_3", "match_vsa_4", "match_ic"
@@ -238,7 +247,7 @@ data_olmo_raw_selected <- data_olmo_raw %>%
   select(all_of(olmo_selected_columns)) 
 
 
-#✖ Columns `pre_iec_1`, `pap_iec_1`, and `match_iec_1` don't exist.!!!!
+
 
 ```
 
@@ -499,7 +508,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
     ),
     
     pre_pa = ifelse(is.na(pre_pa), "x", pre_pa),
-    pre_iec = ifelse(is.na(pre_iec), "x", pre_iec),
+    pre_iec_1 = ifelse(is.na(pre_iec_1), "x", pre_iec_1),
     pre_imd_1 = ifelse(is.na(pre_imd_1), "x", pre_imd_1),
     pre_imd_2 = ifelse(is.na(pre_imd_2), "x", pre_imd_2)
     # pre_imd_3 = ifelse(is.na(pre_imd_3), "x", pre_imd_3)
@@ -766,7 +775,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
     ),
     
     pap_pa = ifelse(is.na(pap_pa), "x", pap_pa),
-    pap_iec = ifelse(is.na(pap_iec), "x", pap_iec),
+    pap_iec_1 = ifelse(is.na(pap_iec_1), "x", pap_iec_1),
     pap_imd_1 = ifelse(is.na(pap_imd_1), "x", pap_imd_1),
     pap_imd_2 = ifelse(is.na(pap_imd_2), "x", pap_imd_2),
     #pap_imd_3 = ifelse(is.na(pap_imd_3), "x", pap_imd_3)
@@ -1061,7 +1070,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
     
   
 
-    match_iec = ifelse(is.na(match_iec), "x", match_iec),
+    match_iec_1 = ifelse(is.na(match_iec_1), "x", match_iec_1),
     match_dcp_1 = ifelse(is.na(match_dcp_1), "x", match_dcp_1),
     match_dcp_2 = ifelse(is.na(match_dcp_2), "x", match_dcp_2),
     #match_dcp_3 = ifelse(is.na(match_dcp_3), "x", match_dcp_3)
@@ -1157,9 +1166,18 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ### rename
 
+kurze erklärungen: 
+- data_gpt_finito hat 330 Einträge, dh 30 mehr als olmo, was auf die 30 retest zurückzuführen ist
+- auch wenn die beiden Datensätze eine sehr ähnliche Anzahl von Columns haben (149 und 148) ist die zusammensetzung anders. die gpt categories(118) sind bei beiden enthalten, aber sie haben beide jeweils zusätzliche Kategorien...
 ```{r}
 
 data_olmo_finito <- data_olmo_selected_mutated 
+
+data_gpt_finito
+data_olmo_finito
+
+
+
 
 ```
 
@@ -1172,7 +1190,10 @@ data_olmo_finito <- data_olmo_selected_mutated
 
 ```{r}
 
-data_merged <- merge(data_gpt_finito, data_olmo_finito, by = "psp", suffixes = c("_gpt", "_olmo"))
+
+merged_data <- left_join(data_gpt_finito, data_olmo_finito, by = "psp", suffix = c("_gpt", "_olmo"))
+
+
 
 
 ```
@@ -1180,11 +1201,23 @@ data_merged <- merge(data_gpt_finito, data_olmo_finito, by = "psp", suffixes = c
 
 
 
-## 
+
+
+# compare datasets
+
+## alphabtic comparison
 
 ```{r}
+# Bereinigen der Spaltenwerte (entfernt Leerzeichen und sorgt für Großbuchstaben)
+clean_column <- function(column) {
+  return(toupper(trimws(as.character(column))))
+}
 
+# Vergleichsfunktion anpassen
 compare_columns <- function(gpt_val, olmo_val) {
+  gpt_val <- clean_column(gpt_val)
+  olmo_val <- clean_column(olmo_val)
+  
   if (is.na(gpt_val) || is.na(olmo_val)) {
     return("X")
   }
@@ -1214,25 +1247,40 @@ compare_columns <- function(gpt_val, olmo_val) {
   }
 }
 
+# Initialisiere den neuen DataFrame mit der psp-Spalte
+data_alphabetic_comparison <- data.frame(psp = merged_data$psp)
 
-
-# Neue DataFrame für die Vergleiche erstellen
-comparison_results <- data_merged[ , "psp", drop=FALSE]
-
-# Für jede Spalte den Vergleich durchführen
-for (col in gpt_categories_alphabetic) {
-  comparison_results[[col]] <- mapply(compare_columns, 
-                                      data_merged[[paste0(col, "_gpt")]], 
-                                      data_merged[[paste0(col, "_olmo")]])
+# Vergleich und Erstellen der neuen Spalten mit der Endung _comp
+for (category in gpt_categories_alphabetic) {
+  # GPT- und Olmo-Spalten auswählen
+  gpt_column <- clean_column(merged_data[[paste0(category, "_gpt")]])
+  olmo_column <- clean_column(merged_data[[paste0(category, "_olmo")]])
+  
+  # Überprüfen, ob beide Spalten existieren und die gleiche Länge haben
+  if (!is.null(gpt_column) && !is.null(olmo_column) && length(gpt_column) == length(olmo_column)) {
+    # Neue Vergleichsspalte erstellen
+    data_alphabetic_comparison[[paste0(category, "_comp")]] <- mapply(compare_columns, gpt_column, olmo_column)
+  } else {
+    # Wenn die Spalten nicht übereinstimmen, fülle die Vergleichsspalte mit NA
+    data_alphabetic_comparison[[paste0(category, "_comp")]] <- rep(NA, nrow(merged_data))
+    warning(paste("Spalten", category, "haben unterschiedliche Längen oder fehlen."))
+  }
 }
 
 # Ergebnis anzeigen
-head(comparison_results)
+head(data_alphabetic_comparison)
 
 
 ```
 
 
+## 
+
+```{r}
+
+
+
+```
 
 
 ## 
