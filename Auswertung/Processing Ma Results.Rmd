@@ -13,12 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 resultate
 - wenn preregvorhanden oder paper vorhandene keine Zahl (sondern leer oder  not available) dann die ganze zeile löschen
-- kontrollieren dass überall nur x,y, n,m, leer oder zahl ist.
+- sanity kontrollieren dass überall nur x,y, n,m, leer oder zahl ist.
 - Prompt versionen renamen
 - PreDCP_1_TEXT komische Zahlen verändern
 
-Olmos datensatz...
-
+- wieder mergen
+- safe to disc
+- version control
 
 
 
@@ -1177,7 +1178,7 @@ data_gpt_finito
 data_olmo_finito
 
 
-
+data_gpt_finito$psp
 
 ```
 
@@ -1250,6 +1251,11 @@ compare_columns <- function(gpt_val, olmo_val) {
 # Initialisiere den neuen DataFrame mit der psp-Spalte
 data_alphabetic_comparison <- data.frame(psp = merged_data$psp)
 
+
+# Füge die test_retest-Spalte aus dem gpt-Datensatz in den neuen DataFrame ein
+data_alphabetic_comparison$test_retest <- merged_data$test_retest
+
+
 # Vergleich und Erstellen der neuen Spalten mit der Endung _comp
 for (category in gpt_categories_alphabetic) {
   # GPT- und Olmo-Spalten auswählen
@@ -1270,6 +1276,101 @@ for (category in gpt_categories_alphabetic) {
 # Ergebnis anzeigen
 head(data_alphabetic_comparison)
 
+data_alphabetic_comparison$psp
+
+colnames(data_alphabetic_comparison)
+```
+
+
+## numeric comparison
+
+PEanalysis of olmos dataset contains different strictness categories than gpt, 
+
+```{r}
+
+
+
+```
+
+
+## merge 
+
+```{r}
+colnames(data_gpt_finito)
+
+# Gewünschten Spalten aus data_gpt_finito
+selected_columns <- c("psp", "title_pap", "study_pap", "date_gpt", "prompt_version", 
+                      "test_retest", "chat_gpt_version", "time_extraction", 
+                      "time_comparison", "master_exclude")
+
+# Erstelle einen neuen Datensatz mit nur diesen Spalten
+data_gpt_selected <- data_gpt_finito %>% select(all_of(selected_columns))
+
+# Verwende left_join, um die Datensätze via psp und test_retest zu verbinden
+data_processed_before_exclusions <- left_join(data_gpt_selected, data_alphabetic_comparison, by = c("psp", "test_retest"))
+
+# Ausgabe des Ergebnisses
+head(data_processed_before_exclusions)
+
+# Zeige die psp-Spalte an
+data_processed_before_exclusions$psp
+
+
+
+
+
+```
+
+
+## remove master exclude
+
+```{r}
+# Remove rows where master_exclude column contains "exclude"
+data_processed <- data_processed_before_exclusions[data_processed_before_exclusions$master_exclude != "exclude", ]
+
+# Check the resulting data
+print(data_processed)
+
+
+
+```
+
+
+## sanity check
+
+```{r}
+# Sanity check function for data_processed
+sanity_check_processed <- function(df, allowed_values = c("Y", "N", "X", "P", "Q", "FY", "FN", "FXN", "FXY")) {
+  invalid_entries <- lapply(df, function(column) {
+    if (is.numeric(column)) {
+      return(NULL)  # Skip numeric columns for this check
+    }
+    # Check if any values are not in the allowed set
+    invalid <- !column %in% allowed_values
+    return(which(invalid))  # Return indices of invalid values
+  })
+  
+  # Filter out columns with no invalid entries
+  invalid_entries <- Filter(Negate(is.null), invalid_entries)
+  
+  if (length(invalid_entries) > 0) {
+    return(invalid_entries)  # Return list of invalid entries per column
+  } else {
+    message("Sanity check passed: All entries are valid.")
+    return(NULL)  # No invalid entries found
+  }
+}
+
+# Run sanity check on data_processed
+invalid_entries_processed <- sanity_check_processed(data_processed)
+
+# Check results
+if (!is.null(invalid_entries_processed)) {
+  print("Invalid entries found:")
+  print(invalid_entries_processed)
+}
+
+
 
 ```
 
@@ -1282,7 +1383,6 @@ head(data_alphabetic_comparison)
 
 ```
 
-
 ## 
 
 ```{r}
@@ -1290,3 +1390,41 @@ head(data_alphabetic_comparison)
 
 
 ```
+
+
+# Write to disk
+
+```{r}
+
+
+# save data to disk in that dir
+write_csv(data_processed, "../Data/processed/data_processed.csv")
+
+```
+
+
+# Create codebook template for the processed data
+
+
+```{r}
+
+if(!file.exists("../data/processed/data_processed_codebook.xlsx")){
+  # convert the column names to a df
+  codebook_template <- data.frame(variable = colnames(data_processed)) |>
+    mutate(explanation = NA)
+  # write to disk as an excel file
+  write.xlsx(codebook_template, file = "../data/processed/data_processed_codebook.xlsx")
+}
+
+```
+
+
+# Session info
+
+```{r}
+
+sessionInfo()
+
+```
+
+
