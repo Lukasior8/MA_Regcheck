@@ -1,0 +1,241 @@
+---
+title: "Analysis MA results"
+author: "Luki"
+date: "2024-09-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Dependencies
+
+
+
+```{r}
+library(tidyverse)
+library("readxl")
+library(janitor)
+library(stringr)
+library(openxlsx)
+library(dplyr)
+
+```
+
+
+## Read  data
+
+
+```{r}
+getwd() 
+
+data_processed_for_analysis_csv <- read_csv("../Data/processed/data_processed.csv")
+
+data_processed_for_analysis_excel <-read_excel("../Data/processedDATA_Resultate_raw.xlsx")
+```
+
+## 
+
+```{r}
+
+
+# Select columns that end with "_comp"
+comp_columns <- data_processed %>%
+  select(ends_with("_comp"))
+
+# Summary of occurrences for each category across all "_comp" columns
+summary_table <- comp_columns %>%
+  summarise(across(everything(), ~table(factor(.x, levels = c("Y", "N", "X", "P", "Q", "FY", "FN", "FXN", "FXY"))))) %>%
+  pivot_longer(cols = everything(), names_to = "column", values_to = "counts")
+
+# Reshape the summary table
+summary_table <- summary_table %>%
+  group_by(column) %>%
+  summarise(
+    Identical_YES = sum(counts == "Y", na.rm = TRUE),
+    Identical_NO = sum(counts == "N", na.rm = TRUE),
+    Identical_X = sum(counts == "X", na.rm = TRUE),
+    Different_Y_to_N = sum(counts == "P", na.rm = TRUE),
+    Different_N_to_Y = sum(counts == "Q", na.rm = TRUE),
+    GPT_Y_Olmo_X = sum(counts == "FY", na.rm = TRUE),
+    GPT_N_Olmo_X = sum(counts == "FN", na.rm = TRUE),
+    GPT_X_Olmo_N = sum(counts == "FXN", na.rm = TRUE),
+    GPT_X_Olmo_Y = sum(counts == "FXY", na.rm = TRUE)
+  )
+
+# Print the summary table
+print(summary_table)
+
+# Identify columns with particularly high counts of any category (e.g., top 25%)
+quantile_75 <- summary_table %>%
+  summarise(across(everything(), ~quantile(.x, 0.75)))
+
+# Identify columns where any category exceeds the 75th percentile
+high_columns <- summary_table %>%
+  filter(if_any(everything(), ~ . > quantile_75))
+
+# Print the columns with high counts
+print(high_columns)
+
+
+```
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+
+# Session info
+
+```{r}
+
+sessionInfo()
+
+```
+
+

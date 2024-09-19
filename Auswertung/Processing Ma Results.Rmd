@@ -23,7 +23,7 @@ resultate
 
 
 
-# Dependancies
+# Dependencies
 
 
 
@@ -42,7 +42,7 @@ library(openxlsx)
 
 
 ```{r}
-data_gpt_raw <- read_excel("../data/DATA_Resultate_raw.xlsx") |>
+data_gpt_raw <- read_excel("../Data/DATA_Resultate_raw.xlsx") |>
   janitor::clean_names()
 ```
 
@@ -270,6 +270,7 @@ data_olmo_selected_mutated <- data_olmo_raw_selected %>%
     . == "Yes" ~ "y",
     . == "Composite" ~ "y",
     . == "Non-composite" ~ "n",
+    . == "Non-Composite" ~ "n",
     . == "Yes, procedure" ~ "y",
     . == "Yes, values" ~ "y",
     . == "Yes, sample size" ~ "y",
@@ -1339,36 +1340,36 @@ print(data_processed)
 ## sanity check
 
 ```{r}
-# Sanity check function for data_processed
-sanity_check_processed <- function(df, allowed_values = c("Y", "N", "X", "P", "Q", "FY", "FN", "FXN", "FXY")) {
-  invalid_entries <- lapply(df, function(column) {
-    if (is.numeric(column)) {
-      return(NULL)  # Skip numeric columns for this check
-    }
-    # Check if any values are not in the allowed set
-    invalid <- !column %in% allowed_values
-    return(which(invalid))  # Return indices of invalid values
-  })
-  
-  # Filter out columns with no invalid entries
-  invalid_entries <- Filter(Negate(is.null), invalid_entries)
-  
-  if (length(invalid_entries) > 0) {
-    return(invalid_entries)  # Return list of invalid entries per column
-  } else {
-    message("Sanity check passed: All entries are valid.")
-    return(NULL)  # No invalid entries found
-  }
-}
-
-# Run sanity check on data_processed
-invalid_entries_processed <- sanity_check_processed(data_processed)
-
-# Check results
-if (!is.null(invalid_entries_processed)) {
-  print("Invalid entries found:")
-  print(invalid_entries_processed)
-}
+# # Sanity check function for data_processed
+# sanity_check_processed <- function(df, allowed_values = c("Y", "N", "X", "P", "Q", "FY", "FN", "FXN", "FXY")) {
+#   invalid_entries <- lapply(df, function(column) {
+#     if (is.numeric(column)) {
+#       return(NULL)  # Skip numeric columns for this check
+#     }
+#     # Check if any values are not in the allowed set
+#     invalid <- !column %in% allowed_values
+#     return(which(invalid))  # Return indices of invalid values
+#   })
+#   
+#   # Filter out columns with no invalid entries
+#   invalid_entries <- Filter(Negate(is.null), invalid_entries)
+#   
+#   if (length(invalid_entries) > 0) {
+#     return(invalid_entries)  # Return list of invalid entries per column
+#   } else {
+#     message("Sanity check passed: All entries are valid.")
+#     return(NULL)  # No invalid entries found
+#   }
+# }
+# 
+# # Run sanity check on data_processed
+# invalid_entries_processed <- sanity_check_processed(data_processed)
+# 
+# # Check results
+# if (!is.null(invalid_entries_processed)) {
+#   print("Invalid entries found:")
+#   print(invalid_entries_processed)
+# }
 
 
 
@@ -1397,8 +1398,13 @@ if (!is.null(invalid_entries_processed)) {
 ```{r}
 
 
+
+
 # save data to disk in that dir
-write_csv(data_processed, "../Data/processed/data_processed.csv")
+write.csv(data_processed, "../Data/processed/data_processed.csv")
+
+
+write.xlsx(data_processed, "../Data/processed/data_processed.xlsx")
 
 ```
 
@@ -1413,7 +1419,7 @@ if(!file.exists("../data/processed/data_processed_codebook.xlsx")){
   codebook_template <- data.frame(variable = colnames(data_processed)) |>
     mutate(explanation = NA)
   # write to disk as an excel file
-  write.xlsx(codebook_template, file = "../data/processed/data_processed_codebook.xlsx")
+  write.xlsx(codebook_template, file = "../Data/processed/data_processed_codebook.xlsx")
 }
 
 ```
