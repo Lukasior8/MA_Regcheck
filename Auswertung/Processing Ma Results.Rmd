@@ -1376,9 +1376,39 @@ print(data_processed)
 ```
 
 
-## 
+## number before excluisone, for retest and for prompt versions...
 
 ```{r}
+# Tabelle erstellen für Testanzahl und Prompt-Versionen
+
+# 1. Gesamtanzahl vor Ausschlüssen
+n_total_before_exclusions <- nrow(data_processed_before_exclusions)
+
+# 2. Anzahl nach Ausschlüssen (nur "include" Zeilen berücksichtigen)
+n_after_exclusions <- nrow(data_processed_before_exclusions[data_processed_before_exclusions$master_exclude == "include", ])
+
+# 3. Anzahl der Retests (zählen, wie oft "RETEST" in der Spalte test_retest vorkommt)
+anzahl_retest <- sum(data_processed_before_exclusions$test_retest == "RETEST", na.rm = TRUE)
+
+# 4. Anzahl der Einträge für jede prompt_version (A, B, C, D)
+anzahl_prompt_version_a <- sum(data_processed_before_exclusions$prompt_version == "A", na.rm = TRUE)
+anzahl_prompt_version_b <- sum(data_processed_before_exclusions$prompt_version == "B", na.rm = TRUE)
+anzahl_prompt_version_c <- sum(data_processed_before_exclusions$prompt_version == "C", na.rm = TRUE)
+anzahl_prompt_version_d <- sum(data_processed_before_exclusions$prompt_version == "D", na.rm = TRUE)
+
+# Erstelle eine Tabelle mit den Ergebnissen
+test_table <- data.frame(
+  n_total_before_exclusions = n_total_before_exclusions,
+  n_after_exclusions = n_after_exclusions,
+  anzahl_retest = anzahl_retest,
+  prompt_version_A = anzahl_prompt_version_a,
+  prompt_version_B = anzahl_prompt_version_b,
+  prompt_version_C = anzahl_prompt_version_c,
+  prompt_version_D = anzahl_prompt_version_d
+)
+
+# Ausgabe der Tabelle
+print(test_table)
 
 
 
@@ -1401,7 +1431,6 @@ print(data_processed)
 
 
 # save data to disk in that dir
-write.csv(data_processed, "../Data/processed/data_processed.csv")
 
 
 write.xlsx(data_processed, "../Data/processed/data_processed.xlsx")

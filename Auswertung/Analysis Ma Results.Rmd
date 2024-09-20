@@ -20,6 +20,7 @@ library(janitor)
 library(stringr)
 library(openxlsx)
 library(dplyr)
+library(irr)
 
 ```
 
@@ -30,74 +31,147 @@ library(dplyr)
 ```{r}
 getwd() 
 
-data_processed_for_analysis_csv <- read_csv("../Data/processed/data_processed.csv")
 
-data_processed_for_analysis_excel <-read_excel("../Data/processedDATA_Resultate_raw.xlsx")
+data_processed_ <-read_excel("../Data/processed/data_processed.xlsx")
 ```
 
-## 
+## category counts total
 
 ```{r}
 
-
-# Select columns that end with "_comp"
+# Step 1: Select the columns that end with "_comp"
 comp_columns <- data_processed %>%
   select(ends_with("_comp"))
 
-# Summary of occurrences for each category across all "_comp" columns
-summary_table <- comp_columns %>%
-  summarise(across(everything(), ~table(factor(.x, levels = c("Y", "N", "X", "P", "Q", "FY", "FN", "FXN", "FXY"))))) %>%
-  pivot_longer(cols = everything(), names_to = "column", values_to = "counts")
-
-# Reshape the summary table
-summary_table <- summary_table %>%
-  group_by(column) %>%
+# Step 2: Create a new dataset that counts the occurrences of each category across all "_comp" columns
+data_category_counts_total <- comp_columns %>%
   summarise(
-    Identical_YES = sum(counts == "Y", na.rm = TRUE),
-    Identical_NO = sum(counts == "N", na.rm = TRUE),
-    Identical_X = sum(counts == "X", na.rm = TRUE),
-    Different_Y_to_N = sum(counts == "P", na.rm = TRUE),
-    Different_N_to_Y = sum(counts == "Q", na.rm = TRUE),
-    GPT_Y_Olmo_X = sum(counts == "FY", na.rm = TRUE),
-    GPT_N_Olmo_X = sum(counts == "FN", na.rm = TRUE),
-    GPT_X_Olmo_N = sum(counts == "FXN", na.rm = TRUE),
-    GPT_X_Olmo_Y = sum(counts == "FXY", na.rm = TRUE)
+    Identical_YES = sum(comp_columns == "Y", na.rm = TRUE),
+    Identical_NO = sum(comp_columns == "N", na.rm = TRUE),
+    Identical_X = sum(comp_columns == "X", na.rm = TRUE),
+    Different_Y_to_N = sum(comp_columns == "P", na.rm = TRUE),
+    Different_N_to_Y = sum(comp_columns == "Q", na.rm = TRUE),
+    GPT_Y_Olmo_X = sum(comp_columns == "FY", na.rm = TRUE),
+    GPT_N_Olmo_X = sum(comp_columns == "FN", na.rm = TRUE),
+    GPT_X_Olmo_N = sum(comp_columns == "FXN", na.rm = TRUE),
+    GPT_X_Olmo_Y = sum(comp_columns == "FXY", na.rm = TRUE),
+    n_answers_total = sum(
+      comp_columns == "Y" | comp_columns == "N" | comp_columns == "X" |
+      comp_columns == "P" | comp_columns == "Q" | comp_columns == "FY" |
+      comp_columns == "FN" | comp_columns == "FXN" | comp_columns == "FXY", na.rm = TRUE
+    )
   )
 
-# Print the summary table
-print(summary_table)
+# Step 3: Add percentages as a second row
+data_category_counts_percent <- data_category_counts_total %>%
+  mutate(across(-n_answers_total, ~ round((.x / data_category_counts_total$n_answers_total) * 100, 2))) %>%
+  mutate(n_answers_total = 100)
 
-# Identify columns with particularly high counts of any category (e.g., top 25%)
-quantile_75 <- summary_table %>%
-  summarise(across(everything(), ~quantile(.x, 0.75)))
 
-# Identify columns where any category exceeds the 75th percentile
-high_columns <- summary_table %>%
-  filter(if_any(everything(), ~ . > quantile_75))
+# Step 4: Combine the two with row labels
+data_category_counts_total <- rbind(
+  cbind(type = "counts_total_absolute", data_category_counts_total),
+  cbind(type = "counts_total_percent", data_category_counts_percent)
+)
 
-# Print the columns with high counts
-print(high_columns)
+# Step 4: Print the combined table with both counts and percentages
+print(data_category_counts_total)
+
+```
+
+
+## category counts per item
+
+```{r}
+
+# Assuming your data is already loaded as `data_processed`
+
+# Step 1: Select the columns that end with "_comp"
+comp_columns <- data_processed %>%
+  select(ends_with("_comp"))
+
+# Step 2: Create a dataset that counts occurrences of each category for each column using reframe()
+data_category_counts_per_item <- comp_columns %>%
+  reframe(across(everything(), ~ tibble(
+    Identical_YES = sum(. == "Y", na.rm = TRUE),
+    Identical_NO = sum(. == "N", na.rm = TRUE),
+    Identical_X = sum(. == "X", na.rm = TRUE),
+    Different_Y_to_N = sum(. == "P", na.rm = TRUE),
+    Different_N_to_Y = sum(. == "Q", na.rm = TRUE),
+    GPT_Y_Olmo_X = sum(. == "FY", na.rm = TRUE),
+    GPT_N_Olmo_X = sum(. == "FN", na.rm = TRUE),
+    GPT_X_Olmo_N = sum(. == "FXN", na.rm = TRUE),
+    GPT_X_Olmo_Y = sum(. == "FXY", na.rm = TRUE)
+  )))
+
+# Step 3: Transpose the data so that each category has its own column
+data_category_counts_per_item <- data_category_counts_per_item %>%
+  pivot_longer(cols = everything(), names_to = "Column", values_to = "Counts") %>%
+  unnest_wider(Counts)
+
+# Step 4: Print the result
+print(data_category_counts_per_item)
+
+
+write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_counts_per_item.xlsx")
 
 
 ```
 
 
-## 
+
+## test, retest korrelation
 
 ```{r}
+# Assuming your data is already loaded as `data_processed`
 
+# Step 1: Filter rows where 'test_retest' indicates "Test" and "Retest"
+test_data <- data_processed %>%
+  filter(test_retest == "Test")
 
+retest_data <- data_processed %>%
+  filter(test_retest == "RETEST")
 
-```
+psp_retest_values <- retest_data$psp
 
+# Step 2: Filter the dataset for Test and Retest rows that correspond to the specified `psp` values
+test_data <- data_processed %>%
+  filter(test_retest == "Test" & psp %in% psp_retest_values)
 
+retest_data <- data_processed %>%
+  filter(test_retest == "Retest" & psp %in% psp_retest_values)
+# Step 3: Merge test and retest datasets by `psp` number to align Test and Retest pairs
+test_retest_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
 
-## 
+# Step 4: Select columns that end with "_comp" for both Test and Retest
+comp_columns_test <- grep("_comp$", names(test_data), value = TRUE)
+comp_columns_retest <- grep("_comp$", names(retest_data), value = TRUE)
 
-```{r}
+# Step 5: Calculate Cohen's Kappa for each column between Test and Retest
+reliability_results <- data.frame(Column = character(), Kappa = numeric(), stringsAsFactors = FALSE)
 
+for (i in seq_along(comp_columns_test)) {
+  test_col <- comp_columns_test[i]
+  retest_col <- comp_columns_retest[i]
+  
+  # Create a data frame with test and retest data for the column
+  test_retest_pairs <- data.frame(
+    Test = test_retest_data[[test_col]],
+    Retest = test_retest_data[[retest_col]]
+  )
+  
+  # Ensure the test_retest_pairs has at least two columns
+  if (ncol(test_retest_pairs) == 2) {
+    # Calculate Cohen's Kappa for the test-retest pairs
+    kappa_result <- kappa2(test_retest_pairs, "unweighted")
+    
+    # Store the results
+    reliability_results <- rbind(reliability_results, data.frame(Column = test_col, Kappa = kappa_result$value))
+  }
+}
 
-
+# Step 6: Print the results
+print(reliability_results)
 ```
 
 
