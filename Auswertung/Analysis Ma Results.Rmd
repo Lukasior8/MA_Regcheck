@@ -21,6 +21,13 @@ library(stringr)
 library(openxlsx)
 library(dplyr)
 library(irr)
+library(psych)
+library(formattable)
+library(kableExtra)
+library(gt)
+
+
+
 
 ```
 
@@ -32,7 +39,7 @@ library(irr)
 getwd() 
 
 
-data_processed_ <-read_excel("../Data/processed/data_processed.xlsx")
+data_processed <-read_excel("../Data/processed/data_processed.xlsx")
 ```
 
 ## category counts total
@@ -84,7 +91,6 @@ print(data_category_counts_total)
 
 ```{r}
 
-# Assuming your data is already loaded as `data_processed`
 
 # Step 1: Select the columns that end with "_comp"
 comp_columns <- data_processed %>%
@@ -120,7 +126,7 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 
 
-## test, retest korrelation
+## test, retest korrelation v1
 
 ```{r}
 # Assuming your data is already loaded as `data_processed`
@@ -139,7 +145,7 @@ test_data <- data_processed %>%
   filter(test_retest == "Test" & psp %in% psp_retest_values)
 
 retest_data <- data_processed %>%
-  filter(test_retest == "Retest" & psp %in% psp_retest_values)
+  filter(test_retest == "RETEST" & psp %in% psp_retest_values)
 # Step 3: Merge test and retest datasets by `psp` number to align Test and Retest pairs
 test_retest_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
 
@@ -176,9 +182,84 @@ print(reliability_results)
 
 
 
-## 
+## ## test, retest korrelation Cohens Kappa
 
 ```{r}
+
+
+# Step 1: Filter the dataset into test and retest subsets
+test_data <- data_processed %>% filter(test_retest == "Test")
+retest_data <- data_processed %>% filter(test_retest == "RETEST")
+
+# Step 2: Match test and retest based on 'psp'(so this only contains the 30 test-retst Psp rows)
+merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+
+# Step 3: Get all columns ending with '_comp'
+comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
+
+# Step 4: Loop through each '_comp' column and calculate Cohen's Kappa
+kappa_results <- lapply(comp_columns, function(col_name) {
+  # Cohen's Kappa requires the two sets of categorical data (Test and RETEST)
+  test_col <- merged_data[[paste0(col_name, "_test")]]
+  retest_col <- merged_data[[paste0(col_name, "_retest")]]
+  
+  # Calculate Cohen's Kappa for the current column
+  kappa <- cohen.kappa(cbind(test_col, retest_col))
+  
+  # Return the column name and the kappa value
+  data.frame(Column = col_name, Kappa = kappa$kappa)
+})
+
+# Combine the results into a single data frame
+kappa_summary <- do.call(rbind, kappa_results)
+
+# Step 5: Display the results
+print(kappa_summary)
+
+
+# die drei antweoten mit NAin kappa_summary sind eigentlich perfekt übereinstimemnd, aber da immer nur die gleiche Antwort, dh de geliche Buchstaben eingesetzt wurde gibt es per Definition eine perfekte Übereinstimmung, da es keine Variabilität gibt.
+
+
+```
+
+
+
+
+## erstelle einen Überblick über die kappas
+
+```{r}
+# Schritt 1: Rundung der Kappa-Werte auf 2 Nachkommastellen
+kappa_summary <- kappa_summary %>%
+  mutate(Kappa = round(Kappa, 2))
+
+# Schritt 2: Aufteilen der Tabelle in Kategorien basierend auf Präfixen (pre, c_pre, pap, c_pap, match)
+pre_kappa <- kappa_summary %>% filter(grepl("^(pre|c_pre)", Column)) %>% mutate(Source = "pre")
+pap_kappa <- kappa_summary %>% filter(grepl("^(pap|c_pap)", Column)) %>% mutate(Source = "pap")
+match_kappa <- kappa_summary %>% filter(grepl("^match", Column)) %>% mutate(Source = "match")
+
+# Schritt 3: Setze Zeilennummern für eine saubere Darstellung in jeder Tabelle
+pre_kappa <- pre_kappa %>% mutate(Row = row_number())
+pap_kappa <- pap_kappa %>% mutate(Row = row_number())
+match_kappa <- match_kappa %>% mutate(Row = row_number())
+
+# Schritt 4: Zusammenfügen der drei Tabellen nebeneinander basierend auf der Zeilennummer
+# Verwende full_join, um die Tabellen nach den Zeilen zu verbinden
+kappa_summary_overview <- pre_kappa %>%
+  full_join(pap_kappa, by = "Row", suffix = c("_pre", "_pap")) %>%
+  full_join(match_kappa, by = "Row", suffix = c("", "_match"))
+
+# Schritt 5: Auswahl und Umbenennung der Spalten für Übersichtlichkeit
+# Stellen Sie sicher, dass die Spalten korrekt benannt und verfügbar sind
+kappa_summary_overview <- kappa_summary_overview %>%
+  select(Row, 
+         Column_pre = Column_pre, Kappa_pre = Kappa_pre, 
+         Column_pap = Column_pap, Kappa_pap = Kappa_pap, 
+         Column_match = Column, Kappa_match = Kappa) 
+
+
+
+
+
 
 
 
@@ -187,33 +268,23 @@ print(reliability_results)
 
 
 
-## 
-
-```{r}
-
-
-
-```
-
-
-
 
 ## 
 
 ```{r}
 
 
-
-```
-
-
-
+# Schritt 1: Berechne den minimalen und maximalen Kappa-Wert für alle Kappa-Spalten
+min_kappa <- min(kappa_summary_overview %>% select(starts_with("Kappa")), na.rm = TRUE)
+max_kappa <- max(kappa_summary_overview %>% select(starts_with("Kappa")), na.rm = TRUE)
 
 
-## 
-
-```{r}
-
+kappa_summary_overview %>%
+  kbl() %>%
+  kable_paper("striped", full_width = F) %>%
+  column_spec(3, background = spec_color(kappa_summary_overview$Kappa_pre, end = 0.9, option = "D", scale_from = c(min_kappa, max_kappa))) %>%
+  column_spec(5, background = spec_color(kappa_summary_overview$Kappa_pap, end = 0.9, option = "D", scale_from = c(min_kappa, max_kappa))) %>%
+  column_spec(7, background = spec_color(kappa_summary_overview$Kappa_match, end = 0.9, option = "D", scale_from = c(min_kappa, max_kappa)))
 
 
 ```
@@ -226,6 +297,12 @@ print(reliability_results)
 
 ```{r}
 
+# Färbung der Kappa-Werte direkt in der Tabelle
+formattable(kappa_summary_overview, list(
+  Kappa_pre = color_tile("darkred", "darkgreen"),  # Kappa_pre-Spalte von dunkelrot bis dunkelgrün
+  Kappa_pap = color_tile("darkred", "darkgreen"),  # Kappa_pap-Spalte von dunkelrot bis dunkelgrün
+  Kappa_match = color_tile("darkred", "darkgreen") # Kappa_match-Spalte von dunkelrot bis dunkelgrün
+))
 
 
 ```
