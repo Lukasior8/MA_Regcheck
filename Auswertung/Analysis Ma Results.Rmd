@@ -9,9 +9,20 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#todo:
+- evtl processing noch einmal überarbeiten, für 2. datensatz ohne comp.
+- herausfinden welche Werte man angeben MUSS (pwert, xwert , % etc..)
+- kappa auf Basis von diesem ausrechnen für übereinstimmung gpt & olmo
+- Assumption checks herausfinden welche und ausrechnen
+- weitere analyse....
+
+- Analysis File beschönigen.
+
+- das ziel ist ja: Synthetic peer review: Using large language models to automatically detect deviations from preregistrations
+
+dh. insbesondere die "n" sind interessant um eine Aussage darüber zu machen wie viel % davon entdeckt werden und viel viel fals positive etc....
+
 # Dependencies
-
-
 
 ```{r}
 library(tidyverse)
@@ -25,6 +36,8 @@ library(psych)
 library(formattable)
 library(kableExtra)
 library(gt)
+library(irr)
+
 
 
 
@@ -43,6 +56,8 @@ data_processed <-read_excel("../Data/processed/data_processed.xlsx")
 ```
 
 ## category counts total
+
+hier noch die absoluten zahlen ohne.oo hinschreiben...
 
 ```{r}
 
@@ -126,63 +141,10 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 
 
-## test, retest korrelation v1
-
-```{r}
-# Assuming your data is already loaded as `data_processed`
-
-# Step 1: Filter rows where 'test_retest' indicates "Test" and "Retest"
-test_data <- data_processed %>%
-  filter(test_retest == "Test")
-
-retest_data <- data_processed %>%
-  filter(test_retest == "RETEST")
-
-psp_retest_values <- retest_data$psp
-
-# Step 2: Filter the dataset for Test and Retest rows that correspond to the specified `psp` values
-test_data <- data_processed %>%
-  filter(test_retest == "Test" & psp %in% psp_retest_values)
-
-retest_data <- data_processed %>%
-  filter(test_retest == "RETEST" & psp %in% psp_retest_values)
-# Step 3: Merge test and retest datasets by `psp` number to align Test and Retest pairs
-test_retest_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
-
-# Step 4: Select columns that end with "_comp" for both Test and Retest
-comp_columns_test <- grep("_comp$", names(test_data), value = TRUE)
-comp_columns_retest <- grep("_comp$", names(retest_data), value = TRUE)
-
-# Step 5: Calculate Cohen's Kappa for each column between Test and Retest
-reliability_results <- data.frame(Column = character(), Kappa = numeric(), stringsAsFactors = FALSE)
-
-for (i in seq_along(comp_columns_test)) {
-  test_col <- comp_columns_test[i]
-  retest_col <- comp_columns_retest[i]
-  
-  # Create a data frame with test and retest data for the column
-  test_retest_pairs <- data.frame(
-    Test = test_retest_data[[test_col]],
-    Retest = test_retest_data[[retest_col]]
-  )
-  
-  # Ensure the test_retest_pairs has at least two columns
-  if (ncol(test_retest_pairs) == 2) {
-    # Calculate Cohen's Kappa for the test-retest pairs
-    kappa_result <- kappa2(test_retest_pairs, "unweighted")
-    
-    # Store the results
-    reliability_results <- rbind(reliability_results, data.frame(Column = test_col, Kappa = kappa_result$value))
-  }
-}
-
-# Step 6: Print the results
-print(reliability_results)
-```
 
 
 
-## ## test, retest korrelation Cohens Kappa
+## test, retest korrelation Cohens Kappa per category
 
 ```{r}
 
@@ -192,16 +154,16 @@ test_data <- data_processed %>% filter(test_retest == "Test")
 retest_data <- data_processed %>% filter(test_retest == "RETEST")
 
 # Step 2: Match test and retest based on 'psp'(so this only contains the 30 test-retst Psp rows)
-merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
 
 # Step 3: Get all columns ending with '_comp'
 comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
 
 # Step 4: Loop through each '_comp' column and calculate Cohen's Kappa
-kappa_results <- lapply(comp_columns, function(col_name) {
+retest_kappa_results <- lapply(comp_columns, function(col_name) {
   # Cohen's Kappa requires the two sets of categorical data (Test and RETEST)
-  test_col <- merged_data[[paste0(col_name, "_test")]]
-  retest_col <- merged_data[[paste0(col_name, "_retest")]]
+  test_col <- retest_merged_data[[paste0(col_name, "_test")]]
+  retest_col <- retest_merged_data[[paste0(col_name, "_retest")]]
   
   # Calculate Cohen's Kappa for the current column
   kappa <- cohen.kappa(cbind(test_col, retest_col))
@@ -211,31 +173,195 @@ kappa_results <- lapply(comp_columns, function(col_name) {
 })
 
 # Combine the results into a single data frame
-kappa_summary <- do.call(rbind, kappa_results)
+retest_kappa_summary <- do.call(rbind, retest_kappa_results)
 
 # Step 5: Display the results
-print(kappa_summary)
+print(retest_kappa_summary)
 
 
 # die drei antweoten mit NAin kappa_summary sind eigentlich perfekt übereinstimemnd, aber da immer nur die gleiche Antwort, dh de geliche Buchstaben eingesetzt wurde gibt es per Definition eine perfekte Übereinstimmung, da es keine Variabilität gibt.
 
+
+#write to disk forjamovi
+write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx")
+
+
+
+
+
+
+
+```
+
+
+# versuch 2 mit zusätzlich z wert, agreement % , p wert
+```{r}
+
+
+
+# Step 1: Filter the dataset into test and retest subsets
+test_data <- data_processed %>% filter(test_retest == "Test")
+retest_data <- data_processed %>% filter(test_retest == "RETEST")
+
+# Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest psp rows)
+retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+
+# Step 3: Get all columns ending with '_comp'
+comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
+
+# Step 4: Loop through each '_comp' column and calculate Cohen's Kappa using the irr package
+retest_kappa_results <- lapply(comp_columns, function(col_name) {
+  # Cohen's Kappa requires the two sets of categorical data (Test and RETEST)
+  test_col <- retest_merged_data[[paste0(col_name, "_test")]]
+  retest_col <- retest_merged_data[[paste0(col_name, "_retest")]]
+  
+  # Überprüfung auf gültige Daten (Nicht-NA-Daten) in beiden Spalten
+  if (all(is.na(test_col)) || all(is.na(retest_col))) {
+    # Falls alle Daten NA sind, gib eine Zeile mit NA zurück
+    return(data.frame(Column = col_name, Kappa = NA, z_value = NA, 
+                      Agreement_Percentage = NA, p_value = NA))
+  }
+  
+  # Berechnung von Cohen's Kappa mit dem irr-Paket
+  kappa_result <- kappa2(data.frame(test_col, retest_col), "unweighted")
+  
+  # Extrahiere den Kappa-Wert und p-Wert
+  kappa_value <- kappa_result$value
+  p_value <- kappa_result$p.value
+  agreement_percentage <- mean(test_col == retest_col, na.rm = TRUE) * 100
+  
+  # Berechnung der erwarteten Übereinstimmung (p_e)
+  test_table <- table(test_col, retest_col)
+  n <- sum(test_table)  # Anzahl der Paare
+  p_e <- sum(rowSums(test_table) * colSums(test_table)) / (n^2)
+  
+  # Berechnung der beobachteten Übereinstimmung (p_0)
+  p_0 <- agreement_percentage / 100
+  
+  # Berechnung des Standardfehlers (SE)
+  if (p_e == 1) {
+    se_kappa <- NA  # Vermeide Division durch 0, wenn p_e = 1 (perfekte Übereinstimmung)
+    z_value <- NA
+  } else {
+    se_kappa <- sqrt((p_0 * (1 - p_0)) / (n * (1 - p_e)^2))
+  
+    # Berechnung des z-Werts
+    z_value <- kappa_value / se_kappa
+  }
+  
+  # Return the column name, Kappa, z-value, agreement %, and p-value
+  return(data.frame(Column = col_name, Kappa = kappa_value, z_value = z_value, 
+                    Agreement_Percentage = agreement_percentage, p_value = p_value))
+})
+
+# Step 5: Combine the results into a single data frame
+retest_kappa_summary <- do.call(rbind, retest_kappa_results)
+
+# Step 6: Display the results
+print(retest_kappa_summary)
+
+# Optional: Speichern der zusammengeführten Test-Retest-Daten in einer Excel-Datei
+write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx")
+
+
+```
+
+
+#test, retest korrelation gesamt kappa...
+
+```{r}
+
+# Schritt 4: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den "_comp"-Spalten
+all_test_values <- unlist(retest_merged_data[paste0(comp_columns, "_test")])
+all_retest_values <- unlist(retest_merged_data[paste0(comp_columns, "_retest")])
+
+# Schritt 5: Berechne Cohen's Kappa für alle Daten zusammen
+retest_kappa_all <- cohen.kappa(cbind(all_test_values, all_retest_values))
+
+# Schritt 6: Zeige das Gesamtergebnis an
+retest_kappa_all
+
+```
+
+
+#test, retest korrelation gesamt kappa...v2 mit p wert etc..
+
+p wert noch leer:/
+
+```{r}
+# Lade notwendige Bibliotheken
+library(dplyr)
+library(irr)  # Für Cohen's Kappa aus dem irr Paket
+library(openxlsx)  # Für das Schreiben der Datei
+
+# Step 1: Filter the dataset into test and retest subsets
+test_data <- data_processed %>% filter(test_retest == "Test")
+retest_data <- data_processed %>% filter(test_retest == "RETEST")
+
+# Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest psp rows)
+retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+
+# Step 3: Get all columns ending with '_comp'
+comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
+
+# Schritt 4: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den "_comp"-Spalten
+all_test_values <- unlist(retest_merged_data[paste0(comp_columns, "_test")])
+all_retest_values <- unlist(retest_merged_data[paste0(comp_columns, "_retest")])
+
+# Schritt 5: Berechne Cohen's Kappa für alle Daten zusammen mit dem irr-Paket
+kappa_result_all <- kappa2(data.frame(all_test_values, all_retest_values), "unweighted")
+
+# Extrahiere den Kappa-Wert und den p-Wert
+kappa_value <- kappa_result_all$value
+p_value <- kappa_result_all$p.value
+agreement_percentage <- mean(all_test_values == all_retest_values, na.rm = TRUE) * 100
+
+# Berechnung der erwarteten Übereinstimmung (p_e)
+test_table <- table(all_test_values, all_retest_values)
+n <- sum(test_table)  # Anzahl der Paare
+p_e <- sum(rowSums(test_table) * colSums(test_table)) / (n^2)
+
+# Berechnung der beobachteten Übereinstimmung (p_0)
+p_0 <- agreement_percentage / 100
+
+# Berechnung des Standardfehlers (SE)
+if (p_e == 1) {
+  se_kappa <- NA  # Vermeide Division durch 0, wenn p_e = 1 (perfekte Übereinstimmung)
+  z_value <- NA
+} else {
+  se_kappa <- sqrt((p_0 * (1 - p_0)) / (n * (1 - p_e)^2))
+  
+  # Berechnung des z-Werts
+  z_value <- kappa_value / se_kappa
+}
+
+# Schritt 6: Zeige das Gesamtergebnis an
+retest_kappa_all_summary <- data.frame(
+  Kappa = kappa_value,
+  Agreement_Percentage = agreement_percentage,
+  z_value = z_value,
+  p_value = p_value
+)
+
+# Zeige das Gesamtergebnis an
+print(retest_kappa_all_summary)
 
 ```
 
 
 
 
-## erstelle einen Überblick über die kappas
+##  test-retest Überblick kappas
 
 ```{r}
 # Schritt 1: Rundung der Kappa-Werte auf 2 Nachkommastellen
-kappa_summary <- kappa_summary %>%
+retest_kappa_summary <- retest_kappa_summary %>%
   mutate(Kappa = round(Kappa, 2))
 
 # Schritt 2: Aufteilen der Tabelle in Kategorien basierend auf Präfixen (pre, c_pre, pap, c_pap, match)
-pre_kappa <- kappa_summary %>% filter(grepl("^(pre|c_pre)", Column)) %>% mutate(Source = "pre")
-pap_kappa <- kappa_summary %>% filter(grepl("^(pap|c_pap)", Column)) %>% mutate(Source = "pap")
-match_kappa <- kappa_summary %>% filter(grepl("^match", Column)) %>% mutate(Source = "match")
+pre_kappa <- retest_kappa_summary %>% filter(grepl("^(pre|c_pre)", Column)) %>% mutate(Source = "pre")
+pap_kappa <- retest_kappa_summary %>% filter(grepl("^(pap|c_pap)", Column)) %>% mutate(Source = "pap")
+match_kappa <- retest_kappa_summary %>% filter(grepl("^match", Column)) %>% mutate(Source = "match")
 
 # Schritt 3: Setze Zeilennummern für eine saubere Darstellung in jeder Tabelle
 pre_kappa <- pre_kappa %>% mutate(Row = row_number())
@@ -244,13 +370,13 @@ match_kappa <- match_kappa %>% mutate(Row = row_number())
 
 # Schritt 4: Zusammenfügen der drei Tabellen nebeneinander basierend auf der Zeilennummer
 # Verwende full_join, um die Tabellen nach den Zeilen zu verbinden
-kappa_summary_overview <- pre_kappa %>%
+retest_kappa_summary_overview <- pre_kappa %>%
   full_join(pap_kappa, by = "Row", suffix = c("_pre", "_pap")) %>%
   full_join(match_kappa, by = "Row", suffix = c("", "_match"))
 
 # Schritt 5: Auswahl und Umbenennung der Spalten für Übersichtlichkeit
 # Stellen Sie sicher, dass die Spalten korrekt benannt und verfügbar sind
-kappa_summary_overview <- kappa_summary_overview %>%
+retest_kappa_summary_overview <- retest_kappa_summary_overview %>%
   select(Row, 
          Column_pre = Column_pre, Kappa_pre = Kappa_pre, 
          Column_pap = Column_pap, Kappa_pap = Kappa_pap, 
@@ -269,39 +395,19 @@ kappa_summary_overview <- kappa_summary_overview %>%
 
 
 
-## 
-
-```{r}
-
-
-# Schritt 1: Berechne den minimalen und maximalen Kappa-Wert für alle Kappa-Spalten
-min_kappa <- min(kappa_summary_overview %>% select(starts_with("Kappa")), na.rm = TRUE)
-max_kappa <- max(kappa_summary_overview %>% select(starts_with("Kappa")), na.rm = TRUE)
-
-
-kappa_summary_overview %>%
-  kbl() %>%
-  kable_paper("striped", full_width = F) %>%
-  column_spec(3, background = spec_color(kappa_summary_overview$Kappa_pre, end = 0.9, option = "D", scale_from = c(min_kappa, max_kappa))) %>%
-  column_spec(5, background = spec_color(kappa_summary_overview$Kappa_pap, end = 0.9, option = "D", scale_from = c(min_kappa, max_kappa))) %>%
-  column_spec(7, background = spec_color(kappa_summary_overview$Kappa_match, end = 0.9, option = "D", scale_from = c(min_kappa, max_kappa)))
-
-
-```
 
 
 
 
-
-## 
+## test retest färbung überblick
 
 ```{r}
 
 # Färbung der Kappa-Werte direkt in der Tabelle
-formattable(kappa_summary_overview, list(
-  Kappa_pre = color_tile("darkred", "darkgreen"),  # Kappa_pre-Spalte von dunkelrot bis dunkelgrün
-  Kappa_pap = color_tile("darkred", "darkgreen"),  # Kappa_pap-Spalte von dunkelrot bis dunkelgrün
-  Kappa_match = color_tile("darkred", "darkgreen") # Kappa_match-Spalte von dunkelrot bis dunkelgrün
+formattable(retest_kappa_summary_overview, list(
+  Kappa_pre = color_tile("red", "green"),  # Kappa_pre-Spalte von dunkelrot bis dunkelgrün
+  Kappa_pap = color_tile("red", "green"),  # Kappa_pap-Spalte von dunkelrot bis dunkelgrün
+  Kappa_match = color_tile("red", "green") # Kappa_match-Spalte von dunkelrot bis dunkelgrün
 ))
 
 
@@ -311,15 +417,11 @@ formattable(kappa_summary_overview, list(
 
 
 
-## 
-
-```{r}
+## als nächstes könnte man anschauen welche der items besonders gut und besonders schlecht ist.... die annanhmen überprüfen... und noch weitere Analysen..
 
 
 
-```
-
-
+falsch positiv, falsch negativ etc... analyse...
 
 
 
