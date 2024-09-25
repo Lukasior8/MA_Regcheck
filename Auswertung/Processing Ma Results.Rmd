@@ -1184,7 +1184,7 @@ data_gpt_finito$psp
 ```
 
 
-#Data mergen
+# Data olmo & gpt mergen
 
 ## 
 
@@ -1193,7 +1193,7 @@ data_gpt_finito$psp
 ```{r}
 
 
-merged_data <- left_join(data_gpt_finito, data_olmo_finito, by = "psp", suffix = c("_gpt", "_olmo"))
+data_gpt_olmo_merged <- left_join(data_gpt_finito, data_olmo_finito, by = "psp", suffix = c("_gpt", "_olmo"))
 
 
 
@@ -1250,18 +1250,18 @@ compare_columns <- function(gpt_val, olmo_val) {
 }
 
 # Initialisiere den neuen DataFrame mit der psp-Spalte
-data_alphabetic_comparison <- data.frame(psp = merged_data$psp)
+data_alphabetic_comparison <- data.frame(psp = data_gpt_olmo_merged$psp)
 
 
 # Füge die test_retest-Spalte aus dem gpt-Datensatz in den neuen DataFrame ein
-data_alphabetic_comparison$test_retest <- merged_data$test_retest
+data_alphabetic_comparison$test_retest <- data_gpt_olmo_merged$test_retest
 
 
 # Vergleich und Erstellen der neuen Spalten mit der Endung _comp
 for (category in gpt_categories_alphabetic) {
   # GPT- und Olmo-Spalten auswählen
-  gpt_column <- clean_column(merged_data[[paste0(category, "_gpt")]])
-  olmo_column <- clean_column(merged_data[[paste0(category, "_olmo")]])
+  gpt_column <- clean_column(data_gpt_olmo_merged[[paste0(category, "_gpt")]])
+  olmo_column <- clean_column(data_gpt_olmo_merged[[paste0(category, "_olmo")]])
   
   # Überprüfen, ob beide Spalten existieren und die gleiche Länge haben
   if (!is.null(gpt_column) && !is.null(olmo_column) && length(gpt_column) == length(olmo_column)) {
@@ -1269,7 +1269,7 @@ for (category in gpt_categories_alphabetic) {
     data_alphabetic_comparison[[paste0(category, "_comp")]] <- mapply(compare_columns, gpt_column, olmo_column)
   } else {
     # Wenn die Spalten nicht übereinstimmen, fülle die Vergleichsspalte mit NA
-    data_alphabetic_comparison[[paste0(category, "_comp")]] <- rep(NA, nrow(merged_data))
+    data_alphabetic_comparison[[paste0(category, "_comp")]] <- rep(NA, nrow(data_gpt_olmo_merged))
     warning(paste("Spalten", category, "haben unterschiedliche Längen oder fehlen."))
   }
 }
@@ -1294,7 +1294,7 @@ PEanalysis of olmos dataset contains different strictness categories than gpt,
 ```
 
 
-## merge 
+## comparison merge 
 
 ```{r}
 colnames(data_gpt_finito)
@@ -1323,18 +1323,32 @@ data_processed_before_exclusions$psp
 ```
 
 
-## remove master exclude
+## remove master exclude in comparison 
 
 ```{r}
 # Remove rows where master_exclude column contains "exclude"
-data_processed <- data_processed_before_exclusions[data_processed_before_exclusions$master_exclude != "exclude", ]
+comparison_data_processed <- data_processed_before_exclusions[data_processed_before_exclusions$master_exclude != "exclude", ]
 
 # Check the resulting data
-print(data_processed)
+print(comparison_data_processed)
 
 
 
 ```
+
+## remove master exclude in  data_gpt_olmo_merged
+
+```{r}
+# Remove rows where master_exclude column contains "exclude"
+data_gpt_olmo_processed <- data_gpt_olmo_merged[data_gpt_olmo_merged$master_exclude != "exclude", ]
+
+# Check the resulting data
+print(data_gpt_olmo_processed)
+
+
+
+```
+
 
 
 ## sanity check
@@ -1433,7 +1447,11 @@ print(test_table)
 # save data to disk in that dir
 
 
-write.xlsx(data_processed, "../Data/processed/data_processed.xlsx")
+write.xlsx(comparison_data_processed, "../Data/processed/comparison_data_processed.xlsx")
+
+
+
+write.xlsx(data_gpt_olmo_processed, "../Data/processed/data_gpt_olmo_processed.xlsx")
 
 ```
 
@@ -1445,10 +1463,10 @@ write.xlsx(data_processed, "../Data/processed/data_processed.xlsx")
 
 if(!file.exists("../data/processed/data_processed_codebook.xlsx")){
   # convert the column names to a df
-  codebook_template <- data.frame(variable = colnames(data_processed)) |>
+  codebook_template <- data.frame(variable = colnames(comparison_data_processed)) |>
     mutate(explanation = NA)
   # write to disk as an excel file
-  write.xlsx(codebook_template, file = "../Data/processed/data_processed_codebook.xlsx")
+  write.xlsx(codebook_template, file = "../Data/processed/comparison_data_processed_codebook.xlsx")
 }
 
 ```

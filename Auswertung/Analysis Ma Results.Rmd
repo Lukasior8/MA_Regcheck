@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 - das ziel ist ja: Synthetic peer review: Using large language models to automatically detect deviations from preregistrations
 
-dh. insbesondere die "n" sind interessant um eine Aussage darüber zu machen wie viel % davon entdeckt werden und viel viel fals positive etc....
+dh. insbesondere die "n" sind interessant um eine Aussage darüber zu machen wie viel % davon entdeckt werden und viel viel fals positive etc....und es wäre auch noch nice zu wissen welche Kategorien man brauchen kann und welche nicht...
 
 # Dependencies
 
@@ -45,16 +45,19 @@ library(irr)
 ```
 
 
-## Read  data
+#Read  data
 
 
 ```{r}
 getwd() 
 
 
-data_processed <-read_excel("../Data/processed/data_processed.xlsx")
-```
+comparison_data_processed <-read_excel("../Data/processed/comparison_data_processed.xlsx")
 
+
+data_gpt_olmo_processed <-read_excel("../Data/processed/data_gpt_olmo_processed.xlsx")
+```
+#absolut numbers
 ## category counts total
 
 hier noch die absoluten zahlen ohne.oo hinschreiben...
@@ -62,7 +65,7 @@ hier noch die absoluten zahlen ohne.oo hinschreiben...
 ```{r}
 
 # Step 1: Select the columns that end with "_comp"
-comp_columns <- data_processed %>%
+comp_columns <- comparison_data_processed %>%
   select(ends_with("_comp"))
 
 # Step 2: Create a new dataset that counts the occurrences of each category across all "_comp" columns
@@ -108,7 +111,7 @@ print(data_category_counts_total)
 
 
 # Step 1: Select the columns that end with "_comp"
-comp_columns <- data_processed %>%
+comp_columns <- comparison_data_processed %>%
   select(ends_with("_comp"))
 
 # Step 2: Create a dataset that counts occurrences of each category for each column using reframe()
@@ -142,7 +145,7 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 
 
-
+# Kappa retest
 
 ## test, retest korrelation Cohens Kappa per category
 
@@ -150,14 +153,14 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 
 # Step 1: Filter the dataset into test and retest subsets
-test_data <- data_processed %>% filter(test_retest == "Test")
-retest_data <- data_processed %>% filter(test_retest == "RETEST")
+test_data <- comparison_data_processed %>% filter(test_retest == "Test")
+retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
 
 # Step 2: Match test and retest based on 'psp'(so this only contains the 30 test-retst Psp rows)
 retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
 
 # Step 3: Get all columns ending with '_comp'
-comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
+comp_columns <- grep("_comp$", names(comparison_data_processed), value = TRUE)
 
 # Step 4: Loop through each '_comp' column and calculate Cohen's Kappa
 retest_kappa_results <- lapply(comp_columns, function(col_name) {
@@ -194,20 +197,20 @@ write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx
 ```
 
 
-# versuch 2 mit zusätzlich z wert, agreement % , p wert
+## versuch 2 mit zusätzlich z wert, agreement % , p wert
 ```{r}
 
 
 
 # Step 1: Filter the dataset into test and retest subsets
-test_data <- data_processed %>% filter(test_retest == "Test")
-retest_data <- data_processed %>% filter(test_retest == "RETEST")
+test_data <- comparison_data_processed %>% filter(test_retest == "Test")
+retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
 
 # Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest psp rows)
 retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
 
 # Step 3: Get all columns ending with '_comp'
-comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
+comp_columns <- grep("_comp$", names(comparison_data_processed), value = TRUE)
 
 # Step 4: Loop through each '_comp' column and calculate Cohen's Kappa using the irr package
 retest_kappa_results <- lapply(comp_columns, function(col_name) {
@@ -267,7 +270,7 @@ write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx
 ```
 
 
-#test, retest korrelation gesamt kappa...
+## test, retest korrelation gesamt kappa...
 
 ```{r}
 
@@ -284,7 +287,7 @@ retest_kappa_all
 ```
 
 
-#test, retest korrelation gesamt kappa...v2 mit p wert etc..
+##test, retest korrelation gesamt kappa...v2 mit p wert etc..
 
 p wert noch leer:/
 
@@ -295,14 +298,14 @@ library(irr)  # Für Cohen's Kappa aus dem irr Paket
 library(openxlsx)  # Für das Schreiben der Datei
 
 # Step 1: Filter the dataset into test and retest subsets
-test_data <- data_processed %>% filter(test_retest == "Test")
-retest_data <- data_processed %>% filter(test_retest == "RETEST")
+test_data <- comparison_data_processed %>% filter(test_retest == "Test")
+retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
 
 # Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest psp rows)
 retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
 
 # Step 3: Get all columns ending with '_comp'
-comp_columns <- grep("_comp$", names(data_processed), value = TRUE)
+comp_columns <- grep("_comp$", names(comparison_data_processed), value = TRUE)
 
 # Schritt 4: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den "_comp"-Spalten
 all_test_values <- unlist(retest_merged_data[paste0(comp_columns, "_test")])
