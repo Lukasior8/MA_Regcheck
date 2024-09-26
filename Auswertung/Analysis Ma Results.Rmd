@@ -57,7 +57,7 @@ comparison_data_processed <-read_excel("../Data/processed/comparison_data_proces
 
 data_gpt_olmo_processed <-read_excel("../Data/processed/data_gpt_olmo_processed.xlsx")
 ```
-#absolut numbers
+# Category Counts
 ## category counts total
 
 hier noch die absoluten zahlen ohne.oo hinschreiben...
@@ -102,7 +102,57 @@ data_category_counts_total <- rbind(
 # Step 4: Print the combined table with both counts and percentages
 print(data_category_counts_total)
 
+
+write.xlsx(data_category_counts_total, "../Data/processed/data_category_counts_total.xlsx")
+
 ```
+
+
+
+### 3x3 confusionsmatrix
+
+```{r}
+
+# Angenommen, deine 2x11-Tabelle heißt "data_category_counts_total"
+# und enthält die Zählungen für jede Kategorie (z.B. Y, N, X).
+
+# Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
+actual_Y <- data_category_counts_total$Identical_YES[1]  # Zähle die Y-Zuordnungen
+actual_N <- data_category_counts_total$Identical_NO[1]   # Zähle die N-Zuordnungen
+actual_X <- data_category_counts_total$Identical_X[1]    # Zähle die X-Zuordnungen
+
+pred_Y_to_N <- data_category_counts_total$Different_Y_to_N[1]  # Y -> N Zählungen
+pred_N_to_Y <- data_category_counts_total$Different_N_to_Y[1]  # N -> Y Zählungen
+pred_Y_to_X <- data_category_counts_total$GPT_Y_Olmo_X[1]      # Y -> X Zählungen
+pred_N_to_X <- data_category_counts_total$GPT_N_Olmo_X[1]      # N -> X Zählungen
+pred_X_to_N <- data_category_counts_total$GPT_X_Olmo_N[1]      # X -> N Zählungen
+pred_X_to_Y <- data_category_counts_total$GPT_X_Olmo_Y[1]      # X -> Y Zählungen
+
+# Erstelle eine leere 3x3-Matrix
+confusion_matrix <- matrix(0, nrow = 3, ncol = 3, 
+                           dimnames = list(c("Actual_Y", "Actual_N", "Actual_X"), 
+                                           c("Predicted_Y", "Predicted_N", "Predicted_X")))
+
+# Fülle die Konfusionsmatrix basierend auf den Zählungen aus
+confusion_matrix["Actual_Y", "Predicted_Y"] <- actual_Y
+confusion_matrix["Actual_N", "Predicted_N"] <- actual_N
+confusion_matrix["Actual_X", "Predicted_X"] <- actual_X
+
+# Füge die 'False Positives' und 'False Negatives' hinzu
+confusion_matrix["Actual_Y", "Predicted_N"] <- pred_Y_to_N
+confusion_matrix["Actual_N", "Predicted_Y"] <- pred_N_to_Y
+confusion_matrix["Actual_Y", "Predicted_X"] <- pred_Y_to_X
+confusion_matrix["Actual_X", "Predicted_Y"] <- pred_X_to_Y
+confusion_matrix["Actual_N", "Predicted_X"] <- pred_N_to_X
+confusion_matrix["Actual_X", "Predicted_N"] <- pred_X_to_N
+
+# Ausgabe der 3x3 Konfusionsmatrix
+print(confusion_matrix)
+
+
+
+```
+
 
 
 ## category counts per item
@@ -142,6 +192,109 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 ```
 
+# sensitivity & specifity 
+
+
+
+## Sensitivität und Spezifität für jede Klasse (One-vs-Rest)
+
+```{r}
+
+print(confusion_matrix)
+
+
+
+# Berechnung der Sensitivität und Spezifität für jede Klasse (One-vs-Rest)
+
+# Y-Klasse (Sensitivität und Spezifität)
+TP_Y <- confusion_matrix['Actual_Y', 'Predicted_Y']
+FN_Y <- sum(confusion_matrix['Actual_Y', ]) - TP_Y
+FP_Y <- sum(confusion_matrix[, 'Predicted_Y']) - TP_Y
+TN_Y <- sum(confusion_matrix) - (TP_Y + FN_Y + FP_Y)
+
+sensitivity_Y <- TP_Y / (TP_Y + FN_Y)
+specificity_Y <- TN_Y / (TN_Y + FP_Y)
+
+# N-Klasse (Sensitivität und Spezifität)
+TP_N <- confusion_matrix['Actual_N', 'Predicted_N']
+FN_N <- sum(confusion_matrix['Actual_N', ]) - TP_N
+FP_N <- sum(confusion_matrix[, 'Predicted_N']) - TP_N
+TN_N <- sum(confusion_matrix) - (TP_N + FN_N + FP_N)
+
+sensitivity_N <- TP_N / (TP_N + FN_N)
+specificity_N <- TN_N / (TN_N + FP_N)
+
+# X-Klasse (Sensitivität und Spezifität)
+TP_X <- confusion_matrix['Actual_X', 'Predicted_X']
+FN_X <- sum(confusion_matrix['Actual_X', ]) - TP_X
+FP_X <- sum(confusion_matrix[, 'Predicted_X']) - TP_X
+TN_X <- sum(confusion_matrix) - (TP_X + FN_X + FP_X)
+
+sensitivity_X <- TP_X / (TP_X + FN_X)
+specificity_X <- TN_X / (TN_X + FP_X)
+
+# Ergebnisse anzeigen
+results <- data.frame(
+  Class = c("Y", "N", "X"),
+  Sensitivity = c(sensitivity_Y, sensitivity_N, sensitivity_X),
+  Specificity = c(specificity_Y, specificity_N, specificity_X)
+)
+
+print(results)
+
+```
+
+
+
+## Gesamtleistung: Macro- und Micro-Averaging
+
+```{r}
+# Macro-Averaging (Mittelwert der Sensitivitäten und Spezifitäten)
+macro_sensitivity <- mean(c(sensitivity_Y, sensitivity_N, sensitivity_X))
+macro_specificity <- mean(c(specificity_Y, specificity_N, specificity_X))
+
+# Micro-Averaging (Summe der TP, FN, FP, TN über alle Klassen)
+TP_total <- TP_Y + TP_N + TP_X
+FN_total <- FN_Y + FN_N + FN_X
+FP_total <- FP_Y + FP_N + FP_X
+TN_total <- TN_Y + TN_N + TN_X
+
+micro_sensitivity <- TP_total / (TP_total + FN_total)
+micro_specificity <- TN_total / (TN_total + FP_total)
+
+# Ergebnisse für Macro- und Micro-Averaging anzeigen
+overall_results <- data.frame(
+  Metric = c("Macro Sensitivity", "Macro Specificity", "Micro Sensitivity", "Micro Specificity"),
+  Value = c(macro_sensitivity, macro_specificity, micro_sensitivity, micro_specificity)
+)
+
+print(overall_results)
+
+
+
+
+```
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
 
 
 
@@ -420,12 +573,219 @@ formattable(retest_kappa_summary_overview, list(
 
 
 
-## als nächstes könnte man anschauen welche der items besonders gut und besonders schlecht ist.... die annanhmen überprüfen... und noch weitere Analysen..
+#Kappa interrater gpt zu olmo
+
+
+- wieso anderes kappa als? bei jamovi?
+- sollte ich im gesamten script die selbe mehto wählen?
+- wie ist die differenz zu interpretieren?
+
+## Kappa interrater gpt zu olmo per category
+
+```{r}
 
 
 
-falsch positiv, falsch negativ etc... analyse...
+# Function to calculate Cohen's Kappa, p-value, z-value, and percentage agreement
+calculate_kappa_stats <- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if(column_gpt %in% colnames(data) & column_olmo %in% colnames(data)) {
+    # Calculate Cohen's Kappa
+    kappa_result <- psych::cohen.kappa(cbind(data[[column_gpt]], data[[column_olmo]]))
+    
+    # Extract values
+    kappa_value <- kappa_result$kappa
+    p_value <- kappa_result$p.value
+    z_value <- kappa_result$z
+    percent_agreement <- sum(data[[column_gpt]] == data[[column_olmo]], na.rm = TRUE) / nrow(data) * 100
+    
+    return(c(kappa_value, p_value, z_value, percent_agreement))
+  } else {
+    return(rep(NA, 4))
+  }
+}
 
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
+
+# Create a dataframe to store the results
+kappa_results <- data.frame(Variable = gpt_columns, Kappa = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for(i in 1:length(gpt_columns)) {
+  kappa_stats <- calculate_kappa_stats(data_gpt_olmo_processed, gpt_columns[i], olmo_columns[i])
+  kappa_results[i, 2:5] <- kappa_stats
+}
+
+# Show the results
+print(kappa_results)
+
+
+
+```
+
+
+
+
+
+##Kappa interrater gpt zu olmo  per category 2. ansatz
+
+```{r}
+
+
+# Function to calculate Cohen's Kappa, p-value, z-value, and percentage agreement using 'irr' package
+calculate_kappa_irr_v2 <- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if(column_gpt %in% colnames(data) & column_olmo %in% colnames(data)) {
+    # Remove rows with NA values to avoid errors in kappa calculation
+    valid_data_v2 <- data[!is.na(data[[column_gpt]]) & !is.na(data[[column_olmo]]), ]
+    
+    # Calculate Cohen's Kappa using the 'kappa2' function from the irr package
+    kappa_result_v2 <- irr::kappa2(valid_data_v2[, c(column_gpt, column_olmo)], "unweighted")
+    
+    # Extract values
+    kappa_value_v2 <- kappa_result_v2$value
+    p_value_v2 <- kappa_result_v2$p.value
+    z_value_v2 <- kappa_result_v2$statistic
+    percent_agreement_v2 <- sum(valid_data_v2[[column_gpt]] == valid_data_v2[[column_olmo]]) / nrow(valid_data_v2) * 100
+    
+    return(c(kappa_value_v2, p_value_v2, z_value_v2, percent_agreement_v2))
+  } else {
+    return(rep(NA, 4))
+  }
+}
+
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns_v2 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_v2 <- gsub("_gpt$", "_olmo", gpt_columns_v2)
+
+# Create a dataframe to store the results
+kappa_results_v2 <- data.frame(Variable = gpt_columns_v2, Kappa = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for(i in 1:length(gpt_columns_v2)) {
+  kappa_stats_v2 <- calculate_kappa_irr_v2(data_gpt_olmo_processed, gpt_columns_v2[i], olmo_columns_v2[i])
+  kappa_results_v2[i, 2:5] <- kappa_stats_v2
+}
+
+# Show the results
+print(kappa_results_v2)
+
+```
+
+
+
+
+
+## Kappa interrater gpt zu olmo gesamt
+
+```{r}
+
+# Spalten mit _gpt und _olmo suffix finden
+gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns <- gpt_columns[olmo_columns %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns <- olmo_columns[olmo_columns %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Kombinieren der Spalten in einem DataFrame für den Gesamtvergleich
+combined_data <- data.frame()
+
+for(i in 1:length(valid_gpt_columns)) {
+  # Füge die Werte der GPT und OLMO Spalten zur kombinierten Datensatz hinzu
+  combined_data <- rbind(combined_data, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns[i]]],
+                                                   OLMO = data_gpt_olmo_processed[[valid_olmo_columns[i]]]))
+}
+
+# Entferne NA-Werte
+combined_data <- na.omit(combined_data)
+
+# Berechne Cohen's Kappa für den gesamten Test
+kappa_result <- irr::kappa2(combined_data, "unweighted")
+
+# Berechne den Prozentsatz der Übereinstimmung
+percent_agreement <- sum(combined_data$GPT == combined_data$OLMO) / nrow(combined_data) * 100
+
+# Ergebnisse anzeigen
+cat("Cohen's Kappa für den gesamten Test:\n")
+cat("Kappa:", kappa_result$value, "\n")
+cat("p-Wert:", kappa_result$p.value, "\n")
+cat("z-Wert:", kappa_result$statistic, "\n")
+cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n")
+
+
+```
+
+
+
+
+## besser nur bei promt version 4? im Vergleich zu den anderen?
+
+```{r}
+# Spalten mit _gpt und _olmo suffix finden
+gpt_columns_PromptV <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_PromptV <- gsub("_gpt$", "_olmo", gpt_columns_PromptV)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns_PromptV <- gpt_columns_PromptV[olmo_columns_PromptV %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_PromptV <- olmo_columns_PromptV[olmo_columns_PromptV %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_PromptV) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Definiere die verschiedenen Versionen, die in prompt_version auftreten (A, B, C, D)
+versions_PromptV <- c("A", "B", "C", "D")
+
+# Schleife durch jede Version und berechne das Kappa für jede
+for (version_PromptV in versions_PromptV) {
+  # Filtere die Zeilen, die zur aktuellen Version gehören
+  version_data_PromptV <- data_gpt_olmo_processed[data_gpt_olmo_processed$prompt_version == version_PromptV, ]
+  
+  # Kombinieren der Spalten in einem DataFrame für den Vergleich der aktuellen Version
+  combined_data_PromptV <- data.frame()
+  
+  for(i in 1:length(valid_gpt_columns_PromptV)) {
+    # Füge die Werte der GPT und OLMO Spalten zur kombinierten Datensatz hinzu
+    combined_data_PromptV <- rbind(combined_data_PromptV, data.frame(GPT = version_data_PromptV[[valid_gpt_columns_PromptV[i]]],
+                                                                     OLMO = version_data_PromptV[[valid_olmo_columns_PromptV[i]]]))
+  }
+  
+  # Entferne NA-Werte
+  combined_data_PromptV <- na.omit(combined_data_PromptV)
+  
+  # Berechne Cohen's Kappa für die aktuelle Version
+  kappa_result_PromptV <- irr::kappa2(combined_data_PromptV, "unweighted")
+  
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement_PromptV <- sum(combined_data_PromptV$GPT == combined_data_PromptV$OLMO) / nrow(combined_data_PromptV) * 100
+  
+  # Ergebnisse anzeigen
+  cat("\nCohen's Kappa für Version", version_PromptV, ":\n")
+  cat("Kappa:", kappa_result_PromptV$value, "\n")
+  cat("p-Wert:", kappa_result_PromptV$p.value, "\n")
+  cat("z-Wert:", kappa_result_PromptV$statistic, "\n")
+  cat("Prozentuale Übereinstimmung:", percent_agreement_PromptV, "%\n")
+}
+
+
+
+```
+
+
+## differenz zw promt versionen? 
+
+
+
+```
 
 
 ## 
@@ -437,9 +797,6 @@ falsch positiv, falsch negativ etc... analyse...
 ```
 
 
-
-
-
 ## 
 
 ```{r}
@@ -447,20 +804,6 @@ falsch positiv, falsch negativ etc... analyse...
 
 
 ```
-
-
-
-
-
-## 
-
-```{r}
-
-
-
-```
-
-
 
 
 ## 
