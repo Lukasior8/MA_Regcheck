@@ -111,6 +111,8 @@ write.xlsx(data_category_counts_total, "../Data/processed/data_category_counts_t
 
 ### 3x3 confusionsmatrix
 
+hier müsste ich evventuell noch zusätzlich die Anzahl vvon Olmo... als Vergleich.
+
 ```{r}
 
 # Angenommen, deine 2x11-Tabelle heißt "data_category_counts_total"
@@ -152,7 +154,7 @@ print(confusion_matrix)
 
 
 ```
-
+bei den category counts total sieht man welche kategorie insgesamt viel verwendet wurde…. Aber halt nicht so aussagekräftig, da n kommt auch bei olmo seltener vor...ncith so aussagekräfitg... man müsste prozentual zu allen berechnungen( also dass y,n,x gleich häufig vorkommen) aber man sieht schon, dass nur ca 50 & richtig predictet... halt sehr schlecht... 
 
 
 ## category counts per item
@@ -197,6 +199,9 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 
 ## Sensitivität und Spezifität für jede Klasse (One-vs-Rest)
+
+
+hier könnte man noch sensitivität für jedes Item...!
 
 ```{r}
 
@@ -244,7 +249,9 @@ print(results)
 
 ```
 
+Sensitivity (Empfindlichkeit) misst, wie gut das Modell die tatsächlichen positiven Fälle für jede Klasse erkennt (True Positives). Es beantwortet die Frage: Von den tatsächlichen Positiven, wie viele wurden richtig als positiv klassifiziert?
 
+Specificity (Spezifität) misst, wie gut das Modell die negativen Fälle korrekt identifiziert (True Negatives). Es beantwortet die Frage: Von den tatsächlichen Negativen, wie viele wurden richtig als negativ klassifiziert?
 
 ## Gesamtleistung: Macro- und Micro-Averaging
 
@@ -626,7 +633,7 @@ print(kappa_results)
 ```
 
 
-
+#achtung kappa result und results!!
 
 
 ##Kappa interrater gpt zu olmo  per category 2. ansatz
@@ -727,6 +734,8 @@ cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n")
 
 
 ## besser nur bei promt version 4? im Vergleich zu den anderen?
+
+hier noch n reinnehmen
 
 ```{r}
 # Spalten mit _gpt und _olmo suffix finden

@@ -357,6 +357,20 @@ display: none;
 </div>
 
 
+<p>#todo: - evtl processing noch einmal überarbeiten, für 2. datensatz
+ohne comp. - herausfinden welche Werte man angeben MUSS (pwert, xwert ,
+% etc..) - kappa auf Basis von diesem ausrechnen für übereinstimmung gpt
+&amp; olmo - Assumption checks herausfinden welche und ausrechnen -
+weitere analyse….</p>
+<ul>
+<li><p>Analysis File beschönigen.</p></li>
+<li><p>das ziel ist ja: Synthetic peer review: Using large language
+models to automatically detect deviations from preregistrations</p></li>
+</ul>
+<p>dh. insbesondere die “n” sind interessant um eine Aussage darüber zu
+machen wie viel % davon entdeckt werden und viel viel fals positive
+etc….und es wäre auch noch nice zu wissen welche Kategorien man brauchen
+kann und welche nicht…</p>
 <div id="dependencies" class="section level1">
 <h1>Dependencies</h1>
 <pre class="r"><code>library(tidyverse)</code></pre>
@@ -420,16 +434,22 @@ library(irr)</code></pre>
 ## Das folgende Objekt ist maskiert &#39;package:formattable&#39;:
 ## 
 ##     currency</code></pre>
-<div id="read-data" class="section level2">
-<h2>Read data</h2>
+<pre class="r"><code>library(irr)</code></pre>
+<p>#Read data</p>
 <pre class="r"><code>getwd() </code></pre>
 <pre><code>## [1] &quot;E:/Studium/Master/Masterarbeit/MA Github/MA-Regcheck/Auswertung&quot;</code></pre>
-<pre class="r"><code>data_processed &lt;-read_excel(&quot;../Data/processed/data_processed.xlsx&quot;)</code></pre>
+<pre class="r"><code>comparison_data_processed &lt;-read_excel(&quot;../Data/processed/comparison_data_processed.xlsx&quot;)
+
+
+data_gpt_olmo_processed &lt;-read_excel(&quot;../Data/processed/data_gpt_olmo_processed.xlsx&quot;)</code></pre>
 </div>
+<div id="category-counts" class="section level1">
+<h1>Category Counts</h1>
 <div id="category-counts-total" class="section level2">
 <h2>category counts total</h2>
+<p>hier noch die absoluten zahlen ohne.oo hinschreiben…</p>
 <pre class="r"><code># Step 1: Select the columns that end with &quot;_comp&quot;
-comp_columns &lt;- data_processed %&gt;%
+comp_columns &lt;- comparison_data_processed %&gt;%
   select(ends_with(&quot;_comp&quot;))
 
 # Step 2: Create a new dataset that counts the occurrences of each category across all &quot;_comp&quot; columns
@@ -474,11 +494,54 @@ print(data_category_counts_total)</code></pre>
 ##   n_answers_total
 ## 1           36462
 ## 2             100</code></pre>
+<pre class="r"><code>write.xlsx(data_category_counts_total, &quot;../Data/processed/data_category_counts_total.xlsx&quot;)</code></pre>
+<div id="x3-confusionsmatrix" class="section level3">
+<h3>3x3 confusionsmatrix</h3>
+<pre class="r"><code># Angenommen, deine 2x11-Tabelle heißt &quot;data_category_counts_total&quot;
+# und enthält die Zählungen für jede Kategorie (z.B. Y, N, X).
+
+# Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
+actual_Y &lt;- data_category_counts_total$Identical_YES[1]  # Zähle die Y-Zuordnungen
+actual_N &lt;- data_category_counts_total$Identical_NO[1]   # Zähle die N-Zuordnungen
+actual_X &lt;- data_category_counts_total$Identical_X[1]    # Zähle die X-Zuordnungen
+
+pred_Y_to_N &lt;- data_category_counts_total$Different_Y_to_N[1]  # Y -&gt; N Zählungen
+pred_N_to_Y &lt;- data_category_counts_total$Different_N_to_Y[1]  # N -&gt; Y Zählungen
+pred_Y_to_X &lt;- data_category_counts_total$GPT_Y_Olmo_X[1]      # Y -&gt; X Zählungen
+pred_N_to_X &lt;- data_category_counts_total$GPT_N_Olmo_X[1]      # N -&gt; X Zählungen
+pred_X_to_N &lt;- data_category_counts_total$GPT_X_Olmo_N[1]      # X -&gt; N Zählungen
+pred_X_to_Y &lt;- data_category_counts_total$GPT_X_Olmo_Y[1]      # X -&gt; Y Zählungen
+
+# Erstelle eine leere 3x3-Matrix
+confusion_matrix &lt;- matrix(0, nrow = 3, ncol = 3, 
+                           dimnames = list(c(&quot;Actual_Y&quot;, &quot;Actual_N&quot;, &quot;Actual_X&quot;), 
+                                           c(&quot;Predicted_Y&quot;, &quot;Predicted_N&quot;, &quot;Predicted_X&quot;)))
+
+# Fülle die Konfusionsmatrix basierend auf den Zählungen aus
+confusion_matrix[&quot;Actual_Y&quot;, &quot;Predicted_Y&quot;] &lt;- actual_Y
+confusion_matrix[&quot;Actual_N&quot;, &quot;Predicted_N&quot;] &lt;- actual_N
+confusion_matrix[&quot;Actual_X&quot;, &quot;Predicted_X&quot;] &lt;- actual_X
+
+# Füge die &#39;False Positives&#39; und &#39;False Negatives&#39; hinzu
+confusion_matrix[&quot;Actual_Y&quot;, &quot;Predicted_N&quot;] &lt;- pred_Y_to_N
+confusion_matrix[&quot;Actual_N&quot;, &quot;Predicted_Y&quot;] &lt;- pred_N_to_Y
+confusion_matrix[&quot;Actual_Y&quot;, &quot;Predicted_X&quot;] &lt;- pred_Y_to_X
+confusion_matrix[&quot;Actual_X&quot;, &quot;Predicted_Y&quot;] &lt;- pred_X_to_Y
+confusion_matrix[&quot;Actual_N&quot;, &quot;Predicted_X&quot;] &lt;- pred_N_to_X
+confusion_matrix[&quot;Actual_X&quot;, &quot;Predicted_N&quot;] &lt;- pred_X_to_N
+
+# Ausgabe der 3x3 Konfusionsmatrix
+print(confusion_matrix)</code></pre>
+<pre><code>##          Predicted_Y Predicted_N Predicted_X
+## Actual_Y        7177        5224        7256
+## Actual_N         382        1106        2172
+## Actual_X         938         534       11673</code></pre>
+</div>
 </div>
 <div id="category-counts-per-item" class="section level2">
 <h2>category counts per item</h2>
 <pre class="r"><code># Step 1: Select the columns that end with &quot;_comp&quot;
-comp_columns &lt;- data_processed %&gt;%
+comp_columns &lt;- comparison_data_processed %&gt;%
   select(ends_with(&quot;_comp&quot;))
 
 # Step 2: Create a dataset that counts occurrences of each category for each column using reframe()
@@ -520,23 +583,112 @@ print(data_category_counts_per_item)</code></pre>
 ## #   GPT_N_Olmo_X &lt;int&gt;, GPT_X_Olmo_N &lt;int&gt;, GPT_X_Olmo_Y &lt;int&gt;</code></pre>
 <pre class="r"><code>write.xlsx(data_category_counts_per_item, &quot;../Data/processed/data_category_counts_per_item.xlsx&quot;)</code></pre>
 </div>
-<div id="test-retest-korrelation-cohens-kappa" class="section level2">
-<h2>test, retest korrelation Cohens Kappa</h2>
+</div>
+<div id="sensitivity-specifity" class="section level1">
+<h1>sensitivity &amp; specifity</h1>
+<div id="sensitivität-und-spezifität-für-jede-klasse-one-vs-rest" class="section level2">
+<h2>Sensitivität und Spezifität für jede Klasse (One-vs-Rest)</h2>
+<pre class="r"><code>print(confusion_matrix)</code></pre>
+<pre><code>##          Predicted_Y Predicted_N Predicted_X
+## Actual_Y        7177        5224        7256
+## Actual_N         382        1106        2172
+## Actual_X         938         534       11673</code></pre>
+<pre class="r"><code># Berechnung der Sensitivität und Spezifität für jede Klasse (One-vs-Rest)
+
+# Y-Klasse (Sensitivität und Spezifität)
+TP_Y &lt;- confusion_matrix[&#39;Actual_Y&#39;, &#39;Predicted_Y&#39;]
+FN_Y &lt;- sum(confusion_matrix[&#39;Actual_Y&#39;, ]) - TP_Y
+FP_Y &lt;- sum(confusion_matrix[, &#39;Predicted_Y&#39;]) - TP_Y
+TN_Y &lt;- sum(confusion_matrix) - (TP_Y + FN_Y + FP_Y)
+
+sensitivity_Y &lt;- TP_Y / (TP_Y + FN_Y)
+specificity_Y &lt;- TN_Y / (TN_Y + FP_Y)
+
+# N-Klasse (Sensitivität und Spezifität)
+TP_N &lt;- confusion_matrix[&#39;Actual_N&#39;, &#39;Predicted_N&#39;]
+FN_N &lt;- sum(confusion_matrix[&#39;Actual_N&#39;, ]) - TP_N
+FP_N &lt;- sum(confusion_matrix[, &#39;Predicted_N&#39;]) - TP_N
+TN_N &lt;- sum(confusion_matrix) - (TP_N + FN_N + FP_N)
+
+sensitivity_N &lt;- TP_N / (TP_N + FN_N)
+specificity_N &lt;- TN_N / (TN_N + FP_N)
+
+# X-Klasse (Sensitivität und Spezifität)
+TP_X &lt;- confusion_matrix[&#39;Actual_X&#39;, &#39;Predicted_X&#39;]
+FN_X &lt;- sum(confusion_matrix[&#39;Actual_X&#39;, ]) - TP_X
+FP_X &lt;- sum(confusion_matrix[, &#39;Predicted_X&#39;]) - TP_X
+TN_X &lt;- sum(confusion_matrix) - (TP_X + FN_X + FP_X)
+
+sensitivity_X &lt;- TP_X / (TP_X + FN_X)
+specificity_X &lt;- TN_X / (TN_X + FP_X)
+
+# Ergebnisse anzeigen
+results &lt;- data.frame(
+  Class = c(&quot;Y&quot;, &quot;N&quot;, &quot;X&quot;),
+  Sensitivity = c(sensitivity_Y, sensitivity_N, sensitivity_X),
+  Specificity = c(specificity_Y, specificity_N, specificity_X)
+)
+
+print(results)</code></pre>
+<pre><code>##   Class Sensitivity Specificity
+## 1     Y   0.3651117   0.9214519
+## 2     N   0.3021858   0.8244619
+## 3     X   0.8880183   0.5956598</code></pre>
+</div>
+<div id="gesamtleistung-macro--und-micro-averaging" class="section level2">
+<h2>Gesamtleistung: Macro- und Micro-Averaging</h2>
+<pre class="r"><code># Macro-Averaging (Mittelwert der Sensitivitäten und Spezifitäten)
+macro_sensitivity &lt;- mean(c(sensitivity_Y, sensitivity_N, sensitivity_X))
+macro_specificity &lt;- mean(c(specificity_Y, specificity_N, specificity_X))
+
+# Micro-Averaging (Summe der TP, FN, FP, TN über alle Klassen)
+TP_total &lt;- TP_Y + TP_N + TP_X
+FN_total &lt;- FN_Y + FN_N + FN_X
+FP_total &lt;- FP_Y + FP_N + FP_X
+TN_total &lt;- TN_Y + TN_N + TN_X
+
+micro_sensitivity &lt;- TP_total / (TP_total + FN_total)
+micro_specificity &lt;- TN_total / (TN_total + FP_total)
+
+# Ergebnisse für Macro- und Micro-Averaging anzeigen
+overall_results &lt;- data.frame(
+  Metric = c(&quot;Macro Sensitivity&quot;, &quot;Macro Specificity&quot;, &quot;Micro Sensitivity&quot;, &quot;Micro Specificity&quot;),
+  Value = c(macro_sensitivity, macro_specificity, micro_sensitivity, micro_specificity)
+)
+
+print(overall_results)</code></pre>
+<pre><code>##              Metric     Value
+## 1 Macro Sensitivity 0.5184386
+## 2 Macro Specificity 0.7805246
+## 3 Micro Sensitivity 0.5473095
+## 4 Micro Specificity 0.7736548</code></pre>
+</div>
+<div id="section" class="section level2">
+<h2></h2>
+</div>
+<div id="section-1" class="section level2">
+<h2></h2>
+</div>
+</div>
+<div id="kappa-retest" class="section level1">
+<h1>Kappa retest</h1>
+<div id="test-retest-korrelation-cohens-kappa-per-category" class="section level2">
+<h2>test, retest korrelation Cohens Kappa per category</h2>
 <pre class="r"><code># Step 1: Filter the dataset into test and retest subsets
-test_data &lt;- data_processed %&gt;% filter(test_retest == &quot;Test&quot;)
-retest_data &lt;- data_processed %&gt;% filter(test_retest == &quot;RETEST&quot;)
+test_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;Test&quot;)
+retest_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;RETEST&quot;)
 
 # Step 2: Match test and retest based on &#39;psp&#39;(so this only contains the 30 test-retst Psp rows)
-merged_data &lt;- merge(test_data, retest_data, by = &quot;psp&quot;, suffixes = c(&quot;_test&quot;, &quot;_retest&quot;))
+retest_merged_data &lt;- merge(test_data, retest_data, by = &quot;psp&quot;, suffixes = c(&quot;_test&quot;, &quot;_retest&quot;))
 
 # Step 3: Get all columns ending with &#39;_comp&#39;
-comp_columns &lt;- grep(&quot;_comp$&quot;, names(data_processed), value = TRUE)
+comp_columns &lt;- grep(&quot;_comp$&quot;, names(comparison_data_processed), value = TRUE)
 
 # Step 4: Loop through each &#39;_comp&#39; column and calculate Cohen&#39;s Kappa
-kappa_results &lt;- lapply(comp_columns, function(col_name) {
+retest_kappa_results &lt;- lapply(comp_columns, function(col_name) {
   # Cohen&#39;s Kappa requires the two sets of categorical data (Test and RETEST)
-  test_col &lt;- merged_data[[paste0(col_name, &quot;_test&quot;)]]
-  retest_col &lt;- merged_data[[paste0(col_name, &quot;_retest&quot;)]]
+  test_col &lt;- retest_merged_data[[paste0(col_name, &quot;_test&quot;)]]
+  retest_col &lt;- retest_merged_data[[paste0(col_name, &quot;_retest&quot;)]]
   
   # Calculate Cohen&#39;s Kappa for the current column
   kappa &lt;- cohen.kappa(cbind(test_col, retest_col))
@@ -620,10 +772,10 @@ kappa_results &lt;- lapply(comp_columns, function(col_name) {
 ## Warning in cohen.kappa1(x, w = w, n.obs = n.obs, alpha = alpha, levels =
 ## levels, : upper or lower confidence interval exceed abs(1) and set to +/- 1.</code></pre>
 <pre class="r"><code># Combine the results into a single data frame
-kappa_summary &lt;- do.call(rbind, kappa_results)
+retest_kappa_summary &lt;- do.call(rbind, retest_kappa_results)
 
 # Step 5: Display the results
-print(kappa_summary)</code></pre>
+print(retest_kappa_summary)</code></pre>
 <pre><code>##               Column       Kappa
 ## 1   pre_pre_mi1_comp  0.81557377
 ## 2       pre_mi1_comp  0.71918877
@@ -743,18 +895,360 @@ print(kappa_summary)</code></pre>
 ## 116 match_vsa_2_comp  0.39698492
 ## 117 match_vsa_3_comp  0.44881890
 ## 118    match_ic_comp  0.83455882</code></pre>
-<pre class="r"><code># die drei antweoten mit NAin kappa_summary sind eigentlich perfekt übereinstimemnd, aber da immer nur die gleiche Antwort, dh de geliche Buchstaben eingesetzt wurde gibt es per Definition eine perfekte Übereinstimmung, da es keine Variabilität gibt.</code></pre>
+<pre class="r"><code># die drei antweoten mit NAin kappa_summary sind eigentlich perfekt übereinstimemnd, aber da immer nur die gleiche Antwort, dh de geliche Buchstaben eingesetzt wurde gibt es per Definition eine perfekte Übereinstimmung, da es keine Variabilität gibt.
+
+
+#write to disk forjamovi
+write.xlsx(retest_merged_data, file = &quot;../Data/processed/retest_merged_data.xlsx&quot;)</code></pre>
 </div>
-<div id="erstelle-einen-überblick-über-die-kappas" class="section level2">
-<h2>erstelle einen Überblick über die kappas</h2>
+<div id="versuch-2-mit-zusätzlich-z-wert-agreement-p-wert" class="section level2">
+<h2>versuch 2 mit zusätzlich z wert, agreement % , p wert</h2>
+<pre class="r"><code># Step 1: Filter the dataset into test and retest subsets
+test_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;Test&quot;)
+retest_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;RETEST&quot;)
+
+# Step 2: Match test and retest based on &#39;psp&#39; (so this only contains the 30 test-retest psp rows)
+retest_merged_data &lt;- merge(test_data, retest_data, by = &quot;psp&quot;, suffixes = c(&quot;_test&quot;, &quot;_retest&quot;))
+
+# Step 3: Get all columns ending with &#39;_comp&#39;
+comp_columns &lt;- grep(&quot;_comp$&quot;, names(comparison_data_processed), value = TRUE)
+
+# Step 4: Loop through each &#39;_comp&#39; column and calculate Cohen&#39;s Kappa using the irr package
+retest_kappa_results &lt;- lapply(comp_columns, function(col_name) {
+  # Cohen&#39;s Kappa requires the two sets of categorical data (Test and RETEST)
+  test_col &lt;- retest_merged_data[[paste0(col_name, &quot;_test&quot;)]]
+  retest_col &lt;- retest_merged_data[[paste0(col_name, &quot;_retest&quot;)]]
+  
+  # Überprüfung auf gültige Daten (Nicht-NA-Daten) in beiden Spalten
+  if (all(is.na(test_col)) || all(is.na(retest_col))) {
+    # Falls alle Daten NA sind, gib eine Zeile mit NA zurück
+    return(data.frame(Column = col_name, Kappa = NA, z_value = NA, 
+                      Agreement_Percentage = NA, p_value = NA))
+  }
+  
+  # Berechnung von Cohen&#39;s Kappa mit dem irr-Paket
+  kappa_result &lt;- kappa2(data.frame(test_col, retest_col), &quot;unweighted&quot;)
+  
+  # Extrahiere den Kappa-Wert und p-Wert
+  kappa_value &lt;- kappa_result$value
+  p_value &lt;- kappa_result$p.value
+  agreement_percentage &lt;- mean(test_col == retest_col, na.rm = TRUE) * 100
+  
+  # Berechnung der erwarteten Übereinstimmung (p_e)
+  test_table &lt;- table(test_col, retest_col)
+  n &lt;- sum(test_table)  # Anzahl der Paare
+  p_e &lt;- sum(rowSums(test_table) * colSums(test_table)) / (n^2)
+  
+  # Berechnung der beobachteten Übereinstimmung (p_0)
+  p_0 &lt;- agreement_percentage / 100
+  
+  # Berechnung des Standardfehlers (SE)
+  if (p_e == 1) {
+    se_kappa &lt;- NA  # Vermeide Division durch 0, wenn p_e = 1 (perfekte Übereinstimmung)
+    z_value &lt;- NA
+  } else {
+    se_kappa &lt;- sqrt((p_0 * (1 - p_0)) / (n * (1 - p_e)^2))
+  
+    # Berechnung des z-Werts
+    z_value &lt;- kappa_value / se_kappa
+  }
+  
+  # Return the column name, Kappa, z-value, agreement %, and p-value
+  return(data.frame(Column = col_name, Kappa = kappa_value, z_value = z_value, 
+                    Agreement_Percentage = agreement_percentage, p_value = p_value))
+})</code></pre>
+<pre><code>## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes
+## Warning in rowSums(test_table) * colSums(test_table): Länge des längeren Objektes
+##       ist kein Vielfaches der Länge des kürzeren Objektes</code></pre>
+<pre class="r"><code># Step 5: Combine the results into a single data frame
+retest_kappa_summary &lt;- do.call(rbind, retest_kappa_results)
+
+# Step 6: Display the results
+print(retest_kappa_summary)</code></pre>
+<pre><code>##               Column       Kappa    z_value Agreement_Percentage      p_value
+## 1   pre_pre_mi1_comp  0.81557377  8.0738362             90.00000 1.002873e-10
+## 2       pre_mi1_comp  0.71918877  8.2503499             80.00000 2.156053e-13
+## 3       pre_iv1_comp  0.81927711  8.2766964             90.00000 1.810774e-12
+## 4     c_pre_iv1_comp  0.82456140  8.6311679             90.00000 2.220446e-16
+## 5    pre_niv1_1_comp  0.88805970 25.3509727             96.66667 5.240253e-14
+## 6    pre_niv1_2_comp  0.88805970 25.3509727             96.66667 5.240253e-14
+## 7   pre_pre_mi2_comp  0.67257844  6.7939453             73.33333 2.886580e-15
+## 8       pre_mi2_comp  0.75369458  7.9385187             83.33333 2.220428e-10
+## 9       pre_iv2_comp  0.58477509  4.6032857             73.33333 2.135440e-08
+## 10    c_pre_iv2_comp  0.53528399  5.9002555             70.00000 1.807881e-08
+## 11   pre_niv2_1_comp  0.33333333  1.6514456             73.33333 2.536711e-03
+## 12   pre_niv2_2_comp  0.33518006  3.6671471             73.33333 1.925359e-03
+## 13   pre_pre_mt_comp  0.40397351  2.4302982             70.00000 2.106860e-03
+## 14       pre_mt_comp  0.65116279  1.8985778             96.66667 1.414483e-04
+## 15       pre_tv_comp  0.36293436  3.7126101             63.33333 8.476098e-03
+## 16     c_pre_tv_comp  0.08360129  0.6556481             36.66667 4.733044e-01
+## 17    pre_ntv_1_comp -0.08571429 -0.8562408             36.66667 4.565810e-01
+## 18    pre_ntv_2_comp -0.08571429 -0.5964459             36.66667 4.565810e-01
+## 19       pre_dv_comp  1.00000000        Inf            100.00000 3.050076e-10
+## 20     c_pre_dv_comp  0.55882353  4.7903488             66.66667 2.570318e-09
+## 21    pre_ndv_1_comp  0.27927928  2.7391141             46.66667 4.030054e-03
+## 22    pre_ndv_2_comp  0.27492447  2.3979206             46.66667 5.633947e-03
+## 23   pre_pre_mc_comp  0.30232558  1.1867322             80.00000 5.254473e-02
+## 24       pre_mc_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 25       pre_cv_comp  0.50331126  2.4821496             83.33333 7.332557e-04
+## 26     c_pre_cv_comp  0.20731707  1.2526894             56.66667 1.229563e-01
+## 27    pre_ncv_1_comp -0.08108108 -0.5809475             33.33333 5.384615e-01
+## 28    pre_ncv_2_comp -0.08108108 -0.5809475             33.33333 5.384615e-01
+## 29    pre_dcp_1_comp  0.81012658  6.2121444             90.00000 2.129373e-07
+## 30    pre_dcp_2_comp  0.86363636 10.1138735             93.33333 1.269356e-07
+## 31       pre_pa_comp  0.67971530  5.8119449             80.00000 5.876835e-07
+## 32    pre_iec_1_comp  0.71962617  3.7572153             93.33333 2.208462e-06
+## 33    pre_imd_1_comp  0.52212389  3.9176938             70.00000 5.873077e-05
+## 34    pre_imd_2_comp  0.59143969  4.3742139             76.66667 1.643892e-05
+## 35     pre_sm_1_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 36     pre_sm_2_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 37     pre_sm_3_comp  0.70645793  8.2716057             83.33333 1.159670e-06
+## 38    pre_vsa_1_comp  0.37500000  1.4696938             83.33333 7.264383e-03
+## 39    pre_vsa_2_comp  0.21465969  0.6695272             83.33333 1.441435e-01
+## 40    pre_vsa_3_comp  0.21465969  0.6695272             83.33333 1.441435e-01
+## 41       pre_ic_comp  0.93506494 14.3925583             96.66667 7.128932e-08
+## 42  pap_pap_mi1_comp  0.81404959  7.9926921             90.00000 2.786105e-10
+## 43      pap_mi1_comp  0.84238179  9.7575759             90.00000 2.922107e-13
+## 44      pap_iv1_comp  0.81818182  8.2158384             90.00000 6.699974e-12
+## 45    c_pap_iv1_comp  0.81132075  7.8506900             90.00000 6.661338e-15
+## 46   pap_niv1_1_comp  0.86301370  6.4077001             96.66667 2.058798e-12
+## 47   pap_niv1_2_comp  0.86301370  6.4077001             96.66667 2.058798e-12
+## 48  pap_pap_mi2_comp  0.67257844  6.7939453             73.33333 2.886580e-15
+## 49      pap_mi2_comp  0.85000000 12.7426639             90.00000 2.177147e-12
+## 50      pap_iv2_comp  0.55882353  5.8628697             70.00000 5.296422e-08
+## 51    c_pap_iv2_comp  0.59459459  6.7344763             73.33333 6.407364e-10
+## 52   pap_niv2_1_comp  0.28143713  1.2936324             73.33333 2.045133e-02
+## 53   pap_niv2_2_comp  0.28571429  1.3211565             73.33333 1.384050e-02
+## 54   pap_pap_mt_comp  0.36170213  2.1946906             66.66667 4.985515e-03
+## 55       pap_mt_comp  0.46428571  1.2686701             93.33333 1.099060e-02
+## 56       pap_tv_comp  0.30769231  2.4654083             60.00000 2.908635e-02
+## 57     c_pap_tv_comp  0.11764706  1.1351171             36.66667 2.452789e-01
+## 58    pap_ntv_1_comp -0.03869654 -0.3630853             43.33333 7.675526e-01
+## 59    pap_ntv_2_comp -0.03869654 -0.3630853             43.33333 7.675526e-01
+## 60       pap_dv_comp  1.00000000        Inf            100.00000 3.050076e-10
+## 61     c_pap_dv_comp  0.52380952  4.4784558             63.33333 9.586643e-09
+## 62    pap_ndv_1_comp  0.17241379  1.3881337             46.66667 1.551907e-01
+## 63    pap_ndv_2_comp  0.17241379  1.3881337             46.66667 1.551907e-01
+## 64   pap_pap_mc_comp  0.30232558  1.1867322             80.00000 5.254473e-02
+## 65       pap_mc_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 66       pap_cv_comp  0.50657895  2.5148095             83.33333 4.535829e-04
+## 67     c_pap_cv_comp  0.12500000  0.7319251             53.33333 3.510757e-01
+## 68    pap_ncv_1_comp -0.09090909 -0.6454972             33.33333 4.951757e-01
+## 69    pap_ncv_2_comp -0.09090909 -0.6454972             33.33333 4.951757e-01
+## 70    pap_dcp_1_comp         NaN         NA            100.00000          NaN
+## 71    pap_dcp_2_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 72       pap_pa_comp  0.67153285  5.5989417             80.00000 1.374326e-06
+## 73    pap_iec_1_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 74    pap_imd_1_comp  0.41558442  1.9474580             80.00000 2.151741e-03
+## 75    pap_imd_2_comp  0.53987730  2.8740680             83.33333 1.229605e-04
+## 76     pap_sm_1_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 77     pap_sm_2_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 78     pap_sm_3_comp  0.81707317  8.1549803             90.00000 3.335520e-07
+## 79    pap_vsa_1_comp  0.50413223  2.1751250             86.66667 1.023262e-04
+## 80    pap_vsa_2_comp  0.38144330  1.3111547             86.66667 2.056792e-03
+## 81    pap_vsa_3_comp  0.44444444  1.7186757             86.66667 1.655568e-03
+## 82       pap_ic_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 83    match_mi1_comp  0.66292135  5.9425998             76.66667 3.847713e-09
+## 84  match_iv1_0_comp  0.75951904  6.9347617             86.66667 4.069856e-11
+## 85  match_iv1_1_comp  0.87755102 10.4909258             93.33333 1.389111e-12
+## 86  match_iv1_2_comp  0.88142292 10.7522587             93.33333 6.661338e-16
+## 87  match_iv1_3_comp  1.00000000        Inf            100.00000 1.788858e-11
+## 88    match_mi2_comp  0.68965517  6.0858062             80.00000 3.413753e-08
+## 89  match_iv2_0_comp  0.74576271  6.3018109             86.66667 3.448175e-11
+## 90  match_iv2_1_comp  0.74025974  6.1227822             86.66667 1.778151e-09
+## 91  match_iv2_2_comp  0.73154362  9.3510665             86.66667 1.634727e-09
+## 92  match_iv2_3_comp  1.00000000        Inf            100.00000 5.219059e-10
+## 93     match_mt_comp  0.00000000         NA             96.66667 1.000000e+00
+## 94   match_tv_0_comp  0.52879581  2.0488881             90.00000 3.207970e-04
+## 95   match_tv_1_comp  0.52879581  2.0488881             90.00000 3.207970e-04
+## 96   match_tv_2_comp  0.52879581  2.0488881             90.00000 3.207970e-04
+## 97   match_tv_3_comp  1.00000000        Inf            100.00000 4.320463e-08
+## 98   match_dv_0_comp  0.91596639 21.9863516             96.66667 1.384068e-09
+## 99   match_dv_1_comp  0.71590909  9.0837100             83.33333 4.501861e-10
+## 100  match_dv_2_comp  0.65686275  7.2114999             76.66667 1.166616e-09
+## 101  match_dv_3_comp  0.78339350  7.7698464             86.66667 5.538903e-12
+## 102    match_mc_comp         NaN         NA            100.00000          NaN
+## 103  match_cv_0_comp  0.06735751  0.3229876             60.00000 6.978929e-01
+## 104  match_cv_1_comp  0.02702703  0.1242260             60.00000 8.654547e-01
+## 105  match_cv_2_comp  0.09090909  0.3872983             66.66667 5.929801e-01
+## 106  match_cv_3_comp         NaN         NA            100.00000          NaN
+## 107 match_dcp_1_comp  0.71698113  6.9378191             80.00000 1.265654e-12
+## 108 match_dcp_2_comp  0.59044369  4.7616683             73.33333 2.843667e-09
+## 109 match_iec_1_comp  0.65183752  5.8909309             80.00000 5.469788e-06
+## 110 match_imd_1_comp  0.75257732  6.5210749             86.66667 4.630185e-11
+## 111 match_imd_2_comp  0.55307263  4.2776133             73.33333 2.014447e-06
+## 112  match_sm_1_comp  0.93877551 23.0430887             96.66667 3.064216e-14
+## 113  match_sm_2_comp  0.84210526 14.1967779             93.33333 3.329995e-09
+## 114  match_sm_3_comp  0.70049917  8.3343648             80.00000 1.766232e-11
+## 115 match_vsa_1_comp  0.46268657  4.6601834             80.00000 8.199723e-05
+## 116 match_vsa_2_comp  0.39698492  3.7642311             73.33333 4.747011e-04
+## 117 match_vsa_3_comp  0.44881890  4.0556196             76.66667 3.031276e-05
+## 118    match_ic_comp  0.83455882 11.4445972             90.00000 1.213182e-09</code></pre>
+<pre class="r"><code># Optional: Speichern der zusammengeführten Test-Retest-Daten in einer Excel-Datei
+write.xlsx(retest_merged_data, file = &quot;../Data/processed/retest_merged_data.xlsx&quot;)</code></pre>
+</div>
+<div id="test-retest-korrelation-gesamt-kappa" class="section level2">
+<h2>test, retest korrelation gesamt kappa…</h2>
+<pre class="r"><code># Schritt 4: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den &quot;_comp&quot;-Spalten
+all_test_values &lt;- unlist(retest_merged_data[paste0(comp_columns, &quot;_test&quot;)])
+all_retest_values &lt;- unlist(retest_merged_data[paste0(comp_columns, &quot;_retest&quot;)])
+
+# Schritt 5: Berechne Cohen&#39;s Kappa für alle Daten zusammen
+retest_kappa_all &lt;- cohen.kappa(cbind(all_test_values, all_retest_values))
+
+# Schritt 6: Zeige das Gesamtergebnis an
+retest_kappa_all</code></pre>
+<pre><code>## Call: cohen.kappa1(x = x, w = w, n.obs = n.obs, alpha = alpha, levels = levels, 
+##     w.exp = w.exp)
+## 
+## Cohen Kappa and Weighted Kappa correlation coefficients and confidence boundaries 
+##                  lower estimate upper
+## unweighted kappa  0.72     0.74  0.75
+## weighted kappa    0.61     0.64  0.67
+## 
+##  Number of subjects = 3540</code></pre>
+<p>##test, retest korrelation gesamt kappa…v2 mit p wert etc..</p>
+<p>p wert noch leer:/</p>
+<pre class="r"><code># Lade notwendige Bibliotheken
+library(dplyr)
+library(irr)  # Für Cohen&#39;s Kappa aus dem irr Paket
+library(openxlsx)  # Für das Schreiben der Datei
+
+# Step 1: Filter the dataset into test and retest subsets
+test_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;Test&quot;)
+retest_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;RETEST&quot;)
+
+# Step 2: Match test and retest based on &#39;psp&#39; (so this only contains the 30 test-retest psp rows)
+retest_merged_data &lt;- merge(test_data, retest_data, by = &quot;psp&quot;, suffixes = c(&quot;_test&quot;, &quot;_retest&quot;))
+
+# Step 3: Get all columns ending with &#39;_comp&#39;
+comp_columns &lt;- grep(&quot;_comp$&quot;, names(comparison_data_processed), value = TRUE)
+
+# Schritt 4: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den &quot;_comp&quot;-Spalten
+all_test_values &lt;- unlist(retest_merged_data[paste0(comp_columns, &quot;_test&quot;)])
+all_retest_values &lt;- unlist(retest_merged_data[paste0(comp_columns, &quot;_retest&quot;)])
+
+# Schritt 5: Berechne Cohen&#39;s Kappa für alle Daten zusammen mit dem irr-Paket
+kappa_result_all &lt;- kappa2(data.frame(all_test_values, all_retest_values), &quot;unweighted&quot;)
+
+# Extrahiere den Kappa-Wert und den p-Wert
+kappa_value &lt;- kappa_result_all$value
+p_value &lt;- kappa_result_all$p.value
+agreement_percentage &lt;- mean(all_test_values == all_retest_values, na.rm = TRUE) * 100
+
+# Berechnung der erwarteten Übereinstimmung (p_e)
+test_table &lt;- table(all_test_values, all_retest_values)
+n &lt;- sum(test_table)  # Anzahl der Paare
+p_e &lt;- sum(rowSums(test_table) * colSums(test_table)) / (n^2)
+
+# Berechnung der beobachteten Übereinstimmung (p_0)
+p_0 &lt;- agreement_percentage / 100
+
+# Berechnung des Standardfehlers (SE)
+if (p_e == 1) {
+  se_kappa &lt;- NA  # Vermeide Division durch 0, wenn p_e = 1 (perfekte Übereinstimmung)
+  z_value &lt;- NA
+} else {
+  se_kappa &lt;- sqrt((p_0 * (1 - p_0)) / (n * (1 - p_e)^2))
+  
+  # Berechnung des z-Werts
+  z_value &lt;- kappa_value / se_kappa
+}
+
+# Schritt 6: Zeige das Gesamtergebnis an
+retest_kappa_all_summary &lt;- data.frame(
+  Kappa = kappa_value,
+  Agreement_Percentage = agreement_percentage,
+  z_value = z_value,
+  p_value = p_value
+)
+
+# Zeige das Gesamtergebnis an
+print(retest_kappa_all_summary)</code></pre>
+<pre><code>##       Kappa Agreement_Percentage  z_value p_value
+## 1 0.7374208             79.35028 85.23924       0</code></pre>
+</div>
+<div id="test-retest-überblick-kappas" class="section level2">
+<h2>test-retest Überblick kappas</h2>
 <pre class="r"><code># Schritt 1: Rundung der Kappa-Werte auf 2 Nachkommastellen
-kappa_summary &lt;- kappa_summary %&gt;%
+retest_kappa_summary &lt;- retest_kappa_summary %&gt;%
   mutate(Kappa = round(Kappa, 2))
 
 # Schritt 2: Aufteilen der Tabelle in Kategorien basierend auf Präfixen (pre, c_pre, pap, c_pap, match)
-pre_kappa &lt;- kappa_summary %&gt;% filter(grepl(&quot;^(pre|c_pre)&quot;, Column)) %&gt;% mutate(Source = &quot;pre&quot;)
-pap_kappa &lt;- kappa_summary %&gt;% filter(grepl(&quot;^(pap|c_pap)&quot;, Column)) %&gt;% mutate(Source = &quot;pap&quot;)
-match_kappa &lt;- kappa_summary %&gt;% filter(grepl(&quot;^match&quot;, Column)) %&gt;% mutate(Source = &quot;match&quot;)
+pre_kappa &lt;- retest_kappa_summary %&gt;% filter(grepl(&quot;^(pre|c_pre)&quot;, Column)) %&gt;% mutate(Source = &quot;pre&quot;)
+pap_kappa &lt;- retest_kappa_summary %&gt;% filter(grepl(&quot;^(pap|c_pap)&quot;, Column)) %&gt;% mutate(Source = &quot;pap&quot;)
+match_kappa &lt;- retest_kappa_summary %&gt;% filter(grepl(&quot;^match&quot;, Column)) %&gt;% mutate(Source = &quot;match&quot;)
 
 # Schritt 3: Setze Zeilennummern für eine saubere Darstellung in jeder Tabelle
 pre_kappa &lt;- pre_kappa %&gt;% mutate(Row = row_number())
@@ -763,22 +1257,22 @@ match_kappa &lt;- match_kappa %&gt;% mutate(Row = row_number())
 
 # Schritt 4: Zusammenfügen der drei Tabellen nebeneinander basierend auf der Zeilennummer
 # Verwende full_join, um die Tabellen nach den Zeilen zu verbinden
-kappa_summary_overview &lt;- pre_kappa %&gt;%
+retest_kappa_summary_overview &lt;- pre_kappa %&gt;%
   full_join(pap_kappa, by = &quot;Row&quot;, suffix = c(&quot;_pre&quot;, &quot;_pap&quot;)) %&gt;%
   full_join(match_kappa, by = &quot;Row&quot;, suffix = c(&quot;&quot;, &quot;_match&quot;))
 
 # Schritt 5: Auswahl und Umbenennung der Spalten für Übersichtlichkeit
 # Stellen Sie sicher, dass die Spalten korrekt benannt und verfügbar sind
-kappa_summary_overview &lt;- kappa_summary_overview %&gt;%
+retest_kappa_summary_overview &lt;- retest_kappa_summary_overview %&gt;%
   select(Row, 
          Column_pre = Column_pre, Kappa_pre = Kappa_pre, 
          Column_pap = Column_pap, Kappa_pap = Kappa_pap, 
          Column_match = Column, Kappa_match = Kappa) </code></pre>
 </div>
-<div id="section" class="section level2">
-<h2></h2>
+<div id="test-retest-färbung-überblick" class="section level2">
+<h2>test retest färbung überblick</h2>
 <pre class="r"><code># Färbung der Kappa-Werte direkt in der Tabelle
-formattable(kappa_summary_overview, list(
+formattable(retest_kappa_summary_overview, list(
   Kappa_pre = color_tile(&quot;red&quot;, &quot;green&quot;),  # Kappa_pre-Spalte von dunkelrot bis dunkelgrün
   Kappa_pap = color_tile(&quot;red&quot;, &quot;green&quot;),  # Kappa_pap-Spalte von dunkelrot bis dunkelgrün
   Kappa_match = color_tile(&quot;red&quot;, &quot;green&quot;) # Kappa_match-Spalte von dunkelrot bis dunkelgrün
@@ -1267,7 +1761,7 @@ c_pap_dv_comp
 match_mc_comp
 </td>
 <td style="text-align:right;">
-<span style="display: block; padding: 0 4px; border-radius: 4px">NA</span>
+<span style="display: block; padding: 0 4px; border-radius: 4px">NaN</span>
 </td>
 </tr>
 <tr>
@@ -1359,7 +1853,7 @@ pap_mc_comp
 match_cv_3_comp
 </td>
 <td style="text-align:right;">
-<span style="display: block; padding: 0 4px; border-radius: 4px">NA</span>
+<span style="display: block; padding: 0 4px; border-radius: 4px">NaN</span>
 </td>
 </tr>
 <tr>
@@ -1468,7 +1962,7 @@ pre_dcp_1_comp
 pap_dcp_1_comp
 </td>
 <td style="text-align:right;">
-<span style="display: block; padding: 0 4px; border-radius: 4px">NA</span>
+<span style="display: block; padding: 0 4px; border-radius: 4px">NaN</span>
 </td>
 <td style="text-align:right;">
 match_imd_2_comp
@@ -1755,31 +2249,607 @@ NA
 </tr>
 </tbody>
 </table>
+<p>#Kappa interrater gpt zu olmo</p>
+<ul>
+<li>wieso anderes kappa als? bei jamovi?</li>
+<li>sollte ich im gesamten script die selbe mehto wählen?</li>
+<li>wie ist die differenz zu interpretieren?</li>
+</ul>
 </div>
-<div id="als-nächstes-könnte-man-anschauen-welche-der-items-besonders-gut-und-besonders-schlecht-ist.-die-annanhmen-überprüfen-und-noch-weitere-analysen.." class="section level2">
-<h2>als nächstes könnte man anschauen welche der items besonders gut und
-besonders schlecht ist…. die annanhmen überprüfen… und noch weitere
-Analysen..</h2>
+<div id="kappa-interrater-gpt-zu-olmo-per-category" class="section level2">
+<h2>Kappa interrater gpt zu olmo per category</h2>
+<pre class="r"><code># Function to calculate Cohen&#39;s Kappa, p-value, z-value, and percentage agreement
+calculate_kappa_stats &lt;- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if(column_gpt %in% colnames(data) &amp; column_olmo %in% colnames(data)) {
+    # Calculate Cohen&#39;s Kappa
+    kappa_result &lt;- psych::cohen.kappa(cbind(data[[column_gpt]], data[[column_olmo]]))
+    
+    # Extract values
+    kappa_value &lt;- kappa_result$kappa
+    p_value &lt;- kappa_result$p.value
+    z_value &lt;- kappa_result$z
+    percent_agreement &lt;- sum(data[[column_gpt]] == data[[column_olmo]], na.rm = TRUE) / nrow(data) * 100
+    
+    return(c(kappa_value, p_value, z_value, percent_agreement))
+  } else {
+    return(rep(NA, 4))
+  }
+}
+
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns)
+
+# Create a dataframe to store the results
+kappa_results &lt;- data.frame(Variable = gpt_columns, Kappa = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for(i in 1:length(gpt_columns)) {
+  kappa_stats &lt;- calculate_kappa_stats(data_gpt_olmo_processed, gpt_columns[i], olmo_columns[i])
+  kappa_results[i, 2:5] &lt;- kappa_stats
+}
+
+# Show the results
+print(kappa_results)</code></pre>
+<pre><code>##               Variable         Kappa  P_Value       Z_Value Percent_Agreement
+## 1             date_gpt            NA       NA            NA                NA
+## 2      pre_pre_mi1_gpt  0.4541258263 79.93528  0.4541258263          79.93528
+## 3          pre_mi1_gpt  0.3086381030 65.37217  0.3086381030          65.37217
+## 4          pre_iv1_gpt  0.1459551398 57.92880  0.1459551398          57.92880
+## 5        c_pre_iv1_gpt  0.1052529296 51.77994  0.1052529296          51.77994
+## 6       pre_niv1_1_gpt  0.0461137169 58.25243  0.0461137169          58.25243
+## 7       pre_niv1_2_gpt  0.0434584373 58.25243  0.0434584373          58.25243
+## 8      pre_pre_mi2_gpt  0.1152251185 34.30421  0.1152251185          34.30421
+## 9          pre_mi2_gpt  0.1305433361 54.04531  0.1305433361          54.04531
+## 10         pre_iv2_gpt  0.0326132029 51.13269  0.0326132029          51.13269
+## 11       c_pre_iv2_gpt  0.0495291902 52.42718  0.0495291902          52.42718
+## 12      pre_niv2_1_gpt -0.0096516363 57.92880 -0.0096516363          57.92880
+## 13      pre_niv2_2_gpt -0.0116349350 57.92880 -0.0116349350          57.92880
+## 14      pre_pre_mt_gpt  0.0204869036 43.36570  0.0204869036          43.36570
+## 15          pre_mt_gpt -0.0061050061 94.82201 -0.0061050061          94.82201
+## 16          pre_tv_gpt  0.0329359165 52.42718  0.0329359165          52.42718
+## 17        c_pre_tv_gpt  0.0155233189 54.36893  0.0155233189          54.36893
+## 18       pre_ntv_1_gpt  0.0218225904 69.57929  0.0218225904          69.57929
+## 19       pre_ntv_2_gpt  0.0148006444 69.25566  0.0148006444          69.25566
+## 20          pre_dv_gpt  0.0000000000 82.84790  0.0000000000          82.84790
+## 21        c_pre_dv_gpt  0.1962477171 54.36893  0.1962477171          54.36893
+## 22       pre_ndv_1_gpt  0.0572551360 40.45307  0.0572551360          40.45307
+## 23       pre_ndv_2_gpt  0.0377940061 36.24595  0.0377940061          36.24595
+## 24      pre_pre_mc_gpt  0.0154278230 18.12298  0.0154278230          18.12298
+## 25          pre_mc_gpt  0.0953155498 94.17476  0.0953155498          94.17476
+## 26          pre_cv_gpt  0.0079646985 23.94822  0.0079646985          23.94822
+## 27        c_pre_cv_gpt  0.0242198217 28.47896  0.0242198217          28.47896
+## 28       pre_ncv_1_gpt  0.0401325939 51.77994  0.0401325939          51.77994
+## 29       pre_ncv_2_gpt  0.0345761300 51.45631  0.0345761300          51.45631
+## 30       pre_dcp_1_gpt  0.0169500365 60.51780  0.0169500365          60.51780
+## 31       pre_dcp_2_gpt  0.0126307539 31.39159  0.0126307539          31.39159
+## 32  pre_dcp_1_text_gpt  0.8180558422 49.83819  0.8180558422          49.83819
+## 33          pre_pa_gpt  0.2655749592 61.81230  0.2655749592          61.81230
+## 34       pre_iec_1_gpt  0.0512044285 77.02265  0.0512044285          77.02265
+## 35       pre_imd_1_gpt  0.1968196934 55.98706  0.1968196934          55.98706
+## 36       pre_imd_2_gpt  0.2129139207 59.22330  0.2129139207          59.22330
+## 37        pre_sm_1_gpt  0.0000000000 86.08414  0.0000000000          86.08414
+## 38        pre_sm_2_gpt  0.0000000000 84.78964  0.0000000000          84.78964
+## 39        pre_sm_3_gpt  0.0470951039 47.57282  0.0470951039          47.57282
+## 40       pre_vsa_1_gpt  0.0073537949 19.41748  0.0073537949          19.41748
+## 41       pre_vsa_2_gpt  0.0044609665 15.85761  0.0044609665          15.85761
+## 42       pre_vsa_3_gpt  0.0071546577 20.06472  0.0071546577          20.06472
+## 43          pre_ic_gpt  0.0037890119 37.21683  0.0037890119          37.21683
+## 44     pap_pap_mi1_gpt  0.4379582789 79.28803  0.4379582789          79.28803
+## 45         pap_mi1_gpt  0.3809342666 74.43366  0.3809342666          74.43366
+## 46         pap_iv1_gpt  0.1749179251 60.51780  0.1749179251          60.51780
+## 47       c_pap_iv1_gpt  0.1329566421 52.75081  0.1329566421          52.75081
+## 48      pap_niv1_1_gpt  0.0538421968 59.54693  0.0538421968          59.54693
+## 49      pap_niv1_2_gpt  0.0565231198 59.54693  0.0565231198          59.54693
+## 50     pap_pap_mi2_gpt  0.1196705358 34.62783  0.1196705358          34.62783
+## 51         pap_mi2_gpt  0.1532882012 55.98706  0.1532882012          55.98706
+## 52         pap_iv2_gpt  0.0160480810 51.13269  0.0160480810          51.13269
+## 53       c_pap_iv2_gpt  0.0272037456 49.51456  0.0272037456          49.51456
+## 54      pap_niv2_1_gpt -0.0174437602 57.60518 -0.0174437602          57.60518
+## 55      pap_niv2_2_gpt -0.0207973572 57.28155 -0.0207973572          57.28155
+## 56      pap_pap_mt_gpt  0.0297663904 43.36570  0.0297663904          43.36570
+## 57          pap_mt_gpt -0.0059364228 94.49838 -0.0059364228          94.49838
+## 58          pap_tv_gpt  0.0508127480 53.39806  0.0508127480          53.39806
+## 59        c_pap_tv_gpt  0.0271302251 54.36893  0.0271302251          54.36893
+## 60       pap_ntv_1_gpt  0.0078748141 69.25566  0.0078748141          69.25566
+## 61       pap_ntv_2_gpt  0.0096153846 69.25566  0.0096153846          69.25566
+## 62          pap_dv_gpt  0.0000000000 83.49515  0.0000000000          83.49515
+## 63        c_pap_dv_gpt  0.2070587798 55.33981  0.2070587798          55.33981
+## 64       pap_ndv_1_gpt  0.0424526704 40.77670  0.0424526704          40.77670
+## 65       pap_ndv_2_gpt  0.0294103060 38.51133  0.0294103060          38.51133
+## 66      pap_pap_mc_gpt  0.0128654535 16.82848  0.0128654535          16.82848
+## 67          pap_mc_gpt  0.0856635597 93.52751  0.0856635597          93.52751
+## 68          pap_cv_gpt  0.0128316832 21.68285  0.0128316832          21.68285
+## 69        c_pap_cv_gpt  0.0170415815 27.50809  0.0170415815          27.50809
+## 70       pap_ncv_1_gpt  0.0289447569 50.80906  0.0289447569          50.80906
+## 71       pap_ncv_2_gpt  0.0189262741 50.16181  0.0189262741          50.16181
+## 72       pap_dcp_1_gpt -0.0112201964 97.73463 -0.0112201964          97.73463
+## 73       pap_dcp_2_gpt -0.0064871079 22.97735 -0.0064871079          22.97735
+## 74  pap_dcp_1_text_gpt  0.6025291453 59.87055  0.6025291453          59.87055
+## 75          pap_pa_gpt  0.2654890415 64.72492  0.2654890415          64.72492
+## 76       pap_iec_1_gpt  0.0105403602 76.69903  0.0105403602          76.69903
+## 77       pap_imd_1_gpt  0.0391681406 29.44984  0.0391681406          29.44984
+## 78       pap_imd_2_gpt  0.0347655106 27.50809  0.0347655106          27.50809
+## 79        pap_sm_1_gpt  0.0000000000 81.55340  0.0000000000          81.55340
+## 80        pap_sm_2_gpt  0.0000000000 88.02589  0.0000000000          88.02589
+## 81        pap_sm_3_gpt  0.0297684101 41.42395  0.0297684101          41.42395
+## 82       pap_vsa_1_gpt  0.0084742613 16.18123  0.0084742613          16.18123
+## 83       pap_vsa_2_gpt  0.0002646044 12.94498  0.0002646044          12.94498
+## 84       pap_vsa_3_gpt  0.0160704513 17.15210  0.0160704513          17.15210
+## 85          pap_ic_gpt  0.0010050130 13.59223  0.0010050130          13.59223
+## 86       match_mi1_gpt  0.1639151406 55.33981  0.1639151406          55.33981
+## 87     match_iv1_0_gpt  0.1057985099 56.63430  0.1057985099          56.63430
+## 88     match_iv1_1_gpt  0.1049773177 55.98706  0.1049773177          55.98706
+## 89     match_iv1_2_gpt  0.0893652207 55.01618  0.0893652207          55.01618
+## 90     match_iv1_3_gpt  0.0245141100 62.78317  0.0245141100          62.78317
+## 91       match_mi2_gpt  0.0687418041 57.60518  0.0687418041          57.60518
+## 92     match_iv2_0_gpt  0.0182372752 67.63754  0.0182372752          67.63754
+## 93     match_iv2_1_gpt -0.0211107190 66.66667 -0.0211107190          66.66667
+## 94     match_iv2_2_gpt -0.0271186441 67.31392 -0.0271186441          67.31392
+## 95     match_iv2_3_gpt  0.0052313883 76.69903  0.0052313883          76.69903
+## 96        match_mt_gpt -0.0060105184 95.79288 -0.0060105184          95.79288
+## 97      match_tv_0_gpt  0.0158388568 88.02589  0.0158388568          88.02589
+## 98      match_tv_1_gpt  0.0217981187 88.67314  0.0217981187          88.67314
+## 99      match_tv_2_gpt  0.0083065886 88.99676  0.0083065886          88.99676
+## 100     match_tv_3_gpt -0.0144162147 92.55663 -0.0144162147          92.55663
+## 101     match_dv_0_gpt  0.0088042588 69.57929  0.0088042588          69.57929
+## 102     match_dv_1_gpt -0.0381057573 52.75081 -0.0381057573          52.75081
+## 103     match_dv_2_gpt -0.0101827536 40.77670 -0.0101827536          40.77670
+## 104     match_dv_3_gpt  0.0413253909 27.18447  0.0413253909          27.18447
+## 105       match_mc_gpt  0.0620499788 86.08414  0.0620499788          86.08414
+## 106     match_cv_0_gpt  0.0123679822 70.22654  0.0123679822          70.22654
+## 107     match_cv_1_gpt  0.0222709018 74.75728  0.0222709018          74.75728
+## 108     match_cv_2_gpt  0.0164456233 76.69903  0.0164456233          76.69903
+## 109     match_cv_3_gpt -0.0172839506 90.93851 -0.0172839506          90.93851
+## 110    match_dcp_1_gpt  0.2400116599 56.31068  0.2400116599          56.31068
+## 111    match_dcp_2_gpt  0.0308081135 21.68285  0.0308081135          21.68285
+## 112    match_iec_1_gpt  0.0981957142 41.42395  0.0981957142          41.42395
+## 113    match_imd_1_gpt  0.0907944515 32.03883  0.0907944515          32.03883
+## 114    match_imd_2_gpt  0.0946421473 35.59871  0.0946421473          35.59871
+## 115     match_sm_1_gpt  0.1010607349 57.92880  0.1010607349          57.92880
+## 116     match_sm_2_gpt  0.0298433472 69.25566  0.0298433472          69.25566
+## 117     match_sm_3_gpt  0.0205467821 27.50809  0.0205467821          27.50809
+## 118    match_vsa_1_gpt  0.0097354070 22.97735  0.0097354070          22.97735
+## 119    match_vsa_2_gpt  0.0028744204 22.97735  0.0028744204          22.97735
+## 120    match_vsa_3_gpt  0.0129013683 24.59547  0.0129013683          24.59547
+## 121       match_ic_gpt  0.0287532516 34.30421  0.0287532516          34.30421</code></pre>
+<p>##Kappa interrater gpt zu olmo per category 2. ansatz</p>
+<pre class="r"><code># Function to calculate Cohen&#39;s Kappa, p-value, z-value, and percentage agreement using &#39;irr&#39; package
+calculate_kappa_irr_v2 &lt;- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if(column_gpt %in% colnames(data) &amp; column_olmo %in% colnames(data)) {
+    # Remove rows with NA values to avoid errors in kappa calculation
+    valid_data_v2 &lt;- data[!is.na(data[[column_gpt]]) &amp; !is.na(data[[column_olmo]]), ]
+    
+    # Calculate Cohen&#39;s Kappa using the &#39;kappa2&#39; function from the irr package
+    kappa_result_v2 &lt;- irr::kappa2(valid_data_v2[, c(column_gpt, column_olmo)], &quot;unweighted&quot;)
+    
+    # Extract values
+    kappa_value_v2 &lt;- kappa_result_v2$value
+    p_value_v2 &lt;- kappa_result_v2$p.value
+    z_value_v2 &lt;- kappa_result_v2$statistic
+    percent_agreement_v2 &lt;- sum(valid_data_v2[[column_gpt]] == valid_data_v2[[column_olmo]]) / nrow(valid_data_v2) * 100
+    
+    return(c(kappa_value_v2, p_value_v2, z_value_v2, percent_agreement_v2))
+  } else {
+    return(rep(NA, 4))
+  }
+}
+
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns_v2 &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_v2 &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns_v2)
+
+# Create a dataframe to store the results
+kappa_results_v2 &lt;- data.frame(Variable = gpt_columns_v2, Kappa = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for(i in 1:length(gpt_columns_v2)) {
+  kappa_stats_v2 &lt;- calculate_kappa_irr_v2(data_gpt_olmo_processed, gpt_columns_v2[i], olmo_columns_v2[i])
+  kappa_results_v2[i, 2:5] &lt;- kappa_stats_v2
+}</code></pre>
+<pre><code>## Warning in sqrt(varkappa): NaNs wurden erzeugt
+## Warning in sqrt(varkappa): NaNs wurden erzeugt</code></pre>
+<pre class="r"><code># Show the results
+print(kappa_results_v2)</code></pre>
+<pre><code>##               Variable         Kappa      P_Value      Z_Value
+## 1             date_gpt            NA           NA           NA
+## 2      pre_pre_mi1_gpt  0.4541258263 0.000000e+00   8.65894589
+## 3          pre_mi1_gpt  0.3086381030 1.776357e-15   7.96068708
+## 4          pre_iv1_gpt  0.1459551398 4.114297e-03   2.86926287
+## 5        c_pre_iv1_gpt  0.1052529296 6.218188e-03   2.73604839
+## 6       pre_niv1_1_gpt  0.0461137169 2.158167e-01   1.23772858
+## 7       pre_niv1_2_gpt  0.0434584373 2.499655e-01   1.15043319
+## 8      pre_pre_mi2_gpt  0.1152251185 9.014640e-05   3.91568897
+## 9          pre_mi2_gpt  0.1305433361 6.886795e-04   3.39404669
+## 10         pre_iv2_gpt  0.0326132029 4.578428e-01   0.74240358
+## 11       c_pre_iv2_gpt  0.0495291902 1.734968e-01   1.36105335
+## 12      pre_niv2_1_gpt -0.0096516363 7.552146e-01  -0.31177098
+## 13      pre_niv2_2_gpt -0.0116349350 7.111686e-01  -0.37028709
+## 14      pre_pre_mt_gpt  0.0204869036 4.059143e-01   0.83110495
+## 15          pre_mt_gpt -0.0061050061 8.210121e-01  -0.22624336
+## 16          pre_tv_gpt  0.0329359165 2.339390e-01   1.19027330
+## 17        c_pre_tv_gpt  0.0155233189 5.241469e-01   0.63696621
+## 18       pre_ntv_1_gpt  0.0218225904 3.437731e-01   0.94673636
+## 19       pre_ntv_2_gpt  0.0148006444 4.881128e-01   0.69331363
+## 20          pre_dv_gpt  0.0000000000          NaN          NaN
+## 21        c_pre_dv_gpt  0.1962477171 5.379182e-06   4.54942843
+## 22       pre_ndv_1_gpt  0.0572551360 1.041516e-01   1.62505122
+## 23       pre_ndv_2_gpt  0.0377940061 2.337276e-01   1.19081144
+## 24      pre_pre_mc_gpt  0.0154278230 1.813508e-01   1.33660734
+## 25          pre_mc_gpt  0.0953155498 6.323577e-06   4.51527124
+## 26          pre_cv_gpt  0.0079646985 5.028813e-01   0.66996317
+## 27        c_pre_cv_gpt  0.0242198217 2.220117e-02   2.28690839
+## 28       pre_ncv_1_gpt  0.0401325939 3.113494e-03   2.95630461
+## 29       pre_ncv_2_gpt  0.0345761300 9.042469e-03   2.61044433
+## 30       pre_dcp_1_gpt  0.0169500365 4.891172e-01   0.69171356
+## 31       pre_dcp_2_gpt  0.0126307539 2.865802e-01   1.06565365
+## 32  pre_dcp_1_text_gpt  0.8180558422 0.000000e+00  64.92318440
+## 33          pre_pa_gpt  0.2655749592 1.683920e-11   6.73109507
+## 34       pre_iec_1_gpt  0.0512044285 2.797387e-03   2.98916758
+## 35       pre_imd_1_gpt  0.1968196934 1.406613e-06   4.82406535
+## 36       pre_imd_2_gpt  0.2129139207 2.584400e-07   5.15147916
+## 37        pre_sm_1_gpt  0.0000000000          NaN          NaN
+## 38        pre_sm_2_gpt  0.0000000000          NaN          NaN
+## 39        pre_sm_3_gpt  0.0470951039 9.249280e-02   1.68239225
+## 40       pre_vsa_1_gpt  0.0073537949 5.469465e-01   0.60234202
+## 41       pre_vsa_2_gpt  0.0044609665 4.059060e-01   0.83111976
+## 42       pre_vsa_3_gpt  0.0071546577 5.572959e-01   0.58686277
+## 43          pre_ic_gpt  0.0037890119 4.437705e-01   0.76584169
+## 44     pap_pap_mi1_gpt  0.4379582789 0.000000e+00   8.41585956
+## 45         pap_mi1_gpt  0.3809342666 2.220446e-16   8.19980924
+## 46         pap_iv1_gpt  0.1749179251 1.210973e-03   3.23628279
+## 47       c_pap_iv1_gpt  0.1329566421 7.466246e-04   3.37185973
+## 48      pap_niv1_1_gpt  0.0538421968 1.797901e-01   1.34140173
+## 49      pap_niv1_2_gpt  0.0565231198 1.536386e-01   1.42679628
+## 50     pap_pap_mi2_gpt  0.1196705358 4.896156e-05   4.06052945
+## 51         pap_mi2_gpt  0.1532882012 1.122332e-04   3.86249861
+## 52         pap_iv2_gpt  0.0160480810 7.338130e-01   0.34005784
+## 53       c_pap_iv2_gpt  0.0272037456 4.702691e-01   0.72204131
+## 54      pap_niv2_1_gpt -0.0174437602 5.646474e-01  -0.57595231
+## 55      pap_niv2_2_gpt -0.0207973572 4.767801e-01  -0.71149090
+## 56      pap_pap_mt_gpt  0.0297663904 2.219713e-01   1.22130316
+## 57          pap_mt_gpt -0.0059364228 8.164149e-01  -0.23215855
+## 58          pap_tv_gpt  0.0508127480 7.945307e-02   1.75386833
+## 59        c_pap_tv_gpt  0.0271302251 2.975683e-01   1.04166228
+## 60       pap_ntv_1_gpt  0.0078748141 7.494020e-01   0.31942793
+## 61       pap_ntv_2_gpt  0.0096153846 6.868141e-01   0.40318238
+## 62          pap_dv_gpt  0.0000000000 1.000000e+00   0.00000000
+## 63        c_pap_dv_gpt  0.2070587798 1.834947e-06   4.77080106
+## 64       pap_ndv_1_gpt  0.0424526704 2.413964e-01   1.17150365
+## 65       pap_ndv_2_gpt  0.0294103060 3.934304e-01   0.85341291
+## 66      pap_pap_mc_gpt  0.0128654535 2.360184e-01   1.18499749
+## 67          pap_mc_gpt  0.0856635597 8.112131e-05   3.94106301
+## 68          pap_cv_gpt  0.0128316832 2.041512e-01   1.26981326
+## 69        c_pap_cv_gpt  0.0170415815 3.708370e-02   2.08484140
+## 70       pap_ncv_1_gpt  0.0289447569 1.285073e-02   2.48787952
+## 71       pap_ncv_2_gpt  0.0189262741 6.941089e-02   1.81573594
+## 72       pap_dcp_1_gpt -0.0112201964 8.420094e-01  -0.19932383
+## 73       pap_dcp_2_gpt -0.0064871079 6.918068e-02  -1.81723799
+## 74  pap_dcp_1_text_gpt  0.6025291453 0.000000e+00 147.39160950
+## 75          pap_pa_gpt  0.2654890415 1.169953e-11   6.78387523
+## 76       pap_iec_1_gpt  0.0105403602 6.918068e-02   1.81723799
+## 77       pap_imd_1_gpt  0.0391681406 5.237856e-02   1.94000927
+## 78       pap_imd_2_gpt  0.0347655106 5.392302e-02   1.92745442
+## 79        pap_sm_1_gpt  0.0000000000          NaN          NaN
+## 80        pap_sm_2_gpt  0.0000000000          NaN          NaN
+## 81        pap_sm_3_gpt  0.0297684101 1.309370e-01   1.51041730
+## 82       pap_vsa_1_gpt  0.0084742613 4.050057e-01   0.83271466
+## 83       pap_vsa_2_gpt  0.0002646044 9.700388e-01   0.03755964
+## 84       pap_vsa_3_gpt  0.0160704513 1.136299e-01   1.58208624
+## 85          pap_ic_gpt  0.0010050130 6.921809e-01   0.39589715
+## 86       match_mi1_gpt  0.1639151406 2.364895e-06   4.71944451
+## 87     match_iv1_0_gpt  0.1057985099 3.510609e-02   2.10713253
+## 88     match_iv1_1_gpt  0.1049773177 2.563523e-02   2.23169350
+## 89     match_iv1_2_gpt  0.0893652207 3.866743e-02   2.06770862
+## 90     match_iv1_3_gpt  0.0245141100 4.792997e-01   0.70742938
+## 91       match_mi2_gpt  0.0687418041 1.030911e-01   1.63004940
+## 92     match_iv2_0_gpt  0.0182372752 7.281793e-01   0.34754842
+## 93     match_iv2_1_gpt -0.0211107190 6.654070e-01  -0.43246021
+## 94     match_iv2_2_gpt -0.0271186441 5.269287e-01  -0.63270134
+## 95     match_iv2_3_gpt  0.0052313883 8.611914e-01   0.17485775
+## 96        match_mt_gpt -0.0060105184 8.404377e-01  -0.20133361
+## 97      match_tv_0_gpt  0.0158388568 7.676420e-01   0.29546062
+## 98      match_tv_1_gpt  0.0217981187 6.896652e-01   0.39930940
+## 99      match_tv_2_gpt  0.0083065886 8.631145e-01   0.17241085
+## 100     match_tv_3_gpt -0.0144162147 6.280764e-01  -0.48443608
+## 101     match_dv_0_gpt  0.0088042588 7.224027e-01   0.35524945
+## 102     match_dv_1_gpt -0.0381057573 2.906204e-01  -1.05676159
+## 103     match_dv_2_gpt -0.0101827536 7.281827e-01  -0.34754395
+## 104     match_dv_3_gpt  0.0413253909 9.388116e-02   1.67527054
+## 105       match_mc_gpt  0.0620499788 2.137286e-01   1.24337792
+## 106     match_cv_0_gpt  0.0123679822 5.602463e-01   0.58247577
+## 107     match_cv_1_gpt  0.0222709018 3.126428e-01   1.00969215
+## 108     match_cv_2_gpt  0.0164456233 4.367949e-01   0.77761697
+## 109     match_cv_3_gpt -0.0172839506 5.475973e-01  -0.60136441
+## 110    match_dcp_1_gpt  0.2400116599 8.829337e-11   6.48574661
+## 111    match_dcp_2_gpt  0.0308081135 1.089652e-01   1.60286154
+## 112    match_iec_1_gpt  0.0981957142 2.243200e-05   4.23919776
+## 113    match_imd_1_gpt  0.0907944515 1.795285e-05   4.28893926
+## 114    match_imd_2_gpt  0.0946421473 7.784139e-05   3.95095061
+## 115     match_sm_1_gpt  0.1010607349 5.240644e-04   3.46814499
+## 116     match_sm_2_gpt  0.0298433472 2.740866e-01   1.09369986
+## 117     match_sm_3_gpt  0.0205467821 3.991872e-01   0.84307381
+## 118    match_vsa_1_gpt  0.0097354070 3.313265e-01   0.97144547
+## 119    match_vsa_2_gpt  0.0028744204 6.921855e-01   0.39589086
+## 120    match_vsa_3_gpt  0.0129013683 1.880178e-01   1.31646556
+## 121       match_ic_gpt  0.0287532516 7.369105e-02   1.78852686
+##     Percent_Agreement
+## 1                  NA
+## 2            79.93528
+## 3            65.37217
+## 4            57.92880
+## 5            51.77994
+## 6            58.25243
+## 7            58.25243
+## 8            34.30421
+## 9            54.04531
+## 10           51.13269
+## 11           52.42718
+## 12           57.92880
+## 13           57.92880
+## 14           43.36570
+## 15           94.82201
+## 16           52.42718
+## 17           54.36893
+## 18           69.57929
+## 19           69.25566
+## 20           82.84790
+## 21           54.36893
+## 22           40.45307
+## 23           36.24595
+## 24           18.12298
+## 25           94.17476
+## 26           23.94822
+## 27           28.47896
+## 28           51.77994
+## 29           51.45631
+## 30           60.51780
+## 31           31.39159
+## 32           82.35294
+## 33           61.81230
+## 34           77.02265
+## 35           55.98706
+## 36           59.22330
+## 37           86.08414
+## 38           84.78964
+## 39           47.57282
+## 40           19.41748
+## 41           15.85761
+## 42           20.06472
+## 43           37.21683
+## 44           79.28803
+## 45           74.43366
+## 46           60.51780
+## 47           52.75081
+## 48           59.54693
+## 49           59.54693
+## 50           34.62783
+## 51           55.98706
+## 52           51.13269
+## 53           49.51456
+## 54           57.60518
+## 55           57.28155
+## 56           43.36570
+## 57           94.49838
+## 58           53.39806
+## 59           54.36893
+## 60           69.25566
+## 61           69.25566
+## 62           83.49515
+## 63           55.33981
+## 64           40.77670
+## 65           38.51133
+## 66           16.82848
+## 67           93.52751
+## 68           21.68285
+## 69           27.50809
+## 70           50.80906
+## 71           50.16181
+## 72           97.73463
+## 73           22.97735
+## 74           60.45752
+## 75           64.72492
+## 76           76.69903
+## 77           29.44984
+## 78           27.50809
+## 79           81.55340
+## 80           88.02589
+## 81           41.42395
+## 82           16.18123
+## 83           12.94498
+## 84           17.15210
+## 85           13.59223
+## 86           55.33981
+## 87           56.63430
+## 88           55.98706
+## 89           55.01618
+## 90           62.78317
+## 91           57.60518
+## 92           67.63754
+## 93           66.66667
+## 94           67.31392
+## 95           76.69903
+## 96           95.79288
+## 97           88.02589
+## 98           88.67314
+## 99           88.99676
+## 100          92.55663
+## 101          69.57929
+## 102          52.75081
+## 103          40.77670
+## 104          27.18447
+## 105          86.08414
+## 106          70.22654
+## 107          74.75728
+## 108          76.69903
+## 109          90.93851
+## 110          56.31068
+## 111          21.68285
+## 112          41.42395
+## 113          32.03883
+## 114          35.59871
+## 115          57.92880
+## 116          69.25566
+## 117          27.50809
+## 118          22.97735
+## 119          22.97735
+## 120          24.59547
+## 121          34.30421</code></pre>
 </div>
-<div id="section-1" class="section level2">
-<h2></h2>
+<div id="kappa-interrater-gpt-zu-olmo-gesamt" class="section level2">
+<h2>Kappa interrater gpt zu olmo gesamt</h2>
+<pre class="r"><code># Spalten mit _gpt und _olmo suffix finden
+gpt_columns &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns &lt;- gpt_columns[olmo_columns %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns &lt;- olmo_columns[olmo_columns %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns) == 0) {
+  stop(&quot;Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!&quot;)
+}
+
+# Kombinieren der Spalten in einem DataFrame für den Gesamtvergleich
+combined_data &lt;- data.frame()
+
+for(i in 1:length(valid_gpt_columns)) {
+  # Füge die Werte der GPT und OLMO Spalten zur kombinierten Datensatz hinzu
+  combined_data &lt;- rbind(combined_data, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns[i]]],
+                                                   OLMO = data_gpt_olmo_processed[[valid_olmo_columns[i]]]))
+}
+
+# Entferne NA-Werte
+combined_data &lt;- na.omit(combined_data)
+
+# Berechne Cohen&#39;s Kappa für den gesamten Test
+kappa_result &lt;- irr::kappa2(combined_data, &quot;unweighted&quot;)
+
+# Berechne den Prozentsatz der Übereinstimmung
+percent_agreement &lt;- sum(combined_data$GPT == combined_data$OLMO) / nrow(combined_data) * 100
+
+# Ergebnisse anzeigen
+cat(&quot;Cohen&#39;s Kappa für den gesamten Test:\n&quot;)</code></pre>
+<pre><code>## Cohen&#39;s Kappa für den gesamten Test:</code></pre>
+<pre class="r"><code>cat(&quot;Kappa:&quot;, kappa_result$value, &quot;\n&quot;)</code></pre>
+<pre><code>## Kappa: 0.3129825</code></pre>
+<pre class="r"><code>cat(&quot;p-Wert:&quot;, kappa_result$p.value, &quot;\n&quot;)</code></pre>
+<pre><code>## p-Wert: 0</code></pre>
+<pre class="r"><code>cat(&quot;z-Wert:&quot;, kappa_result$statistic, &quot;\n&quot;)</code></pre>
+<pre><code>## z-Wert: 94.27724</code></pre>
+<pre class="r"><code>cat(&quot;Prozentuale Übereinstimmung:&quot;, percent_agreement, &quot;%\n&quot;)</code></pre>
+<pre><code>## Prozentuale Übereinstimmung: 54.91814 %</code></pre>
 </div>
-<div id="section-2" class="section level2">
-<h2></h2>
+<div id="besser-nur-bei-promt-version-4-im-vergleich-zu-den-anderen" class="section level2">
+<h2>besser nur bei promt version 4? im Vergleich zu den anderen?</h2>
+<pre class="r"><code># Spalten mit _gpt und _olmo suffix finden
+gpt_columns_PromptV &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_PromptV &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns_PromptV)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns_PromptV &lt;- gpt_columns_PromptV[olmo_columns_PromptV %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_PromptV &lt;- olmo_columns_PromptV[olmo_columns_PromptV %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_PromptV) == 0) {
+  stop(&quot;Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!&quot;)
+}
+
+# Definiere die verschiedenen Versionen, die in prompt_version auftreten (A, B, C, D)
+versions_PromptV &lt;- c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;)
+
+# Schleife durch jede Version und berechne das Kappa für jede
+for (version_PromptV in versions_PromptV) {
+  # Filtere die Zeilen, die zur aktuellen Version gehören
+  version_data_PromptV &lt;- data_gpt_olmo_processed[data_gpt_olmo_processed$prompt_version == version_PromptV, ]
+  
+  # Kombinieren der Spalten in einem DataFrame für den Vergleich der aktuellen Version
+  combined_data_PromptV &lt;- data.frame()
+  
+  for(i in 1:length(valid_gpt_columns_PromptV)) {
+    # Füge die Werte der GPT und OLMO Spalten zur kombinierten Datensatz hinzu
+    combined_data_PromptV &lt;- rbind(combined_data_PromptV, data.frame(GPT = version_data_PromptV[[valid_gpt_columns_PromptV[i]]],
+                                                                     OLMO = version_data_PromptV[[valid_olmo_columns_PromptV[i]]]))
+  }
+  
+  # Entferne NA-Werte
+  combined_data_PromptV &lt;- na.omit(combined_data_PromptV)
+  
+  # Berechne Cohen&#39;s Kappa für die aktuelle Version
+  kappa_result_PromptV &lt;- irr::kappa2(combined_data_PromptV, &quot;unweighted&quot;)
+  
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement_PromptV &lt;- sum(combined_data_PromptV$GPT == combined_data_PromptV$OLMO) / nrow(combined_data_PromptV) * 100
+  
+  # Ergebnisse anzeigen
+  cat(&quot;\nCohen&#39;s Kappa für Version&quot;, version_PromptV, &quot;:\n&quot;)
+  cat(&quot;Kappa:&quot;, kappa_result_PromptV$value, &quot;\n&quot;)
+  cat(&quot;p-Wert:&quot;, kappa_result_PromptV$p.value, &quot;\n&quot;)
+  cat(&quot;z-Wert:&quot;, kappa_result_PromptV$statistic, &quot;\n&quot;)
+  cat(&quot;Prozentuale Übereinstimmung:&quot;, percent_agreement_PromptV, &quot;%\n&quot;)
+}</code></pre>
+<pre><code>## 
+## Cohen&#39;s Kappa für Version A :
+## Kappa: 0.2820128 
+## p-Wert: 0 
+## z-Wert: 28.58415 
+## Prozentuale Übereinstimmung: 51.50418 %
+## 
+## Cohen&#39;s Kappa für Version B :
+## Kappa: 0.2892539 
+## p-Wert: 0 
+## z-Wert: 35.71882 
+## Prozentuale Übereinstimmung: 51.8422 %
+## 
+## Cohen&#39;s Kappa für Version C :
+## Kappa: 0.2424722 
+## p-Wert: 0 
+## z-Wert: 25.12664 
+## Prozentuale Übereinstimmung: 48.28517 %
+## 
+## Cohen&#39;s Kappa für Version D :
+## Kappa: 0.333917 
+## p-Wert: 0 
+## z-Wert: 79.11702 
+## Prozentuale Übereinstimmung: 57.11462 %</code></pre>
 </div>
-<div id="section-3" class="section level2">
-<h2></h2>
-</div>
-<div id="section-4" class="section level2">
-<h2></h2>
-</div>
-<div id="section-5" class="section level2">
-<h2></h2>
-</div>
-</div>
-<div id="session-info" class="section level1">
-<h1>Session info</h1>
-<pre class="r"><code>sessionInfo()</code></pre>
+<div id="differenz-zw-promt-versionen" class="section level2">
+<h2>differenz zw promt versionen?</h2>
+<pre><code>
+
+## 
+
+
+
+
+## 
+
+
+
+
+## 
+
+
+
+
+
+
+## 
+
+
+
+
+
+
+
+# Session info
+
+
+``` r
+sessionInfo()</code></pre>
 <pre><code>## R version 4.3.1 (2023-06-16 ucrt)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 19045)
@@ -1819,6 +2889,7 @@ Analysen..</h2>
 ## [41] glue_1.7.0        Rcpp_1.0.13       systemfonts_1.1.0 xfun_0.47        
 ## [45] tidyselect_1.2.1  rstudioapi_0.16.0 knitr_1.48        nlme_3.1-166     
 ## [49] htmltools_0.5.8.1 svglite_2.1.3     rmarkdown_2.28    compiler_4.3.1</code></pre>
+</div>
 </div>
 
 
