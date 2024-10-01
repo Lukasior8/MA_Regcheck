@@ -794,10 +794,160 @@ for (version_PromptV in versions_PromptV) {
 
 
 
+
+
+
+# Kappa nur y & n 
+
+## kappa y_n all categories
+
+```{r}
+# Function to calculate Cohen's Kappa, p-value, z-value, percentage agreement, and number of comparisons using 'irr' package
+calculate_kappa_irr_filtered_debug <- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if (column_gpt %in% colnames(data) & column_olmo %in% colnames(data)) {
+    # Filter rows where the OLMO column is either "Y" or "N"
+    valid_data <- data[data[[column_olmo]] %in% c("y", "n"), ]
+    
+    # Debug: Print number of valid rows for the comparison
+    print(paste("Number of valid rows for comparison (", column_gpt, " & ", column_olmo, "): ", nrow(valid_data)))
+    
+    # Check if there are any valid rows left for comparison
+    if (nrow(valid_data) > 0) {
+      # Remove rows with NA values in the selected columns
+      valid_data <- valid_data[!is.na(valid_data[[column_gpt]]) & !is.na(valid_data[[column_olmo]]), ]
+      
+      # Debug: Print number of rows after removing NAs
+      print(paste("Number of valid rows after removing NAs: ", nrow(valid_data)))
+      
+      # Check again if there are rows left after removing NAs
+      if (nrow(valid_data) > 0) {
+        # Calculate Cohen's Kappa using the 'kappa2' function from the irr package
+        kappa_result <- irr::kappa2(valid_data[, c(column_gpt, column_olmo)], "unweighted")
+        
+        # Extract values
+        kappa_value <- kappa_result$value
+        p_value <- kappa_result$p.value
+        z_value <- kappa_result$statistic
+        percent_agreement <- sum(valid_data[[column_gpt]] == valid_data[[column_olmo]]) / nrow(valid_data) * 100
+        
+        # Return the results including the number of comparisons (N)
+        return(c(kappa_value, p_value, z_value, percent_agreement, nrow(valid_data)))
+      } else {
+        # No valid comparisons available after NA removal
+        print("No valid rows left after removing NAs.")
+        return(rep(NA, 5))
+      }
+    } else {
+      # No valid comparisons based on OLMO filter
+      print("No valid rows based on OLMO filter (Y/N).")
+      return(rep(NA, 5))
+    }
+  } else {
+    print(paste("Columns", column_gpt, "or", column_olmo, "do not exist in the dataset."))
+    return(rep(NA, 5))
+  }
+}
+
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
+
+# Create a dataframe to store the results
+kappa_results_filtered_debug <- data.frame(
+  Variable = gpt_columns,
+  Kappa = NA,
+  P_Value = NA,
+  Z_Value = NA,
+  Percent_Agreement = NA,
+  N_Comparisons = NA
+)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for (i in 1:length(gpt_columns)) {
+  print(paste("Processing columns:", gpt_columns[i], "and", olmo_columns[i]))
+  kappa_stats_filtered_debug <- calculate_kappa_irr_filtered_debug(data_gpt_olmo_processed, gpt_columns[i], olmo_columns[i])
+  kappa_results_filtered_debug[i, 2:6] <- kappa_stats_filtered_debug
+}
+
+# Show the results
+print(kappa_results_filtered_debug)
+
+
+
 ```
 
 
-## 
+
+## kappa y & n total
+
+```{r}
+
+
+# Function to calculate Cohen's Kappa, p-value, z-value, percentage agreement, and number of comparisons over all columns
+calculate_overall_kappa <- function(data, gpt_columns, olmo_columns) {
+  # Create an empty dataframe to store all relevant rows for comparison
+  combined_data <- data.frame(GPT = character(), OLMO = character(), stringsAsFactors = FALSE)
+  
+  # Loop over each pair of GPT and OLMO columns to collect valid cells
+  for (i in 1:length(gpt_columns)) {
+    if (gpt_columns[i] %in% colnames(data) & olmo_columns[i] %in% colnames(data)) {
+      # Filter only rows where the OLMO value is "Y" or "N"
+      valid_rows <- data[data[[olmo_columns[i]]] %in% c("y", "n"), ]
+      
+      # Select the relevant GPT and OLMO values and remove NA values
+      valid_rows <- valid_rows[!is.na(valid_rows[[gpt_columns[i]]]) & !is.na(valid_rows[[olmo_columns[i]]]), ]
+      
+      # Combine the valid GPT and OLMO values into the combined dataframe
+      combined_data <- rbind(combined_data, data.frame(GPT = valid_rows[[gpt_columns[i]]], OLMO = valid_rows[[olmo_columns[i]]]))
+    }
+  }
+  
+  # Check if there are enough data points to calculate Kappa
+  if (nrow(combined_data) > 0) {
+    # Calculate Cohen's Kappa over all the combined cells
+    kappa_result <- irr::kappa2(combined_data, "unweighted")
+    
+    # Extract values
+    kappa_value <- kappa_result$value
+    p_value <- kappa_result$p.value
+    z_value <- kappa_result$statistic
+    percent_agreement <- sum(combined_data$GPT == combined_data$OLMO) / nrow(combined_data) * 100
+    
+    # Return the results including the number of comparisons (N)
+    return(data.frame(Kappa_Gesamt = kappa_value, P_Value = p_value, Z_Value = z_value, Percent_Agreement = percent_agreement, N_Comparisons = nrow(combined_data)))
+  } else {
+    # Return NA if no valid comparisons are available
+    return(data.frame(Kappa_Gesamt = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA, N_Comparisons = 0))
+  }
+}
+
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
+
+# Calculate the overall Kappa over all relevant cells
+kappa_gesamt_yn <- calculate_overall_kappa(data_gpt_olmo_processed, gpt_columns, olmo_columns)
+
+# Show the overall result
+print(kappa_gesamt_yn)
+
+
+
+```
+# i thought it would be better, but its actually worse...
+
+hmm ich ersuhe jetz noch einen kürzeren promt mit ausgewählten fragen... dann muss ich nur diese ausgewählte fragen noch testen beim ursprünglichen datensatz und dann kann ich diesn vergleichen mit dem neuen gekürzeten...
+
+und eventuell noch die sensitivity etc. nur für y/n zählen lassen!!! 
+
+ausserdem sollte ich wohl noch die ratings auch auswerten(alos die nummern obwohldiese ziemlich scheisse isind
+
+
+und noch schauen ob es einen unterschied macht ob experiment oder nicht....)
+
+
+## ich könnte noch kappa pro psp machen.... dh..
 
 ```{r}
 
@@ -807,16 +957,6 @@ for (version_PromptV in versions_PromptV) {
 
 
 ## 
-
-```{r}
-
-
-
-```
-
-
-## 
-
 ```{r}
 
 
@@ -827,7 +967,6 @@ for (version_PromptV in versions_PromptV) {
 
 
 ## 
-
 ```{r}
 
 
@@ -839,7 +978,6 @@ for (version_PromptV in versions_PromptV) {
 
 
 # Session info
-
 ```{r}
 
 sessionInfo()
