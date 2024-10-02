@@ -38,11 +38,15 @@ library(openxlsx)
 
 # clean GPT data_gpt
 
-## Read  data
+## Read GPT data
 
 
 ```{r}
-data_gpt_raw <- read_excel("../Data/DATA_Resultate_raw.xlsx") |>
+data_gpt_raw <- read_excel("../Data/raw/DATA_Resultate_raw.xlsx") |>
+  janitor::clean_names()
+
+
+data_gpt_new <- read_excel("../Data/raw/DATA_Resultate_neu.xlsx") |>
   janitor::clean_names()
 ```
 
@@ -71,6 +75,25 @@ data_gpt_filtered <- data_gpt_raw %>%
     )
 
 
+data_gpt_new_filtered <- data_gpt_new %>%
+  select(   
+    -prereg_vorhanden,
+    -paper_vorhanden,
+    -gpt_link_extraction,
+    -gpt_link_comparison,
+    -notes_extraction,
+    -notes_comparison,
+    -hyp_pre,
+    -hyp_pap,
+    -type,
+    -iv1,
+    -iv2,
+    -tv,
+    -dv,
+    -fcv,
+    -ocv,
+    -starts_with("x")
+    )
 
 
 ```
@@ -118,12 +141,18 @@ clean_value <- function(x) {
   return(cleaned)
 }
 
-
+#for raw
 data_gpt_filtered_clean <- data_gpt_filtered %>%
   mutate_at(vars(one_of(gpt_categories_alphabetic)), clean_value)
 
 gpt_frequencies_categories_cleaned <- lapply(data_gpt_filtered_clean[gpt_categories_alphabetic], table)
 
+#for new
+
+data_gpt_new_filtered_clean <- data_gpt_new_filtered %>%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), clean_value)
+
+gpt_new_frequencies_categories_cleaned <- lapply(data_gpt_new_filtered_clean[gpt_categories_alphabetic], table)
 
 #gpt_frequencies_categories_cleaned
 
@@ -191,7 +220,7 @@ data_gpt_finito <- data_gpt_finito %>%
 ## read olmos data
 
 ```{r}
-DATA_olmo_raw <- read_excel("../data/Data Preregistration Effectiveness.xlsx") |>
+DATA_olmo_raw <- read_excel("../data/raw/Data Preregistration Effectiveness.xlsx") |>
   janitor::clean_names()
 
 
@@ -253,7 +282,7 @@ data_olmo_raw_selected <- data_olmo_raw %>%
 ```
 
 
-## mutate answers
+## mutate olmo answers
 ### renaming
 
 ```{r}
