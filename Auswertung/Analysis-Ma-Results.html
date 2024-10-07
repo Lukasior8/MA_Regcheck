@@ -357,11 +357,19 @@ display: none;
 </div>
 
 
-<p>#todo: - evtl processing noch einmal überarbeiten, für 2. datensatz
-ohne comp. - herausfinden welche Werte man angeben MUSS (pwert, xwert ,
-% etc..) - kappa auf Basis von diesem ausrechnen für übereinstimmung gpt
-&amp; olmo - Assumption checks herausfinden welche und ausrechnen -
-weitere analyse….</p>
+<div id="todo" class="section level2">
+<h2>#todo:</h2>
+<ul>
+<li><p>herausfinden welche Werte man angeben MUSS (pwert, xwert , %
+etc..)</p></li>
+<li><p>kappa auf Basis von diesem ausrechnen für übereinstimmung gpt
+&amp; olmo</p></li>
+<li><p>Assumption checks herausfinden welche und ausrechnen
+-&gt;&gt;&gt;&lt; also zb ob es problematisch ist dass teilweise fast
+nur y oder fast nur n oder so ist…..</p></li>
+</ul>
+<p>-&gt; why df isch p wert so gross! hmm vilech wäge nidrige - weitere
+analyse….</p>
 <ul>
 <li><p>Analysis File beschönigen.</p></li>
 <li><p>das ziel ist ja: Synthetic peer review: Using large language
@@ -371,6 +379,7 @@ models to automatically detect deviations from preregistrations</p></li>
 machen wie viel % davon entdeckt werden und viel viel fals positive
 etc….und es wäre auch noch nice zu wissen welche Kategorien man brauchen
 kann und welche nicht…</p>
+</div>
 <div id="dependencies" class="section level1">
 <h1>Dependencies</h1>
 <pre class="r"><code>library(tidyverse)</code></pre>
@@ -434,14 +443,31 @@ library(irr)</code></pre>
 ## Das folgende Objekt ist maskiert &#39;package:formattable&#39;:
 ## 
 ##     currency</code></pre>
-<pre class="r"><code>library(irr)</code></pre>
+<pre class="r"><code>library(irr)
+library(caret) </code></pre>
+<pre><code>## Warning: Paket &#39;caret&#39; wurde unter R Version 4.3.3 erstellt</code></pre>
+<pre><code>## Lade nötiges Paket: lattice</code></pre>
+<pre><code>## Warning: Paket &#39;lattice&#39; wurde unter R Version 4.3.3 erstellt</code></pre>
+<pre><code>## 
+## Attache Paket: &#39;caret&#39;
+## 
+## Das folgende Objekt ist maskiert &#39;package:purrr&#39;:
+## 
+##     lift</code></pre>
 <p>#Read data</p>
 <pre class="r"><code>getwd() </code></pre>
 <pre><code>## [1] &quot;E:/Studium/Master/Masterarbeit/MA Github/MA-Regcheck/Auswertung&quot;</code></pre>
 <pre class="r"><code>comparison_data_processed &lt;-read_excel(&quot;../Data/processed/comparison_data_processed.xlsx&quot;)
 
 
-data_gpt_olmo_processed &lt;-read_excel(&quot;../Data/processed/data_gpt_olmo_processed.xlsx&quot;)</code></pre>
+data_gpt_olmo_processed &lt;-read_excel(&quot;../Data/processed/data_gpt_olmo_processed.xlsx&quot;)
+
+
+data_gpt_ve_processed &lt;-read_excel(&quot;../Data/processed/data_gpt_ve_processed.xlsx&quot;)
+
+# Filterung des Datensatzes, um Zeilen mit master_exclude == &quot;exclude&quot; auszuschließen
+data_gpt_ve_filtered &lt;- data_gpt_ve_processed %&gt;%
+  filter(master_exclude != &quot;exclude&quot;)</code></pre>
 </div>
 <div id="category-counts" class="section level1">
 <h1>Category Counts</h1>
@@ -494,9 +520,10 @@ print(data_category_counts_total)</code></pre>
 ##   n_answers_total
 ## 1           36462
 ## 2             100</code></pre>
-<pre class="r"><code>write.xlsx(data_category_counts_total, &quot;../Data/processed/data_category_counts_total.xlsx&quot;)</code></pre>
 <div id="x3-confusionsmatrix" class="section level3">
 <h3>3x3 confusionsmatrix</h3>
+<p>hier müsste ich evventuell noch zusätzlich die Anzahl vvon Olmo… als
+Vergleich.</p>
 <pre class="r"><code># Angenommen, deine 2x11-Tabelle heißt &quot;data_category_counts_total&quot;
 # und enthält die Zählungen für jede Kategorie (z.B. Y, N, X).
 
@@ -536,6 +563,12 @@ print(confusion_matrix)</code></pre>
 ## Actual_Y        7177        5224        7256
 ## Actual_N         382        1106        2172
 ## Actual_X         938         534       11673</code></pre>
+<p>bei den category counts total sieht man welche kategorie insgesamt
+viel verwendet wurde…. Aber halt nicht so aussagekräftig, da n kommt
+auch bei olmo seltener vor…ncith so aussagekräfitg… man müsste
+prozentual zu allen berechnungen( also dass y,n,x gleich häufig
+vorkommen) aber man sieht schon, dass nur ca 50 &amp; richtig predictet…
+halt sehr schlecht…</p>
 </div>
 </div>
 <div id="category-counts-per-item" class="section level2">
@@ -588,6 +621,7 @@ print(data_category_counts_per_item)</code></pre>
 <h1>sensitivity &amp; specifity</h1>
 <div id="sensitivität-und-spezifität-für-jede-klasse-one-vs-rest" class="section level2">
 <h2>Sensitivität und Spezifität für jede Klasse (One-vs-Rest)</h2>
+<p>hier könnte man noch sensitivität für jedes Item…!</p>
 <pre class="r"><code>print(confusion_matrix)</code></pre>
 <pre><code>##          Predicted_Y Predicted_N Predicted_X
 ## Actual_Y        7177        5224        7256
@@ -634,6 +668,14 @@ print(results)</code></pre>
 ## 1     Y   0.3651117   0.9214519
 ## 2     N   0.3021858   0.8244619
 ## 3     X   0.8880183   0.5956598</code></pre>
+<p>Sensitivity (Empfindlichkeit) misst, wie gut das Modell die
+tatsächlichen positiven Fälle für jede Klasse erkennt (True Positives).
+Es beantwortet die Frage: Von den tatsächlichen Positiven, wie viele
+wurden richtig als positiv klassifiziert?</p>
+<p>Specificity (Spezifität) misst, wie gut das Modell die negativen
+Fälle korrekt identifiziert (True Negatives). Es beantwortet die Frage:
+Von den tatsächlichen Negativen, wie viele wurden richtig als negativ
+klassifiziert?</p>
 </div>
 <div id="gesamtleistung-macro--und-micro-averaging" class="section level2">
 <h2>Gesamtleistung: Macro- und Micro-Averaging</h2>
@@ -1155,8 +1197,6 @@ print(retest_kappa_summary)</code></pre>
 ## 116 match_vsa_2_comp  0.39698492  3.7642311             73.33333 4.747011e-04
 ## 117 match_vsa_3_comp  0.44881890  4.0556196             76.66667 3.031276e-05
 ## 118    match_ic_comp  0.83455882 11.4445972             90.00000 1.213182e-09</code></pre>
-<pre class="r"><code># Optional: Speichern der zusammengeführten Test-Retest-Daten in einer Excel-Datei
-write.xlsx(retest_merged_data, file = &quot;../Data/processed/retest_merged_data.xlsx&quot;)</code></pre>
 </div>
 <div id="test-retest-korrelation-gesamt-kappa" class="section level2">
 <h2>test, retest korrelation gesamt kappa…</h2>
@@ -1178,6 +1218,7 @@ retest_kappa_all</code></pre>
 ## weighted kappa    0.61     0.64  0.67
 ## 
 ##  Number of subjects = 3540</code></pre>
+<p>weighted macht heir absolut keinen sinn…</p>
 <p>##test, retest korrelation gesamt kappa…v2 mit p wert etc..</p>
 <p>p wert noch leer:/</p>
 <pre class="r"><code># Lade notwendige Bibliotheken
@@ -2414,6 +2455,7 @@ print(kappa_results)</code></pre>
 ## 119    match_vsa_2_gpt  0.0028744204 22.97735  0.0028744204          22.97735
 ## 120    match_vsa_3_gpt  0.0129013683 24.59547  0.0129013683          24.59547
 ## 121       match_ic_gpt  0.0287532516 34.30421  0.0287532516          34.30421</code></pre>
+<p>#achtung kappa result und results!!</p>
 <p>##Kappa interrater gpt zu olmo per category 2. ansatz</p>
 <pre class="r"><code># Function to calculate Cohen&#39;s Kappa, p-value, z-value, and percentage agreement using &#39;irr&#39; package
 calculate_kappa_irr_v2 &lt;- function(data, column_gpt, column_olmo) {
@@ -2743,8 +2785,9 @@ cat(&quot;Cohen&#39;s Kappa für den gesamten Test:\n&quot;)</code></pre>
 <pre class="r"><code>cat(&quot;Prozentuale Übereinstimmung:&quot;, percent_agreement, &quot;%\n&quot;)</code></pre>
 <pre><code>## Prozentuale Übereinstimmung: 54.91814 %</code></pre>
 </div>
-<div id="besser-nur-bei-promt-version-4-im-vergleich-zu-den-anderen" class="section level2">
-<h2>besser nur bei promt version 4? im Vergleich zu den anderen?</h2>
+<div id="besser-nur-bei-promt-version-d-im-vergleich-zu-den-anderen" class="section level2">
+<h2>besser nur bei promt version d? im Vergleich zu den anderen?</h2>
+<p>hier noch n reinnehmen</p>
 <pre class="r"><code># Spalten mit _gpt und _olmo suffix finden
 gpt_columns_PromptV &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns_PromptV &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns_PromptV)
@@ -2818,38 +2861,1141 @@ for (version_PromptV in versions_PromptV) {
 </div>
 <div id="differenz-zw-promt-versionen" class="section level2">
 <h2>differenz zw promt versionen?</h2>
-<pre><code>
+</div>
+</div>
+<div id="kappa-nur-y-n" class="section level1">
+<h1>Kappa nur y &amp; n</h1>
+<div id="kappa-y_n-all-categories" class="section level2">
+<h2>kappa y_n all categories</h2>
+<pre class="r"><code># Function to calculate Cohen&#39;s Kappa, p-value, z-value, percentage agreement, and number of comparisons using &#39;irr&#39; package
+calculate_kappa_irr_filtered_debug &lt;- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if (column_gpt %in% colnames(data) &amp; column_olmo %in% colnames(data)) {
+    # Filter rows where the OLMO column is either &quot;Y&quot; or &quot;N&quot;
+    valid_data &lt;- data[data[[column_olmo]] %in% c(&quot;y&quot;, &quot;n&quot;), ]
+    
+    # Debug: Print number of valid rows for the comparison
+    print(paste(&quot;Number of valid rows for comparison (&quot;, column_gpt, &quot; &amp; &quot;, column_olmo, &quot;): &quot;, nrow(valid_data)))
+    
+    # Check if there are any valid rows left for comparison
+    if (nrow(valid_data) &gt; 0) {
+      # Remove rows with NA values in the selected columns
+      valid_data &lt;- valid_data[!is.na(valid_data[[column_gpt]]) &amp; !is.na(valid_data[[column_olmo]]), ]
+      
+      # Debug: Print number of rows after removing NAs
+      print(paste(&quot;Number of valid rows after removing NAs: &quot;, nrow(valid_data)))
+      
+      # Check again if there are rows left after removing NAs
+      if (nrow(valid_data) &gt; 0) {
+        # Calculate Cohen&#39;s Kappa using the &#39;kappa2&#39; function from the irr package
+        kappa_result &lt;- irr::kappa2(valid_data[, c(column_gpt, column_olmo)], &quot;unweighted&quot;)
+        
+        # Extract values
+        kappa_value &lt;- kappa_result$value
+        p_value &lt;- kappa_result$p.value
+        z_value &lt;- kappa_result$statistic
+        percent_agreement &lt;- sum(valid_data[[column_gpt]] == valid_data[[column_olmo]]) / nrow(valid_data) * 100
+        
+        # Return the results including the number of comparisons (N)
+        return(c(kappa_value, p_value, z_value, percent_agreement, nrow(valid_data)))
+      } else {
+        # No valid comparisons available after NA removal
+        print(&quot;No valid rows left after removing NAs.&quot;)
+        return(rep(NA, 5))
+      }
+    } else {
+      # No valid comparisons based on OLMO filter
+      print(&quot;No valid rows based on OLMO filter (Y/N).&quot;)
+      return(rep(NA, 5))
+    }
+  } else {
+    print(paste(&quot;Columns&quot;, column_gpt, &quot;or&quot;, column_olmo, &quot;do not exist in the dataset.&quot;))
+    return(rep(NA, 5))
+  }
+}
 
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns)
+
+# Create a dataframe to store the results
+kappa_results_filtered_debug &lt;- data.frame(
+  Variable = gpt_columns,
+  Kappa = NA,
+  P_Value = NA,
+  Z_Value = NA,
+  Percent_Agreement = NA,
+  N_Comparisons = NA
+)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for (i in 1:length(gpt_columns)) {
+  print(paste(&quot;Processing columns:&quot;, gpt_columns[i], &quot;and&quot;, olmo_columns[i]))
+  kappa_stats_filtered_debug &lt;- calculate_kappa_irr_filtered_debug(data_gpt_olmo_processed, gpt_columns[i], olmo_columns[i])
+  kappa_results_filtered_debug[i, 2:6] &lt;- kappa_stats_filtered_debug
+}</code></pre>
+<pre><code>## [1] &quot;Processing columns: date_gpt and date_olmo&quot;
+## [1] &quot;Columns date_gpt or date_olmo do not exist in the dataset.&quot;
+## [1] &quot;Processing columns: pre_pre_mi1_gpt and pre_pre_mi1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_pre_mi1_gpt  &amp;  pre_pre_mi1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_mi1_gpt and pre_mi1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_mi1_gpt  &amp;  pre_mi1_olmo ):  215&quot;
+## [1] &quot;Number of valid rows after removing NAs:  215&quot;
+## [1] &quot;Processing columns: pre_iv1_gpt and pre_iv1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_iv1_gpt  &amp;  pre_iv1_olmo ):  95&quot;
+## [1] &quot;Number of valid rows after removing NAs:  95&quot;
+## [1] &quot;Processing columns: c_pre_iv1_gpt and c_pre_iv1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pre_iv1_gpt  &amp;  c_pre_iv1_olmo ):  84&quot;
+## [1] &quot;Number of valid rows after removing NAs:  84&quot;
+## [1] &quot;Processing columns: pre_niv1_1_gpt and pre_niv1_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_niv1_1_gpt  &amp;  pre_niv1_1_olmo ):  32&quot;
+## [1] &quot;Number of valid rows after removing NAs:  32&quot;
+## [1] &quot;Processing columns: pre_niv1_2_gpt and pre_niv1_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_niv1_2_gpt  &amp;  pre_niv1_2_olmo ):  32&quot;
+## [1] &quot;Number of valid rows after removing NAs:  32&quot;
+## [1] &quot;Processing columns: pre_pre_mi2_gpt and pre_pre_mi2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_pre_mi2_gpt  &amp;  pre_pre_mi2_olmo ):  120&quot;
+## [1] &quot;Number of valid rows after removing NAs:  120&quot;
+## [1] &quot;Processing columns: pre_mi2_gpt and pre_mi2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_mi2_gpt  &amp;  pre_mi2_olmo ):  49&quot;
+## [1] &quot;Number of valid rows after removing NAs:  49&quot;
+## [1] &quot;Processing columns: pre_iv2_gpt and pre_iv2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_iv2_gpt  &amp;  pre_iv2_olmo ):  71&quot;
+## [1] &quot;Number of valid rows after removing NAs:  71&quot;
+## [1] &quot;Processing columns: c_pre_iv2_gpt and c_pre_iv2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pre_iv2_gpt  &amp;  c_pre_iv2_olmo ):  58&quot;
+## [1] &quot;Number of valid rows after removing NAs:  58&quot;
+## [1] &quot;Processing columns: pre_niv2_1_gpt and pre_niv2_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_niv2_1_gpt  &amp;  pre_niv2_1_olmo ):  24&quot;
+## [1] &quot;Number of valid rows after removing NAs:  24&quot;
+## [1] &quot;Processing columns: pre_niv2_2_gpt and pre_niv2_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_niv2_2_gpt  &amp;  pre_niv2_2_olmo ):  24&quot;
+## [1] &quot;Number of valid rows after removing NAs:  24&quot;
+## [1] &quot;Processing columns: pre_pre_mt_gpt and pre_pre_mt_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_pre_mt_gpt  &amp;  pre_pre_mt_olmo ):  23&quot;
+## [1] &quot;Number of valid rows after removing NAs:  23&quot;
+## [1] &quot;Processing columns: pre_mt_gpt and pre_mt_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_mt_gpt  &amp;  pre_mt_olmo ):  1&quot;
+## [1] &quot;Number of valid rows after removing NAs:  1&quot;
+## [1] &quot;Processing columns: pre_tv_gpt and pre_tv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_tv_gpt  &amp;  pre_tv_olmo ):  22&quot;
+## [1] &quot;Number of valid rows after removing NAs:  22&quot;
+## [1] &quot;Processing columns: c_pre_tv_gpt and c_pre_tv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pre_tv_gpt  &amp;  c_pre_tv_olmo ):  19&quot;
+## [1] &quot;Number of valid rows after removing NAs:  19&quot;
+## [1] &quot;Processing columns: pre_ntv_1_gpt and pre_ntv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ntv_1_gpt  &amp;  pre_ntv_1_olmo ):  8&quot;
+## [1] &quot;Number of valid rows after removing NAs:  8&quot;
+## [1] &quot;Processing columns: pre_ntv_2_gpt and pre_ntv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ntv_2_gpt  &amp;  pre_ntv_2_olmo ):  8&quot;
+## [1] &quot;Number of valid rows after removing NAs:  8&quot;
+## [1] &quot;Processing columns: pre_dv_gpt and pre_dv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_dv_gpt  &amp;  pre_dv_olmo ):  264&quot;
+## [1] &quot;Number of valid rows after removing NAs:  264&quot;
+## [1] &quot;Processing columns: c_pre_dv_gpt and c_pre_dv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pre_dv_gpt  &amp;  c_pre_dv_olmo ):  256&quot;
+## [1] &quot;Number of valid rows after removing NAs:  256&quot;
+## [1] &quot;Processing columns: pre_ndv_1_gpt and pre_ndv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ndv_1_gpt  &amp;  pre_ndv_1_olmo ):  92&quot;
+## [1] &quot;Number of valid rows after removing NAs:  92&quot;
+## [1] &quot;Processing columns: pre_ndv_2_gpt and pre_ndv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ndv_2_gpt  &amp;  pre_ndv_2_olmo ):  92&quot;
+## [1] &quot;Number of valid rows after removing NAs:  92&quot;
+## [1] &quot;Processing columns: pre_pre_mc_gpt and pre_pre_mc_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_pre_mc_gpt  &amp;  pre_pre_mc_olmo ):  34&quot;
+## [1] &quot;Number of valid rows after removing NAs:  34&quot;
+## [1] &quot;Processing columns: pre_mc_gpt and pre_mc_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_mc_gpt  &amp;  pre_mc_olmo ):  19&quot;
+## [1] &quot;Number of valid rows after removing NAs:  19&quot;
+## [1] &quot;Processing columns: pre_cv_gpt and pre_cv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_cv_gpt  &amp;  pre_cv_olmo ):  14&quot;
+## [1] &quot;Number of valid rows after removing NAs:  14&quot;
+## [1] &quot;Processing columns: c_pre_cv_gpt and c_pre_cv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pre_cv_gpt  &amp;  c_pre_cv_olmo ):  11&quot;
+## [1] &quot;Number of valid rows after removing NAs:  11&quot;
+## [1] &quot;Processing columns: pre_ncv_1_gpt and pre_ncv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ncv_1_gpt  &amp;  pre_ncv_1_olmo ):  6&quot;
+## [1] &quot;Number of valid rows after removing NAs:  6&quot;
+## [1] &quot;Processing columns: pre_ncv_2_gpt and pre_ncv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ncv_2_gpt  &amp;  pre_ncv_2_olmo ):  6&quot;
+## [1] &quot;Number of valid rows after removing NAs:  6&quot;</code></pre>
+<pre><code>## Warning in sqrt(varkappa): NaNs wurden erzeugt</code></pre>
+<pre><code>## [1] &quot;Processing columns: pre_dcp_1_gpt and pre_dcp_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_dcp_1_gpt  &amp;  pre_dcp_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_dcp_2_gpt and pre_dcp_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_dcp_2_gpt  &amp;  pre_dcp_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_dcp_1_text_gpt and pre_dcp_1_text_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_dcp_1_text_gpt  &amp;  pre_dcp_1_text_olmo ):  0&quot;
+## [1] &quot;No valid rows based on OLMO filter (Y/N).&quot;
+## [1] &quot;Processing columns: pre_pa_gpt and pre_pa_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_pa_gpt  &amp;  pre_pa_olmo ):  307&quot;
+## [1] &quot;Number of valid rows after removing NAs:  307&quot;
+## [1] &quot;Processing columns: pre_iec_1_gpt and pre_iec_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_iec_1_gpt  &amp;  pre_iec_1_olmo ):  242&quot;
+## [1] &quot;Number of valid rows after removing NAs:  242&quot;
+## [1] &quot;Processing columns: pre_imd_1_gpt and pre_imd_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_imd_1_gpt  &amp;  pre_imd_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_imd_2_gpt and pre_imd_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_imd_2_gpt  &amp;  pre_imd_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_sm_1_gpt and pre_sm_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_sm_1_gpt  &amp;  pre_sm_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_sm_2_gpt and pre_sm_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_sm_2_gpt  &amp;  pre_sm_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;</code></pre>
+<pre><code>## Warning in sqrt(varkappa): NaNs wurden erzeugt</code></pre>
+<pre><code>## [1] &quot;Processing columns: pre_sm_3_gpt and pre_sm_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_sm_3_gpt  &amp;  pre_sm_3_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_vsa_1_gpt and pre_vsa_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_vsa_1_gpt  &amp;  pre_vsa_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_vsa_2_gpt and pre_vsa_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_vsa_2_gpt  &amp;  pre_vsa_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_vsa_3_gpt and pre_vsa_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_vsa_3_gpt  &amp;  pre_vsa_3_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pre_ic_gpt and pre_ic_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pre_ic_gpt  &amp;  pre_ic_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_pap_mi1_gpt and pap_pap_mi1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_pap_mi1_gpt  &amp;  pap_pap_mi1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_mi1_gpt and pap_mi1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_mi1_gpt  &amp;  pap_mi1_olmo ):  212&quot;
+## [1] &quot;Number of valid rows after removing NAs:  212&quot;
+## [1] &quot;Processing columns: pap_iv1_gpt and pap_iv1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_iv1_gpt  &amp;  pap_iv1_olmo ):  95&quot;
+## [1] &quot;Number of valid rows after removing NAs:  95&quot;
+## [1] &quot;Processing columns: c_pap_iv1_gpt and c_pap_iv1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pap_iv1_gpt  &amp;  c_pap_iv1_olmo ):  93&quot;
+## [1] &quot;Number of valid rows after removing NAs:  93&quot;
+## [1] &quot;Processing columns: pap_niv1_1_gpt and pap_niv1_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_niv1_1_gpt  &amp;  pap_niv1_1_olmo ):  35&quot;
+## [1] &quot;Number of valid rows after removing NAs:  35&quot;
+## [1] &quot;Processing columns: pap_niv1_2_gpt and pap_niv1_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_niv1_2_gpt  &amp;  pap_niv1_2_olmo ):  35&quot;
+## [1] &quot;Number of valid rows after removing NAs:  35&quot;
+## [1] &quot;Processing columns: pap_pap_mi2_gpt and pap_pap_mi2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_pap_mi2_gpt  &amp;  pap_pap_mi2_olmo ):  120&quot;
+## [1] &quot;Number of valid rows after removing NAs:  120&quot;
+## [1] &quot;Processing columns: pap_mi2_gpt and pap_mi2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_mi2_gpt  &amp;  pap_mi2_olmo ):  50&quot;
+## [1] &quot;Number of valid rows after removing NAs:  50&quot;
+## [1] &quot;Processing columns: pap_iv2_gpt and pap_iv2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_iv2_gpt  &amp;  pap_iv2_olmo ):  72&quot;
+## [1] &quot;Number of valid rows after removing NAs:  72&quot;
+## [1] &quot;Processing columns: c_pap_iv2_gpt and c_pap_iv2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pap_iv2_gpt  &amp;  c_pap_iv2_olmo ):  71&quot;
+## [1] &quot;Number of valid rows after removing NAs:  71&quot;
+## [1] &quot;Processing columns: pap_niv2_1_gpt and pap_niv2_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_niv2_1_gpt  &amp;  pap_niv2_1_olmo ):  21&quot;
+## [1] &quot;Number of valid rows after removing NAs:  21&quot;
+## [1] &quot;Processing columns: pap_niv2_2_gpt and pap_niv2_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_niv2_2_gpt  &amp;  pap_niv2_2_olmo ):  21&quot;
+## [1] &quot;Number of valid rows after removing NAs:  21&quot;
+## [1] &quot;Processing columns: pap_pap_mt_gpt and pap_pap_mt_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_pap_mt_gpt  &amp;  pap_pap_mt_olmo ):  23&quot;
+## [1] &quot;Number of valid rows after removing NAs:  23&quot;
+## [1] &quot;Processing columns: pap_mt_gpt and pap_mt_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_mt_gpt  &amp;  pap_mt_olmo ):  1&quot;
+## [1] &quot;Number of valid rows after removing NAs:  1&quot;
+## [1] &quot;Processing columns: pap_tv_gpt and pap_tv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_tv_gpt  &amp;  pap_tv_olmo ):  22&quot;
+## [1] &quot;Number of valid rows after removing NAs:  22&quot;</code></pre>
+<pre><code>## Warning in sqrt(varkappa): NaNs wurden erzeugt</code></pre>
+<pre><code>## [1] &quot;Processing columns: c_pap_tv_gpt and c_pap_tv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pap_tv_gpt  &amp;  c_pap_tv_olmo ):  22&quot;
+## [1] &quot;Number of valid rows after removing NAs:  22&quot;
+## [1] &quot;Processing columns: pap_ntv_1_gpt and pap_ntv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ntv_1_gpt  &amp;  pap_ntv_1_olmo ):  8&quot;
+## [1] &quot;Number of valid rows after removing NAs:  8&quot;
+## [1] &quot;Processing columns: pap_ntv_2_gpt and pap_ntv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ntv_2_gpt  &amp;  pap_ntv_2_olmo ):  8&quot;
+## [1] &quot;Number of valid rows after removing NAs:  8&quot;
+## [1] &quot;Processing columns: pap_dv_gpt and pap_dv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_dv_gpt  &amp;  pap_dv_olmo ):  264&quot;
+## [1] &quot;Number of valid rows after removing NAs:  264&quot;
+## [1] &quot;Processing columns: c_pap_dv_gpt and c_pap_dv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pap_dv_gpt  &amp;  c_pap_dv_olmo ):  257&quot;
+## [1] &quot;Number of valid rows after removing NAs:  257&quot;
+## [1] &quot;Processing columns: pap_ndv_1_gpt and pap_ndv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ndv_1_gpt  &amp;  pap_ndv_1_olmo ):  87&quot;
+## [1] &quot;Number of valid rows after removing NAs:  87&quot;
+## [1] &quot;Processing columns: pap_ndv_2_gpt and pap_ndv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ndv_2_gpt  &amp;  pap_ndv_2_olmo ):  87&quot;
+## [1] &quot;Number of valid rows after removing NAs:  87&quot;
+## [1] &quot;Processing columns: pap_pap_mc_gpt and pap_pap_mc_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_pap_mc_gpt  &amp;  pap_pap_mc_olmo ):  34&quot;
+## [1] &quot;Number of valid rows after removing NAs:  34&quot;
+## [1] &quot;Processing columns: pap_mc_gpt and pap_mc_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_mc_gpt  &amp;  pap_mc_olmo ):  21&quot;
+## [1] &quot;Number of valid rows after removing NAs:  21&quot;
+## [1] &quot;Processing columns: pap_cv_gpt and pap_cv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_cv_gpt  &amp;  pap_cv_olmo ):  14&quot;
+## [1] &quot;Number of valid rows after removing NAs:  14&quot;
+## [1] &quot;Processing columns: c_pap_cv_gpt and c_pap_cv_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( c_pap_cv_gpt  &amp;  c_pap_cv_olmo ):  7&quot;
+## [1] &quot;Number of valid rows after removing NAs:  7&quot;
+## [1] &quot;Processing columns: pap_ncv_1_gpt and pap_ncv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ncv_1_gpt  &amp;  pap_ncv_1_olmo ):  4&quot;
+## [1] &quot;Number of valid rows after removing NAs:  4&quot;
+## [1] &quot;Processing columns: pap_ncv_2_gpt and pap_ncv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ncv_2_gpt  &amp;  pap_ncv_2_olmo ):  4&quot;
+## [1] &quot;Number of valid rows after removing NAs:  4&quot;
+## [1] &quot;Processing columns: pap_dcp_1_gpt and pap_dcp_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_dcp_1_gpt  &amp;  pap_dcp_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_dcp_2_gpt and pap_dcp_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_dcp_2_gpt  &amp;  pap_dcp_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_dcp_1_text_gpt and pap_dcp_1_text_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_dcp_1_text_gpt  &amp;  pap_dcp_1_text_olmo ):  0&quot;
+## [1] &quot;No valid rows based on OLMO filter (Y/N).&quot;
+## [1] &quot;Processing columns: pap_pa_gpt and pap_pa_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_pa_gpt  &amp;  pap_pa_olmo ):  307&quot;
+## [1] &quot;Number of valid rows after removing NAs:  307&quot;
+## [1] &quot;Processing columns: pap_iec_1_gpt and pap_iec_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_iec_1_gpt  &amp;  pap_iec_1_olmo ):  237&quot;
+## [1] &quot;Number of valid rows after removing NAs:  237&quot;
+## [1] &quot;Processing columns: pap_imd_1_gpt and pap_imd_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_imd_1_gpt  &amp;  pap_imd_1_olmo ):  308&quot;
+## [1] &quot;Number of valid rows after removing NAs:  308&quot;
+## [1] &quot;Processing columns: pap_imd_2_gpt and pap_imd_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_imd_2_gpt  &amp;  pap_imd_2_olmo ):  308&quot;
+## [1] &quot;Number of valid rows after removing NAs:  308&quot;
+## [1] &quot;Processing columns: pap_sm_1_gpt and pap_sm_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_sm_1_gpt  &amp;  pap_sm_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_sm_2_gpt and pap_sm_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_sm_2_gpt  &amp;  pap_sm_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_sm_3_gpt and pap_sm_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_sm_3_gpt  &amp;  pap_sm_3_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_vsa_1_gpt and pap_vsa_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_vsa_1_gpt  &amp;  pap_vsa_1_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_vsa_2_gpt and pap_vsa_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_vsa_2_gpt  &amp;  pap_vsa_2_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_vsa_3_gpt and pap_vsa_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_vsa_3_gpt  &amp;  pap_vsa_3_olmo ):  309&quot;
+## [1] &quot;Number of valid rows after removing NAs:  309&quot;
+## [1] &quot;Processing columns: pap_ic_gpt and pap_ic_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( pap_ic_gpt  &amp;  pap_ic_olmo ):  308&quot;
+## [1] &quot;Number of valid rows after removing NAs:  308&quot;
+## [1] &quot;Processing columns: match_mi1_gpt and match_mi1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_mi1_gpt  &amp;  match_mi1_olmo ):  159&quot;
+## [1] &quot;Number of valid rows after removing NAs:  159&quot;
+## [1] &quot;Processing columns: match_iv1_0_gpt and match_iv1_0_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv1_0_gpt  &amp;  match_iv1_0_olmo ):  85&quot;
+## [1] &quot;Number of valid rows after removing NAs:  85&quot;
+## [1] &quot;Processing columns: match_iv1_1_gpt and match_iv1_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv1_1_gpt  &amp;  match_iv1_1_olmo ):  85&quot;
+## [1] &quot;Number of valid rows after removing NAs:  85&quot;
+## [1] &quot;Processing columns: match_iv1_2_gpt and match_iv1_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv1_2_gpt  &amp;  match_iv1_2_olmo ):  85&quot;
+## [1] &quot;Number of valid rows after removing NAs:  85&quot;
+## [1] &quot;Processing columns: match_iv1_3_gpt and match_iv1_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv1_3_gpt  &amp;  match_iv1_3_olmo ):  85&quot;
+## [1] &quot;Number of valid rows after removing NAs:  85&quot;
+## [1] &quot;Processing columns: match_mi2_gpt and match_mi2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_mi2_gpt  &amp;  match_mi2_olmo ):  43&quot;
+## [1] &quot;Number of valid rows after removing NAs:  43&quot;
+## [1] &quot;Processing columns: match_iv2_0_gpt and match_iv2_0_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv2_0_gpt  &amp;  match_iv2_0_olmo ):  55&quot;
+## [1] &quot;Number of valid rows after removing NAs:  55&quot;
+## [1] &quot;Processing columns: match_iv2_1_gpt and match_iv2_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv2_1_gpt  &amp;  match_iv2_1_olmo ):  55&quot;
+## [1] &quot;Number of valid rows after removing NAs:  55&quot;
+## [1] &quot;Processing columns: match_iv2_2_gpt and match_iv2_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv2_2_gpt  &amp;  match_iv2_2_olmo ):  55&quot;
+## [1] &quot;Number of valid rows after removing NAs:  55&quot;
+## [1] &quot;Processing columns: match_iv2_3_gpt and match_iv2_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iv2_3_gpt  &amp;  match_iv2_3_olmo ):  55&quot;
+## [1] &quot;Number of valid rows after removing NAs:  55&quot;
+## [1] &quot;Processing columns: match_mt_gpt and match_mt_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_mt_gpt  &amp;  match_mt_olmo ):  1&quot;
+## [1] &quot;Number of valid rows after removing NAs:  1&quot;
+## [1] &quot;Processing columns: match_tv_0_gpt and match_tv_0_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_tv_0_gpt  &amp;  match_tv_0_olmo ):  19&quot;
+## [1] &quot;Number of valid rows after removing NAs:  19&quot;
+## [1] &quot;Processing columns: match_tv_1_gpt and match_tv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_tv_1_gpt  &amp;  match_tv_1_olmo ):  19&quot;
+## [1] &quot;Number of valid rows after removing NAs:  19&quot;
+## [1] &quot;Processing columns: match_tv_2_gpt and match_tv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_tv_2_gpt  &amp;  match_tv_2_olmo ):  19&quot;
+## [1] &quot;Number of valid rows after removing NAs:  19&quot;
+## [1] &quot;Processing columns: match_tv_3_gpt and match_tv_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_tv_3_gpt  &amp;  match_tv_3_olmo ):  19&quot;
+## [1] &quot;Number of valid rows after removing NAs:  19&quot;
+## [1] &quot;Processing columns: match_dv_0_gpt and match_dv_0_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_dv_0_gpt  &amp;  match_dv_0_olmo ):  245&quot;
+## [1] &quot;Number of valid rows after removing NAs:  245&quot;
+## [1] &quot;Processing columns: match_dv_1_gpt and match_dv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_dv_1_gpt  &amp;  match_dv_1_olmo ):  245&quot;
+## [1] &quot;Number of valid rows after removing NAs:  245&quot;
+## [1] &quot;Processing columns: match_dv_2_gpt and match_dv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_dv_2_gpt  &amp;  match_dv_2_olmo ):  245&quot;
+## [1] &quot;Number of valid rows after removing NAs:  245&quot;
+## [1] &quot;Processing columns: match_dv_3_gpt and match_dv_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_dv_3_gpt  &amp;  match_dv_3_olmo ):  234&quot;
+## [1] &quot;Number of valid rows after removing NAs:  234&quot;
+## [1] &quot;Processing columns: match_mc_gpt and match_mc_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_mc_gpt  &amp;  match_mc_olmo ):  15&quot;
+## [1] &quot;Number of valid rows after removing NAs:  15&quot;
+## [1] &quot;Processing columns: match_cv_0_gpt and match_cv_0_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_cv_0_gpt  &amp;  match_cv_0_olmo ):  5&quot;
+## [1] &quot;Number of valid rows after removing NAs:  5&quot;</code></pre>
+<pre><code>## Warning in sqrt(varkappa): NaNs wurden erzeugt</code></pre>
+<pre><code>## [1] &quot;Processing columns: match_cv_1_gpt and match_cv_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_cv_1_gpt  &amp;  match_cv_1_olmo ):  5&quot;
+## [1] &quot;Number of valid rows after removing NAs:  5&quot;
+## [1] &quot;Processing columns: match_cv_2_gpt and match_cv_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_cv_2_gpt  &amp;  match_cv_2_olmo ):  5&quot;
+## [1] &quot;Number of valid rows after removing NAs:  5&quot;
+## [1] &quot;Processing columns: match_cv_3_gpt and match_cv_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_cv_3_gpt  &amp;  match_cv_3_olmo ):  5&quot;
+## [1] &quot;Number of valid rows after removing NAs:  5&quot;
+## [1] &quot;Processing columns: match_dcp_1_gpt and match_dcp_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_dcp_1_gpt  &amp;  match_dcp_1_olmo ):  256&quot;
+## [1] &quot;Number of valid rows after removing NAs:  256&quot;
+## [1] &quot;Processing columns: match_dcp_2_gpt and match_dcp_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_dcp_2_gpt  &amp;  match_dcp_2_olmo ):  256&quot;
+## [1] &quot;Number of valid rows after removing NAs:  256&quot;
+## [1] &quot;Processing columns: match_iec_1_gpt and match_iec_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_iec_1_gpt  &amp;  match_iec_1_olmo ):  111&quot;
+## [1] &quot;Number of valid rows after removing NAs:  111&quot;
+## [1] &quot;Processing columns: match_imd_1_gpt and match_imd_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_imd_1_gpt  &amp;  match_imd_1_olmo ):  49&quot;
+## [1] &quot;Number of valid rows after removing NAs:  49&quot;
+## [1] &quot;Processing columns: match_imd_2_gpt and match_imd_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_imd_2_gpt  &amp;  match_imd_2_olmo ):  49&quot;
+## [1] &quot;Number of valid rows after removing NAs:  49&quot;
+## [1] &quot;Processing columns: match_sm_1_gpt and match_sm_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_sm_1_gpt  &amp;  match_sm_1_olmo ):  262&quot;
+## [1] &quot;Number of valid rows after removing NAs:  262&quot;
+## [1] &quot;Processing columns: match_sm_2_gpt and match_sm_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_sm_2_gpt  &amp;  match_sm_2_olmo ):  262&quot;
+## [1] &quot;Number of valid rows after removing NAs:  262&quot;
+## [1] &quot;Processing columns: match_sm_3_gpt and match_sm_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_sm_3_gpt  &amp;  match_sm_3_olmo ):  262&quot;
+## [1] &quot;Number of valid rows after removing NAs:  262&quot;
+## [1] &quot;Processing columns: match_vsa_1_gpt and match_vsa_1_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_vsa_1_gpt  &amp;  match_vsa_1_olmo ):  9&quot;
+## [1] &quot;Number of valid rows after removing NAs:  9&quot;
+## [1] &quot;Processing columns: match_vsa_2_gpt and match_vsa_2_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_vsa_2_gpt  &amp;  match_vsa_2_olmo ):  9&quot;
+## [1] &quot;Number of valid rows after removing NAs:  9&quot;
+## [1] &quot;Processing columns: match_vsa_3_gpt and match_vsa_3_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_vsa_3_gpt  &amp;  match_vsa_3_olmo ):  9&quot;
+## [1] &quot;Number of valid rows after removing NAs:  9&quot;
+## [1] &quot;Processing columns: match_ic_gpt and match_ic_olmo&quot;
+## [1] &quot;Number of valid rows for comparison ( match_ic_gpt  &amp;  match_ic_olmo ):  111&quot;
+## [1] &quot;Number of valid rows after removing NAs:  111&quot;</code></pre>
+<pre class="r"><code># Show the results
+print(kappa_results_filtered_debug)</code></pre>
+<pre><code>##               Variable         Kappa      P_Value     Z_Value Percent_Agreement
+## 1             date_gpt            NA           NA          NA                NA
+## 2      pre_pre_mi1_gpt  0.4541258263 0.000000e+00  8.65894589         79.935275
+## 3          pre_mi1_gpt  0.0479704797 2.110208e-01  1.25076333         74.883721
+## 4          pre_iv1_gpt -0.0567536890 8.744189e-02 -1.70904888         48.421053
+## 5        c_pre_iv1_gpt  0.0417633411 4.351424e-01  0.78042226         29.761905
+## 6       pre_niv1_1_gpt -0.0341113106 5.188175e-01 -0.64516919         43.750000
+## 7       pre_niv1_2_gpt -0.0627306273 1.644627e-01 -1.39021810         43.750000
+## 8      pre_pre_mi2_gpt  0.2607510958 1.512495e-04  3.78900883         56.666667
+## 9          pre_mi2_gpt -0.0425531915 4.149698e-01 -0.81517906         69.387755
+## 10         pre_iv2_gpt -0.0300269906 4.513003e-01 -0.75324895         39.436620
+## 11       c_pre_iv2_gpt  0.0593354430 3.153445e-01  1.00407070         29.310345
+## 12      pre_niv2_1_gpt -0.0531177829 4.241251e-01 -0.79928514         20.833333
+## 13      pre_niv2_2_gpt -0.0704225352 2.738009e-01 -1.09435131         20.833333
+## 14      pre_pre_mt_gpt -0.0402010050 4.552387e-01 -0.74670996         60.869565
+## 15          pre_mt_gpt  0.0000000000          NaN         NaN          0.000000
+## 16          pre_tv_gpt -0.0210970464 7.739761e-01 -0.28717788         50.000000
+## 17        c_pre_tv_gpt -0.1176470588 3.337682e-01 -0.96655162         21.052632
+## 18       pre_ntv_1_gpt -0.1428571429 2.254423e-01 -1.21218305         25.000000
+## 19       pre_ntv_2_gpt -0.1666666667 2.850494e-01 -1.06904497         12.500000
+## 20          pre_dv_gpt  0.0000000000          NaN         NaN         96.969697
+## 21        c_pre_dv_gpt  0.2906801008 1.642003e-06  4.79312863         65.625000
+## 22       pre_ndv_1_gpt -0.0550458716 2.657386e-01 -1.11292982         61.956522
+## 23       pre_ndv_2_gpt -0.0765480254 9.530572e-02 -1.66805039         47.826087
+## 24      pre_pre_mc_gpt -0.0119047619 8.402884e-01 -0.20152461         41.176471
+## 25          pre_mc_gpt  0.0172413793 4.851882e-01  0.69798244          5.263158
+## 26          pre_cv_gpt -0.0937500000 4.250307e-01 -0.79772404         64.285714
+## 27        c_pre_cv_gpt  0.5285714286 1.914772e-02  2.34264247         72.727273
+## 28       pre_ncv_1_gpt  0.0000000000 1.000000e+00  0.00000000         83.333333
+## 29       pre_ncv_2_gpt  0.0000000000          NaN         NaN         66.666667
+## 30       pre_dcp_1_gpt  0.0169500365 4.891172e-01  0.69171356         60.517799
+## 31       pre_dcp_2_gpt  0.0126307539 2.865802e-01  1.06565365         31.391586
+## 32  pre_dcp_1_text_gpt            NA           NA          NA                NA
+## 33          pre_pa_gpt  0.2690776241 1.229705e-11  6.77667901         62.214984
+## 34       pre_iec_1_gpt  0.0000000000          NaN         NaN         98.347107
+## 35       pre_imd_1_gpt  0.1968196934 1.406613e-06  4.82406535         55.987055
+## 36       pre_imd_2_gpt  0.2129139207 2.584400e-07  5.15147916         59.223301
+## 37        pre_sm_1_gpt  0.0000000000          NaN         NaN         86.084142
+## 38        pre_sm_2_gpt  0.0000000000          NaN         NaN         84.789644
+## 39        pre_sm_3_gpt  0.0470951039 9.249280e-02  1.68239225         47.572816
+## 40       pre_vsa_1_gpt  0.0073537949 5.469465e-01  0.60234202         19.417476
+## 41       pre_vsa_2_gpt  0.0044609665 4.059060e-01  0.83111976         15.857605
+## 42       pre_vsa_3_gpt  0.0071546577 5.572959e-01  0.58686277         20.064725
+## 43          pre_ic_gpt  0.0037890119 4.437705e-01  0.76584169         37.216828
+## 44     pap_pap_mi1_gpt  0.4379582789 0.000000e+00  8.41585956         79.288026
+## 45         pap_mi1_gpt  0.0547223348 1.457789e-01  1.45460398         89.622642
+## 46         pap_iv1_gpt  0.0269797652 1.009295e-01  1.64036418         56.842105
+## 47       c_pap_iv1_gpt  0.0270400773 6.084536e-01  0.51228207         30.107527
+## 48      pap_niv1_1_gpt  0.0512048193 1.569502e-01  1.41540348         48.571429
+## 49      pap_niv1_2_gpt  0.0748898678 7.834241e-02  1.76038585         48.571429
+## 50     pap_pap_mi2_gpt  0.2848629321 4.483744e-05  4.08102548         58.333333
+## 51         pap_mi2_gpt -0.0350318471 4.433460e-01 -0.76655518         74.000000
+## 52         pap_iv2_gpt -0.0140845070 2.991760e-01 -1.03820201         45.833333
+## 53       c_pap_iv2_gpt  0.0144054479 7.623049e-01  0.30245538         25.352113
+## 54      pap_niv2_1_gpt -0.0029850746 9.598734e-01 -0.05031243         23.809524
+## 55      pap_niv2_2_gpt -0.0347826087 5.997257e-01 -0.52479504         19.047619
+## 56      pap_pap_mt_gpt -0.0395480226 4.988480e-01 -0.67630346         65.217391
+## 57          pap_mt_gpt  0.0000000000          NaN         NaN          0.000000
+## 58          pap_tv_gpt  0.0000000000          NaN         NaN         63.636364
+## 59        c_pap_tv_gpt -0.1543209877 2.037391e-01 -1.27097071         22.727273
+## 60       pap_ntv_1_gpt  0.0000000000          NaN         NaN         25.000000
+## 61       pap_ntv_2_gpt  0.0204081633 8.236046e-01  0.22291129         25.000000
+## 62          pap_dv_gpt  0.0000000000          NaN         NaN         97.727273
+## 63        c_pap_dv_gpt  0.2972783925 1.173220e-06  4.86010762         66.536965
+## 64       pap_ndv_1_gpt -0.0343949045 4.195263e-01 -0.80724338         67.816092
+## 65       pap_ndv_2_gpt -0.0809371672 8.217471e-02 -1.73820494         59.770115
+## 66      pap_pap_mc_gpt -0.0170940171 7.603860e-01 -0.30497396         38.235294
+## 67          pap_mc_gpt  0.0070921986 6.757058e-01  0.41833001          4.761905
+## 68          pap_cv_gpt  0.2500000000 1.422132e-01  1.46759877         57.142857
+## 69        c_pap_cv_gpt  0.4400000000 1.354461e-01  1.49296596         71.428571
+## 70       pap_ncv_1_gpt           NaN          NaN         NaN        100.000000
+## 71       pap_ncv_2_gpt  0.0000000000          NaN         NaN         50.000000
+## 72       pap_dcp_1_gpt -0.0112201964 8.420094e-01 -0.19932383         97.734628
+## 73       pap_dcp_2_gpt -0.0064871079 6.918068e-02 -1.81723799         22.977346
+## 74  pap_dcp_1_text_gpt            NA           NA          NA                NA
+## 75          pap_pa_gpt  0.2691939754 1.307221e-11  6.76783580         65.146580
+## 76       pap_iec_1_gpt           NaN          NaN         NaN        100.000000
+## 77       pap_imd_1_gpt  0.0389946512 5.465590e-02  1.92160167         29.545455
+## 78       pap_imd_2_gpt  0.0346320346 5.605674e-02  1.91059425         27.597403
+## 79        pap_sm_1_gpt  0.0000000000          NaN         NaN         81.553398
+## 80        pap_sm_2_gpt  0.0000000000          NaN         NaN         88.025890
+## 81        pap_sm_3_gpt  0.0297684101 1.309370e-01  1.51041730         41.423948
+## 82       pap_vsa_1_gpt  0.0084742613 4.050057e-01  0.83271466         16.181230
+## 83       pap_vsa_2_gpt  0.0002646044 9.700388e-01  0.03755964         12.944984
+## 84       pap_vsa_3_gpt  0.0160704513 1.136299e-01  1.58208624         17.152104
+## 85          pap_ic_gpt  0.0009998781 6.946869e-01  0.39250254         13.636364
+## 86       match_mi1_gpt  0.1497326203 1.465604e-02  2.44076870         89.308176
+## 87     match_iv1_0_gpt -0.0385126162 1.790001e-01 -1.34384018         45.882353
+## 88     match_iv1_1_gpt  0.0421455939 3.050317e-01  1.02570282         41.176471
+## 89     match_iv1_2_gpt  0.1189219751 1.836933e-03  3.11540378         35.294118
+## 90     match_iv1_3_gpt -0.0093827884 6.343214e-01 -0.47565323          4.705882
+## 91       match_mi2_gpt  0.0260475651 2.778898e-01  1.08507187         53.488372
+## 92     match_iv2_0_gpt  0.0271493213 2.414888e-01  1.17127370         21.818182
+## 93     match_iv2_1_gpt -0.0486381323 1.097607e-01 -1.59926974         10.909091
+## 94     match_iv2_2_gpt -0.0082674335 7.604473e-01 -0.30489346          7.272727
+## 95     match_iv2_3_gpt -0.0100166945 4.118446e-01 -0.82065181          0.000000
+## 96        match_mt_gpt  0.0000000000          NaN         NaN          0.000000
+## 97      match_tv_0_gpt -0.0523076923 2.741150e-03 -2.99536679          5.263158
+## 98      match_tv_1_gpt -0.0523076923 2.741150e-03 -2.99536679          5.263158
+## 99      match_tv_2_gpt  0.0172413793 4.851882e-01  0.69798244          5.263158
+## 100     match_tv_3_gpt  0.0000000000          NaN         NaN          0.000000
+## 101     match_dv_0_gpt -0.0517933804 3.438555e-01 -0.94657484         87.346939
+## 102     match_dv_1_gpt -0.0461349693 2.658202e-01 -1.11273968         64.489796
+## 103     match_dv_2_gpt -0.0064743000 8.466161e-01 -0.19343781         48.979592
+## 104     match_dv_3_gpt  0.0607934159 1.477019e-04  3.79490181         15.384615
+## 105       match_mc_gpt  0.0000000000          NaN         NaN         20.000000
+## 106     match_cv_0_gpt  0.0000000000          NaN         NaN         40.000000
+## 107     match_cv_1_gpt  0.1176470588 3.613104e-01  0.91287093         40.000000
+## 108     match_cv_2_gpt -0.0526315789 7.093881e-01 -0.37267800         20.000000
+## 109     match_cv_3_gpt  0.0000000000          NaN         NaN          0.000000
+## 110    match_dcp_1_gpt  0.3466135458 3.192557e-12  6.96897834         67.968750
+## 111    match_dcp_2_gpt  0.0252048863 1.757359e-01  1.35400157         23.046875
+## 112    match_iec_1_gpt  0.0000000000 1.000000e+00  0.00000000         97.297297
+## 113    match_imd_1_gpt  0.3466666667 4.151677e-03  2.86640121         79.591837
+## 114    match_imd_2_gpt  0.0789473684 4.917619e-01  0.68750913         79.591837
+## 115     match_sm_1_gpt  0.1562487875 3.423813e-04  3.58092394         68.320611
+## 116     match_sm_2_gpt  0.0240973014 5.502180e-01  0.59743348         81.297710
+## 117     match_sm_3_gpt  0.0370007351 1.579324e-01  1.41205977         31.297710
+## 118    match_vsa_1_gpt  0.0000000000          NaN         NaN         88.888889
+## 119    match_vsa_2_gpt  0.0136986301 7.076605e-01  0.37500000         11.111111
+## 120    match_vsa_3_gpt  0.2800000000 4.722090e-02  1.98431348         77.777778
+## 121       match_ic_gpt -0.0373831776 5.567615e-01 -0.58765853         86.486486
+##     N_Comparisons
+## 1              NA
+## 2             309
+## 3             215
+## 4              95
+## 5              84
+## 6              32
+## 7              32
+## 8             120
+## 9              49
+## 10             71
+## 11             58
+## 12             24
+## 13             24
+## 14             23
+## 15              1
+## 16             22
+## 17             19
+## 18              8
+## 19              8
+## 20            264
+## 21            256
+## 22             92
+## 23             92
+## 24             34
+## 25             19
+## 26             14
+## 27             11
+## 28              6
+## 29              6
+## 30            309
+## 31            309
+## 32             NA
+## 33            307
+## 34            242
+## 35            309
+## 36            309
+## 37            309
+## 38            309
+## 39            309
+## 40            309
+## 41            309
+## 42            309
+## 43            309
+## 44            309
+## 45            212
+## 46             95
+## 47             93
+## 48             35
+## 49             35
+## 50            120
+## 51             50
+## 52             72
+## 53             71
+## 54             21
+## 55             21
+## 56             23
+## 57              1
+## 58             22
+## 59             22
+## 60              8
+## 61              8
+## 62            264
+## 63            257
+## 64             87
+## 65             87
+## 66             34
+## 67             21
+## 68             14
+## 69              7
+## 70              4
+## 71              4
+## 72            309
+## 73            309
+## 74             NA
+## 75            307
+## 76            237
+## 77            308
+## 78            308
+## 79            309
+## 80            309
+## 81            309
+## 82            309
+## 83            309
+## 84            309
+## 85            308
+## 86            159
+## 87             85
+## 88             85
+## 89             85
+## 90             85
+## 91             43
+## 92             55
+## 93             55
+## 94             55
+## 95             55
+## 96              1
+## 97             19
+## 98             19
+## 99             19
+## 100            19
+## 101           245
+## 102           245
+## 103           245
+## 104           234
+## 105            15
+## 106             5
+## 107             5
+## 108             5
+## 109             5
+## 110           256
+## 111           256
+## 112           111
+## 113            49
+## 114            49
+## 115           262
+## 116           262
+## 117           262
+## 118             9
+## 119             9
+## 120             9
+## 121           111</code></pre>
+</div>
+<div id="kappa-y-n-total" class="section level2">
+<h2>kappa y &amp; n total</h2>
+<pre class="r"><code># Function to calculate Cohen&#39;s Kappa, p-value, z-value, percentage agreement, and number of comparisons over all columns
+calculate_overall_kappa &lt;- function(data, gpt_columns, olmo_columns) {
+  # Create an empty dataframe to store all relevant rows for comparison
+  combined_data &lt;- data.frame(GPT = character(), OLMO = character(), stringsAsFactors = FALSE)
+  
+  # Loop over each pair of GPT and OLMO columns to collect valid cells
+  for (i in 1:length(gpt_columns)) {
+    if (gpt_columns[i] %in% colnames(data) &amp; olmo_columns[i] %in% colnames(data)) {
+      # Filter only rows where the OLMO value is &quot;Y&quot; or &quot;N&quot;
+      valid_rows &lt;- data[data[[olmo_columns[i]]] %in% c(&quot;y&quot;, &quot;n&quot;), ]
+      
+      # Select the relevant GPT and OLMO values and remove NA values
+      valid_rows &lt;- valid_rows[!is.na(valid_rows[[gpt_columns[i]]]) &amp; !is.na(valid_rows[[olmo_columns[i]]]), ]
+      
+      # Combine the valid GPT and OLMO values into the combined dataframe
+      combined_data &lt;- rbind(combined_data, data.frame(GPT = valid_rows[[gpt_columns[i]]], OLMO = valid_rows[[olmo_columns[i]]]))
+    }
+  }
+  
+  # Check if there are enough data points to calculate Kappa
+  if (nrow(combined_data) &gt; 0) {
+    # Calculate Cohen&#39;s Kappa over all the combined cells
+    kappa_result &lt;- irr::kappa2(combined_data, &quot;unweighted&quot;)
+    
+    # Extract values
+    kappa_value &lt;- kappa_result$value
+    p_value &lt;- kappa_result$p.value
+    z_value &lt;- kappa_result$statistic
+    percent_agreement &lt;- sum(combined_data$GPT == combined_data$OLMO) / nrow(combined_data) * 100
+    
+    # Return the results including the number of comparisons (N)
+    return(data.frame(Kappa_Gesamt = kappa_value, P_Value = p_value, Z_Value = z_value, Percent_Agreement = percent_agreement, N_Comparisons = nrow(combined_data)))
+  } else {
+    # Return NA if no valid comparisons are available
+    return(data.frame(Kappa_Gesamt = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA, N_Comparisons = 0))
+  }
+}
+
+# Get all columns that have _gpt or _olmo suffix
+gpt_columns &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns)
+
+# Calculate the overall Kappa over all relevant cells
+kappa_gesamt_yn &lt;- calculate_overall_kappa(data_gpt_olmo_processed, gpt_columns, olmo_columns)
+
+# Show the overall result
+print(kappa_gesamt_yn)</code></pre>
+<pre><code>##   Kappa_Gesamt P_Value  Z_Value Percent_Agreement N_Comparisons
+## 1   0.09678252       0 19.47466          53.92227         15361</code></pre>
+</div>
+</div>
+<div id="i-thought-it-would-be-better-but-its-actually-worse" class="section level1">
+<h1>i thought it would be better, but its actually worse…</h1>
+<p>hmm ich ersuhe jetz noch einen kürzeren promt mit ausgewählten
+fragen… dann muss ich nur diese ausgewählte fragen noch testen beim
+ursprünglichen datensatz und dann kann ich diesn vergleichen mit dem
+neuen gekürzeten…</p>
+<p>und eventuell noch die sensitivity etc. nur für y/n zählen
+lassen!!!</p>
+<p>ausserdem sollte ich wohl noch die ratings auch auswerten(alos die
+nummern obwohldiese ziemlich scheisse isind</p>
+<p>und noch schauen ob es einen unterschied macht ob experiment oder
+nicht….)</p>
+<div id="ich-könnte-noch-kappa-pro-psp-machen.-dh.." class="section level2">
+<h2>ich könnte noch kappa pro psp machen…. dh..</h2>
+</div>
+</div>
+<div id="new" class="section level1">
+<h1>new!</h1>
+<div id="kappa-new-per-category" class="section level2">
+<h2>kappa new per category</h2>
+<pre class="r"><code># Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve &lt;- c(&quot;match_dv_0&quot;, &quot;match_dv_1&quot;, &quot;match_dv_2&quot;, &quot;match_dv_3&quot;,
+                             &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;)
+
+# Liste zur Speicherung der Ergebnisse
+results_ve &lt;- data.frame(Variable_ve = character(), 
+                         Kappa_ve = numeric(), 
+                         N_ve = numeric(),
+                         Agreement_Percent_ve = numeric(),
+                         Z_Value_ve = numeric(),
+                         P_Value_ve = numeric(), 
+                         stringsAsFactors = FALSE)
+
+# Berechnung von Cohen&#39;s Kappa und weiteren Kennzahlen für jede Variable
+for (variable in variables_to_compare_ve) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column &lt;- paste0(variable, &quot;_gpt&quot;)
+  olmo_column &lt;- paste0(variable, &quot;_olmo&quot;)
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data &lt;- data_gpt_ve_filtered %&gt;%
+    select(gpt_column, olmo_column) %&gt;%
+    filter(!is.na(.[[gpt_column]]) &amp; !is.na(.[[olmo_column]]))
+  
+  # Berechne Cohen&#39;s Kappa für die aktuelle Variable
+  kappa_obj_ve &lt;- kappa2(comparison_data)
+  kappa_value_ve &lt;- kappa_obj_ve$value
+  
+  # Anzahl der Vergleiche (N)
+  n_comparisons_ve &lt;- nrow(comparison_data)
+  
+  # Berechne den prozentualen Anteil der Übereinstimmungen
+  agreement_percent_ve &lt;- mean(comparison_data[[gpt_column]] == comparison_data[[olmo_column]]) * 100
+
+  # Berechne Z-Wert und p-Wert (Standardmäßig aus dem Kappa-Objekt)
+  z_value_ve &lt;- kappa_obj_ve$statistic # Z-Wert aus dem Kappa-Objekt
+  p_value_ve &lt;- kappa_obj_ve$p.value   # p-Wert aus dem Kappa-Objekt
+  
+  # Ergebnisse speichern mit den Endungen _ve
+  results_ve &lt;- rbind(results_ve, data.frame(Variable_ve = variable, 
+                                             Kappa_ve = kappa_value_ve, 
+                                             N_ve = n_comparisons_ve,
+                                             Agreement_Percent_ve = agreement_percent_ve,
+                                             Z_Value_ve = z_value_ve,
+                                             P_Value_ve = p_value_ve))
+}</code></pre>
+<pre><code>## Warning: Using an external vector in selections was deprecated in tidyselect 1.1.0.
+## ℹ Please use `all_of()` or `any_of()` instead.
+##   # Was:
+##   data %&gt;% select(gpt_column)
 ## 
-
-
-
-
+##   # Now:
+##   data %&gt;% select(all_of(gpt_column))
 ## 
-
-
-
-
+## See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## Warning: Using an external vector in selections was deprecated in tidyselect 1.1.0.
+## ℹ Please use `all_of()` or `any_of()` instead.
+##   # Was:
+##   data %&gt;% select(olmo_column)
 ## 
-
-
-
-
-
-
+##   # Now:
+##   data %&gt;% select(all_of(olmo_column))
 ## 
+## See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre class="r"><code># Ausgabe der Ergebnisse als DataFrame
+print(results_ve)</code></pre>
+<pre><code>##   Variable_ve    Kappa_ve N_ve Agreement_Percent_ve Z_Value_ve  P_Value_ve
+## 1  match_dv_0 -0.03311258   52             88.46154 -0.3293462 0.741894028
+## 2  match_dv_1  0.10958904   52             71.15385  0.8030948 0.421919949
+## 3  match_dv_2 -0.10457516   52             50.00000 -0.8765668 0.380721962
+## 4  match_dv_3  0.05910736   52             42.30769  0.7363491 0.461518245
+## 5 match_dcp_1  0.31125828   52             69.23077  2.8126534 0.004913458
+## 6 match_dcp_2  0.06849315   52             34.61538  1.3579292 0.174486160
+## 7  match_sm_1  0.13057325   52             59.61538  1.1171924 0.263912081
+## 8  match_sm_2 -0.03116147   52             73.07692 -0.2271871 0.820278287
+## 9  match_sm_3 -0.08333333   52             34.61538 -0.9325642 0.351045042</code></pre>
+<p>p sind nicht signifikant?!</p>
+</div>
+<div id="kappa-ve-totat" class="section level2">
+<h2>kappa ve totat</h2>
+<pre class="r"><code># Daten filtern: Nur Zeilen behalten, die nicht &quot;exclude&quot; in master_exclude haben
+data_gpt_ve_total_filtered &lt;- data_gpt_ve_processed %&gt;%
+  filter(master_exclude != &quot;exclude&quot;)
 
+# Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve_total &lt;- c(&quot;match_dv_0&quot;, &quot;match_dv_1&quot;, &quot;match_dv_2&quot;, &quot;match_dv_3&quot;,
+                                   &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;)
 
+# Liste zur Speicherung der kombinierten Ratings
+combined_data_ve_total &lt;- data.frame(GPT_Rating_ve_total = character(), 
+                                     Olmo_Rating_ve_total = character(), 
+                                     stringsAsFactors = FALSE)
 
+# Kombinieren der Daten aus allen relevanten Variablenpaaren
+for (variable in variables_to_compare_ve_total) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column &lt;- paste0(variable, &quot;_gpt&quot;)
+  olmo_column &lt;- paste0(variable, &quot;_olmo&quot;)
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data &lt;- data_gpt_ve_total_filtered %&gt;%
+    select(gpt_column, olmo_column) %&gt;%
+    filter(!is.na(.[[gpt_column]]) &amp; !is.na(.[[olmo_column]])) %&gt;%
+    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+  
+  # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
+  combined_data_ve_total &lt;- rbind(combined_data_ve_total, comparison_data)
+}
 
+# Berechnung des Gesamt-Kappa über alle kombinierten Kategorien hinweg
+kappa_obj_ve_total &lt;- kappa2(combined_data_ve_total)
+kappa_value_ve_total &lt;- kappa_obj_ve_total$value
 
+# Berechnung zusätzlicher Kennzahlen
+n_comparisons_ve_total &lt;- nrow(combined_data_ve_total)  # Anzahl der Vergleiche (N)
+agreement_percent_ve_total &lt;- mean(combined_data_ve_total$GPT_Rating_ve_total == combined_data_ve_total$Olmo_Rating_ve_total) * 100
+z_value_ve_total &lt;- kappa_obj_ve_total$statistic  # Z-Wert aus dem Kappa-Objekt
+p_value_ve_total &lt;- kappa_obj_ve_total$p.value    # p-Wert aus dem Kappa-Objekt
 
+# Ausgabe der Ergebnisse
+results_ve_total &lt;- data.frame(Variable_ve_total = &quot;Overall&quot;,
+                               Kappa_ve_total = kappa_value_ve_total,
+                               N_ve_total = n_comparisons_ve_total,
+                               Agreement_Percent_ve_total = agreement_percent_ve_total,
+                               Z_Value_ve_total = z_value_ve_total,
+                               P_Value_ve_total = p_value_ve_total)
 
-# Session info
+print(results_ve_total)</code></pre>
+<pre><code>##   Variable_ve_total Kappa_ve_total N_ve_total Agreement_Percent_ve_total
+## 1           Overall      0.1512325        468                   58.11966
+##   Z_Value_ve_total P_Value_ve_total
+## 1         3.762047     0.0001685286</code></pre>
+</div>
+<div id="confusion-matrix-ve" class="section level2">
+<h2>confusion matrix VE</h2>
+<pre class="r"><code># Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve_total &lt;- c(&quot;match_dv_0&quot;, &quot;match_dv_1&quot;, &quot;match_dv_2&quot;, &quot;match_dv_3&quot;,
+                                   &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;)
 
+# Liste zur Speicherung der kombinierten Ratings
+combined_data_ve_total &lt;- data.frame(GPT_Rating_ve_total = character(), 
+                                     Olmo_Rating_ve_total = character(), 
+                                     stringsAsFactors = FALSE)
 
-``` r
-sessionInfo()</code></pre>
+# Kombinieren der Daten aus allen relevanten Variablenpaaren
+for (variable in variables_to_compare_ve_total) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column &lt;- paste0(variable, &quot;_gpt&quot;)
+  olmo_column &lt;- paste0(variable, &quot;_olmo&quot;)
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data_ve_total &lt;- data_gpt_ve_total_filtered %&gt;%
+    select(gpt_column, olmo_column) %&gt;%
+    filter(!is.na(.[[gpt_column]]) &amp; !is.na(.[[olmo_column]])) %&gt;%
+    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+  
+  # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
+  combined_data_ve_total &lt;- rbind(combined_data_ve_total, comparison_data_ve_total)
+}
+
+# Erstellen der Confusion Matrix mit _ve Endungen
+conf_matrix_ve &lt;- table(combined_data_ve_total$Olmo_Rating_ve_total, combined_data_ve_total$GPT_Rating_ve_total)
+
+# Anzeige der Confusion Matrix mit _ve Endung
+print(&quot;Confusion Matrix (ve):&quot;)</code></pre>
+<pre><code>## [1] &quot;Confusion Matrix (ve):&quot;</code></pre>
+<pre class="r"><code>print(conf_matrix_ve)</code></pre>
+<pre><code>##    
+##       n   y
+##   n  73 155
+##   y  41 199</code></pre>
+<pre class="r"><code># Berechnung weiterer Metriken: Sensitivität, Spezifität, etc. mit _ve Endung
+confusion_summary_ve &lt;- confusionMatrix(conf_matrix_ve)
+
+# Ausgabe der detaillierten Ergebnisse mit _ve Endung
+print(&quot;Detailed Confusion Matrix Metrics (ve):&quot;)</code></pre>
+<pre><code>## [1] &quot;Detailed Confusion Matrix Metrics (ve):&quot;</code></pre>
+<pre class="r"><code>print(confusion_summary_ve)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##    
+##       n   y
+##   n  73 155
+##   y  41 199
+##                                          
+##                Accuracy : 0.5812         
+##                  95% CI : (0.535, 0.6263)
+##     No Information Rate : 0.7564         
+##     P-Value [Acc &gt; NIR] : 1              
+##                                          
+##                   Kappa : 0.1512         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 6.948e-16      
+##                                          
+##             Sensitivity : 0.6404         
+##             Specificity : 0.5621         
+##          Pos Pred Value : 0.3202         
+##          Neg Pred Value : 0.8292         
+##              Prevalence : 0.2436         
+##          Detection Rate : 0.1560         
+##    Detection Prevalence : 0.4872         
+##       Balanced Accuracy : 0.6012         
+##                                          
+##        &#39;Positive&#39; Class : n              
+## </code></pre>
+<!-- n, n = 73: Olmo und GPT stimmen beide überein und haben n (Nein) vorhergesagt. -->
+<!-- n, y = 155: Olmo hat n (Nein) angegeben, aber GPT hat y (Ja) vorhergesagt (False Positive). -->
+<!-- y, n = 41: Olmo hat y (Ja) angegeben, aber GPT hat n (Nein) vorhergesagt (False Negative). -->
+<!-- y, y = 199: Olmo und GPT stimmen beide überein und haben y (Ja) vorhergesagt. -->
+</div>
+<div id="new-frickes-ü" class="section level2">
+<h2>new frickes ü</h2>
+<pre class="r"><code># Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve_total &lt;- c(&quot;match_dv_0&quot;, &quot;match_dv_1&quot;, &quot;match_dv_2&quot;, &quot;match_dv_3&quot;,
+                                   &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;)
+
+# Liste zur Speicherung der kombinierten Ratings
+combined_data_ve_total &lt;- data.frame(GPT_Rating_ve_total = character(), 
+                                     Olmo_Rating_ve_total = character(), 
+                                     stringsAsFactors = FALSE)
+
+# Kombinieren der Daten aus allen relevanten Variablenpaaren
+for (variable in variables_to_compare_ve_total) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column &lt;- paste0(variable, &quot;_gpt&quot;)
+  olmo_column &lt;- paste0(variable, &quot;_olmo&quot;)
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data_ve_total &lt;- data_gpt_ve_total_filtered %&gt;%
+    select(gpt_column, olmo_column) %&gt;%
+    filter(!is.na(.[[gpt_column]]) &amp; !is.na(.[[olmo_column]])) %&gt;%
+    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+  
+  # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
+  combined_data_ve_total &lt;- rbind(combined_data_ve_total, comparison_data_ve_total)
+}
+
+# Berechnung von Fricke&#39;s Ü-Koeffizient
+calculate_fricke_ue &lt;- function(true_values, predicted_values) {
+  # Erstelle eine Kreuztabelle (Contingency Table)
+  contingency_table &lt;- table(true_values, predicted_values)
+  
+  # Beobachtete Übereinstimmungen (C_o)
+  C_o &lt;- sum(diag(contingency_table))
+  
+  # Maximale Anzahl der Übereinstimmungen (C_max)
+  C_max &lt;- sum(contingency_table)
+  
+  # Erwartete Übereinstimmungen unter Zufallsbedingungen (C_er)
+  row_totals &lt;- rowSums(contingency_table)
+  col_totals &lt;- colSums(contingency_table)
+  C_er &lt;- sum(row_totals * col_totals) / C_max
+  
+  # Berechnung von Fricke&#39;s Ü-Koeffizient
+  Ue &lt;- (C_o - C_er) / (C_max - C_er)
+  return(Ue)
+}
+
+# Berechnung von Fricke&#39;s Ü-Koeffizient für die kombinierten Daten
+fricke_ue_value &lt;- calculate_fricke_ue(combined_data_ve_total$Olmo_Rating_ve_total, combined_data_ve_total$GPT_Rating_ve_total)
+
+# Ausgabe des Ergebnisses
+print(paste(&quot;Fricke&#39;s Ü-Koeffizient (ve_total):&quot;, round(fricke_ue_value, 4)))</code></pre>
+<pre><code>## [1] &quot;Fricke&#39;s Ü-Koeffizient (ve_total): 0.1512&quot;</code></pre>
+</div>
+<div id="test-retest" class="section level2">
+<h2>test retest</h2>
+<pre class="r"><code># Step 1: Filter the dataset into test and retest subsets
+test_data_ve &lt;- data_gpt_ve_filtered %&gt;% filter(test_retest == &quot;Test&quot;)
+retest_data_ve &lt;- data_gpt_ve_filtered %&gt;% filter(test_retest == &quot;RETEST&quot;)
+
+# Step 2: Match test and retest based on &#39;psp&#39; (this will contain only the 30 test-retest psp rows)
+retest_merged_data_ve &lt;- merge(test_data_ve, retest_data_ve, by = &quot;psp&quot;, suffixes = c(&quot;_test_ve&quot;, &quot;_retest_ve&quot;))
+
+# Step 3: Get all columns ending with &#39;-gpt&#39; or &#39;_gpt&#39;
+comp_columns_ve &lt;- grep(&quot;[-_]gpt$&quot;, names(data_gpt_ve_filtered), value = TRUE)
+
+# Step 4: Loop through each &#39;gpt&#39; column and calculate Cohen&#39;s Kappa using the irr package
+retest_kappa_results_ve &lt;- lapply(comp_columns_ve, function(col_name) {
+  # Cohen&#39;s Kappa requires the two sets of categorical data (Test and RETEST)
+  test_col_ve &lt;- retest_merged_data_ve[[paste0(col_name, &quot;_test_ve&quot;)]]
+  retest_col_ve &lt;- retest_merged_data_ve[[paste0(col_name, &quot;_retest_ve&quot;)]]
+  
+  # Überprüfung auf gültige Daten (Nicht-NA-Daten) in beiden Spalten
+  if (all(is.na(test_col_ve)) || all(is.na(retest_col_ve))) {
+    # Falls alle Daten NA sind, gib eine Zeile mit NA zurück
+    return(data.frame(Column = col_name, Kappa = NA, z_value = NA, 
+                      Agreement_Percentage = NA, p_value = NA))
+  }
+  
+  # Berechnung von Cohen&#39;s Kappa mit dem irr-Paket
+  kappa_result_ve &lt;- kappa2(data.frame(test_col_ve, retest_col_ve), weight = &quot;unweighted&quot;)
+  
+  # Extrahiere den Kappa-Wert und p-Wert
+  kappa_value_ve &lt;- kappa_result_ve$value
+  p_value_ve &lt;- kappa_result_ve$p.value
+  agreement_percentage_ve &lt;- mean(test_col_ve == retest_col_ve, na.rm = TRUE) * 100
+  
+  # Berechnung der erwarteten Übereinstimmung (p_e)
+  test_table_ve &lt;- table(test_col_ve, retest_col_ve)
+  n_ve &lt;- sum(test_table_ve)  # Anzahl der Paare
+  p_e_ve &lt;- sum(rowSums(test_table_ve) * colSums(test_table_ve)) / (n_ve^2)
+  
+  # Berechnung der beobachteten Übereinstimmung (p_0)
+  p_0_ve &lt;- agreement_percentage_ve / 100
+  
+  # Berechnung des Standardfehlers (SE)
+  if (p_e_ve == 1) {
+    se_kappa_ve &lt;- NA  # Vermeide Division durch 0, wenn p_e = 1 (perfekte Übereinstimmung)
+    z_value_ve &lt;- NA
+  } else {
+    se_kappa_ve &lt;- sqrt((p_0_ve * (1 - p_0_ve)) / (n_ve * (1 - p_e_ve)^2))
+  
+    # Berechnung des z-Werts
+    z_value_ve &lt;- kappa_value_ve / se_kappa_ve
+  }
+  
+  # Return the column name, Kappa, z-value, agreement %, and p-value
+  return(data.frame(Column = col_name, Kappa = kappa_value_ve, z_value = z_value_ve, 
+                    Agreement_Percentage = agreement_percentage_ve, p_value = p_value_ve))
+})
+
+# Step 5: Combine the results into a single data frame
+retest_kappa_summary_ve &lt;- do.call(rbind, retest_kappa_results_ve)
+
+# Step 6: Display the results
+print(retest_kappa_summary_ve)</code></pre>
+<pre><code>##             Column       Kappa     z_value Agreement_Percentage    p_value
+## 1         date_gpt  0.00000000          NA              0.00000        NaN
+## 2   match_dv_0_gpt -0.10526316 -0.18609684             78.57143 0.67181432
+## 3   match_dv_1_gpt -0.16666667 -0.33806170             71.42857 0.53288403
+## 4   match_dv_2_gpt  0.63157895  1.77899836             92.85714 0.01102342
+## 5   match_dv_3_gpt -0.10526316 -0.18609684             78.57143 0.67181432
+## 6  match_dcp_1_gpt  0.12500000  0.46291005             57.14286 0.63999401
+## 7  match_dcp_2_gpt  0.17647059  0.50709255             71.42857 0.46871658
+## 8   match_sm_1_gpt  0.27586207  0.74438737             78.57143 0.28749542
+## 9   match_sm_2_gpt  0.27586207  0.74438737             78.57143 0.28749542
+## 10  match_sm_3_gpt -0.02439024 -0.07715167             57.14286 0.92265025</code></pre>
+<pre class="r"><code># Berechnung des gesamten Kappa-Werts über alle &quot;_gpt&quot;-Spalten
+
+# Schritt 7: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den &quot;_gpt&quot;-Spalten
+all_test_values_ve &lt;- unlist(retest_merged_data_ve[paste0(comp_columns_ve, &quot;_test_ve&quot;)])
+all_retest_values_ve &lt;- unlist(retest_merged_data_ve[paste0(comp_columns_ve, &quot;_retest_ve&quot;)])
+
+# Schritt 8: Berechne Cohen&#39;s Kappa für alle Daten zusammen
+retest_kappa_all_ve &lt;- cohen.kappa(cbind(all_test_values_ve, all_retest_values_ve))
+
+# Schritt 9: Zeige das Gesamtergebnis an
+print(retest_kappa_all_ve)</code></pre>
+<pre><code>## Call: cohen.kappa1(x = x, w = w, n.obs = n.obs, alpha = alpha, levels = levels, 
+##     w.exp = w.exp)
+## 
+## Cohen Kappa and Weighted Kappa correlation coefficients and confidence boundaries 
+##                  lower estimate upper
+## unweighted kappa  0.14     0.27  0.40
+## weighted kappa    0.66     0.74  0.82
+## 
+##  Number of subjects = 140</code></pre>
+<p>weighted macht heir absolut keinen sinn…</p>
+</div>
+<div id="section-2" class="section level2">
+<h2></h2>
+</div>
+<div id="section-3" class="section level2">
+<h2></h2>
+</div>
+</div>
+<div id="session-info" class="section level1">
+<h1>Session info</h1>
+<pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 4.3.1 (2023-06-16 ucrt)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 19045)
@@ -2869,27 +4015,42 @@ sessionInfo()</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] gt_0.11.0         kableExtra_1.4.0  formattable_0.2.1 psych_2.4.6.26   
-##  [5] irr_0.84.1        lpSolve_5.6.21    openxlsx_4.2.7.1  janitor_2.2.0    
-##  [9] readxl_1.4.3      lubridate_1.9.3   forcats_1.0.0     stringr_1.5.1    
-## [13] dplyr_1.1.4       purrr_1.0.2       readr_2.1.5       tidyr_1.3.1      
-## [17] tibble_3.2.1      ggplot2_3.5.1     tidyverse_2.0.0  
+##  [1] caret_6.0-94      lattice_0.22-6    gt_0.11.0         kableExtra_1.4.0 
+##  [5] formattable_0.2.1 psych_2.4.6.26    irr_0.84.1        lpSolve_5.6.21   
+##  [9] openxlsx_4.2.7.1  janitor_2.2.0     readxl_1.4.3      lubridate_1.9.3  
+## [13] forcats_1.0.0     stringr_1.5.1     dplyr_1.1.4       purrr_1.0.2      
+## [17] readr_2.1.5       tidyr_1.3.1       tibble_3.2.1      ggplot2_3.5.1    
+## [21] tidyverse_2.0.0  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] sass_0.4.9        utf8_1.2.4        generics_0.1.3    xml2_1.3.6       
-##  [5] lattice_0.22-6    stringi_1.8.4     hms_1.1.3         digest_0.6.34    
-##  [9] magrittr_2.0.3    evaluate_1.0.0    grid_4.3.1        timechange_0.3.0 
-## [13] fastmap_1.2.0     cellranger_1.1.0  jsonlite_1.8.9    zip_2.3.1        
-## [17] fansi_1.0.6       viridisLite_0.4.2 scales_1.3.0      jquerylib_0.1.4  
-## [21] mnormt_2.1.1      cli_3.6.1         rlang_1.1.3       munsell_0.5.1    
-## [25] withr_3.0.1       cachem_1.1.0      yaml_2.3.10       parallel_4.3.1   
-## [29] tools_4.3.1       tzdb_0.4.0        colorspace_2.1-1  vctrs_0.6.5      
-## [33] R6_2.5.1          lifecycle_1.0.4   snakecase_0.11.1  htmlwidgets_1.6.4
-## [37] pkgconfig_2.0.3   pillar_1.9.0      bslib_0.8.0       gtable_0.3.5     
-## [41] glue_1.7.0        Rcpp_1.0.13       systemfonts_1.1.0 xfun_0.47        
-## [45] tidyselect_1.2.1  rstudioapi_0.16.0 knitr_1.48        nlme_3.1-166     
-## [49] htmltools_0.5.8.1 svglite_2.1.3     rmarkdown_2.28    compiler_4.3.1</code></pre>
-</div>
+##  [1] mnormt_2.1.1         pROC_1.18.5          rlang_1.1.3         
+##  [4] magrittr_2.0.3       snakecase_0.11.1     e1071_1.7-16        
+##  [7] compiler_4.3.1       systemfonts_1.1.0    vctrs_0.6.5         
+## [10] reshape2_1.4.4       pkgconfig_2.0.3      crayon_1.5.3        
+## [13] fastmap_1.2.0        utf8_1.2.4           rmarkdown_2.28      
+## [16] prodlim_2024.06.25   tzdb_0.4.0           xfun_0.47           
+## [19] cachem_1.1.0         jsonlite_1.8.9       recipes_1.1.0       
+## [22] parallel_4.3.1       R6_2.5.1             bslib_0.8.0         
+## [25] stringi_1.8.4        parallelly_1.38.0    rpart_4.1.23        
+## [28] jquerylib_0.1.4      cellranger_1.1.0     Rcpp_1.0.13         
+## [31] iterators_1.0.14     knitr_1.48           future.apply_1.11.2 
+## [34] Matrix_1.6-5         splines_4.3.1        nnet_7.3-19         
+## [37] timechange_0.3.0     tidyselect_1.2.1     rstudioapi_0.16.0   
+## [40] yaml_2.3.10          timeDate_4041.110    codetools_0.2-20    
+## [43] listenv_0.9.1        plyr_1.8.9           withr_3.0.1         
+## [46] evaluate_1.0.0       future_1.34.0        survival_3.7-0      
+## [49] proxy_0.4-27         zip_2.3.1            xml2_1.3.6          
+## [52] pillar_1.9.0         foreach_1.5.2        stats4_4.3.1        
+## [55] generics_0.1.3       hms_1.1.3            munsell_0.5.1       
+## [58] scales_1.3.0         globals_0.16.3       class_7.3-22        
+## [61] glue_1.7.0           tools_4.3.1          data.table_1.16.0   
+## [64] ModelMetrics_1.2.2.2 gower_1.0.1          grid_4.3.1          
+## [67] ipred_0.9-15         colorspace_2.1-1     nlme_3.1-166        
+## [70] cli_3.6.1            fansi_1.0.6          viridisLite_0.4.2   
+## [73] svglite_2.1.3        lava_1.8.0           gtable_0.3.5        
+## [76] sass_0.4.9           digest_0.6.34        htmlwidgets_1.6.4   
+## [79] htmltools_0.5.8.1    lifecycle_1.0.4      hardhat_1.4.0       
+## [82] MASS_7.3-60.0.1</code></pre>
 </div>
 
 

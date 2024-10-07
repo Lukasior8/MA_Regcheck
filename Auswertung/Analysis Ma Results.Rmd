@@ -10,10 +10,16 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #todo:
-- evtl processing noch einmal überarbeiten, für 2. datensatz ohne comp.
+- 
 - herausfinden welche Werte man angeben MUSS (pwert, xwert , % etc..)
 - kappa auf Basis von diesem ausrechnen für übereinstimmung gpt & olmo
+
+
 - Assumption checks herausfinden welche und ausrechnen
+->>>< also zb ob es problematisch ist dass teilweise fast nur y oder fast nur n oder so ist.....
+
+
+-> why df isch p wert so gross! hmm vilech wäge nidrige 
 - weitere analyse....
 
 - Analysis File beschönigen.
@@ -21,6 +27,9 @@ knitr::opts_chunk$set(echo = TRUE)
 - das ziel ist ja: Synthetic peer review: Using large language models to automatically detect deviations from preregistrations
 
 dh. insbesondere die "n" sind interessant um eine Aussage darüber zu machen wie viel % davon entdeckt werden und viel viel fals positive etc....und es wäre auch noch nice zu wissen welche Kategorien man brauchen kann und welche nicht...
+
+
+extraction vs compare prompt..
 
 # Dependencies
 
@@ -37,6 +46,7 @@ library(formattable)
 library(kableExtra)
 library(gt)
 library(irr)
+library(caret) 
 
 
 
@@ -56,6 +66,14 @@ comparison_data_processed <-read_excel("../Data/processed/comparison_data_proces
 
 
 data_gpt_olmo_processed <-read_excel("../Data/processed/data_gpt_olmo_processed.xlsx")
+
+
+data_gpt_ve_processed <-read_excel("../Data/processed/data_gpt_ve_processed.xlsx")
+
+# Filterung des Datensatzes, um Zeilen mit master_exclude == "exclude" auszuschließen
+data_gpt_ve_filtered <- data_gpt_ve_processed %>%
+  filter(master_exclude != "exclude")
+
 ```
 # Category Counts
 ## category counts total
@@ -103,7 +121,6 @@ data_category_counts_total <- rbind(
 print(data_category_counts_total)
 
 
-write.xlsx(data_category_counts_total, "../Data/processed/data_category_counts_total.xlsx")
 
 ```
 
@@ -207,11 +224,9 @@ hier könnte man noch sensitivität für jedes Item...!
 
 print(confusion_matrix)
 
+# Berechnung der Sensitivität, Spezifität und Präzision für jede Klasse
 
-
-# Berechnung der Sensitivität und Spezifität für jede Klasse (One-vs-Rest)
-
-# Y-Klasse (Sensitivität und Spezifität)
+# Y-Klasse
 TP_Y <- confusion_matrix['Actual_Y', 'Predicted_Y']
 FN_Y <- sum(confusion_matrix['Actual_Y', ]) - TP_Y
 FP_Y <- sum(confusion_matrix[, 'Predicted_Y']) - TP_Y
@@ -219,8 +234,9 @@ TN_Y <- sum(confusion_matrix) - (TP_Y + FN_Y + FP_Y)
 
 sensitivity_Y <- TP_Y / (TP_Y + FN_Y)
 specificity_Y <- TN_Y / (TN_Y + FP_Y)
+precision_Y <- TP_Y / (TP_Y + FP_Y)
 
-# N-Klasse (Sensitivität und Spezifität)
+# N-Klasse
 TP_N <- confusion_matrix['Actual_N', 'Predicted_N']
 FN_N <- sum(confusion_matrix['Actual_N', ]) - TP_N
 FP_N <- sum(confusion_matrix[, 'Predicted_N']) - TP_N
@@ -228,8 +244,9 @@ TN_N <- sum(confusion_matrix) - (TP_N + FN_N + FP_N)
 
 sensitivity_N <- TP_N / (TP_N + FN_N)
 specificity_N <- TN_N / (TN_N + FP_N)
+precision_N <- TP_N / (TP_N + FP_N)
 
-# X-Klasse (Sensitivität und Spezifität)
+# X-Klasse
 TP_X <- confusion_matrix['Actual_X', 'Predicted_X']
 FN_X <- sum(confusion_matrix['Actual_X', ]) - TP_X
 FP_X <- sum(confusion_matrix[, 'Predicted_X']) - TP_X
@@ -237,28 +254,33 @@ TN_X <- sum(confusion_matrix) - (TP_X + FN_X + FP_X)
 
 sensitivity_X <- TP_X / (TP_X + FN_X)
 specificity_X <- TN_X / (TN_X + FP_X)
+precision_X <- TP_X / (TP_X + FP_X)
 
-# Ergebnisse anzeigen
+# Ergebnisse in einer Tabelle anzeigen
 results <- data.frame(
   Class = c("Y", "N", "X"),
   Sensitivity = c(sensitivity_Y, sensitivity_N, sensitivity_X),
-  Specificity = c(specificity_Y, specificity_N, specificity_X)
+  Specificity = c(specificity_Y, specificity_N, specificity_X),
+  Precision = c(precision_Y, precision_N, precision_X)
 )
 
 print(results)
 
 ```
 
-Sensitivity (Empfindlichkeit) misst, wie gut das Modell die tatsächlichen positiven Fälle für jede Klasse erkennt (True Positives). Es beantwortet die Frage: Von den tatsächlichen Positiven, wie viele wurden richtig als positiv klassifiziert?
+Sensitivity (Sensitivität) gibt an, wie gut das Modell positive Fälle (z.B. "Y") korrekt erkennt. Es ist das Verhältnis von richtig-positiven Vorhersagen zu allen tatsächlichen positiven Fällen. Höhere Werte zeigen eine bessere Erkennungsrate der positiven Fälle.
 
-Specificity (Spezifität) misst, wie gut das Modell die negativen Fälle korrekt identifiziert (True Negatives). Es beantwortet die Frage: Von den tatsächlichen Negativen, wie viele wurden richtig als negativ klassifiziert?
+Specificity (Spezifität) gibt an, wie gut das Modell negative Fälle (z.B. "Nicht-Y") korrekt erkennt. Es ist das Verhältnis von richtig-negativen Vorhersagen zu allen tatsächlichen negativen Fällen. Höhere Werte bedeuten, dass das Modell weniger falsch-positive Vorhersagen macht.
+
+Precision (Präzision) gibt an, wie viele der als positiv (z.B. "Y") vorhergesagten Fälle tatsächlich positiv sind. Es ist das Verhältnis von richtig-positiven Vorhersagen zu allen positiven Vorhersagen. Hohe Präzision bedeutet, dass das Modell selten falsch-positive Vorhersagen macht.
 
 ## Gesamtleistung: Macro- und Micro-Averaging
 
 ```{r}
-# Macro-Averaging (Mittelwert der Sensitivitäten und Spezifitäten)
+## Berechnung von Macro-Averaging (Mittelwert der Sensitivitäten, Spezifitäten und Präzisionen)
 macro_sensitivity <- mean(c(sensitivity_Y, sensitivity_N, sensitivity_X))
 macro_specificity <- mean(c(specificity_Y, specificity_N, specificity_X))
+macro_precision <- mean(c(precision_Y, precision_N, precision_X))
 
 # Micro-Averaging (Summe der TP, FN, FP, TN über alle Klassen)
 TP_total <- TP_Y + TP_N + TP_X
@@ -268,16 +290,24 @@ TN_total <- TN_Y + TN_N + TN_X
 
 micro_sensitivity <- TP_total / (TP_total + FN_total)
 micro_specificity <- TN_total / (TN_total + FP_total)
+micro_precision <- TP_total / (TP_total + FP_total)
 
-# Ergebnisse für Macro- und Micro-Averaging anzeigen
+
+
+# Berechnung der Accuracy (Genauigkeit)
+accuracy <- (TP_total + TN_total) / (TP_total + TN_total + FP_total + FN_total)
+
+# Ergebnisse für Macro, Micro und Accuracy anzeigen
 overall_results <- data.frame(
-  Metric = c("Macro Sensitivity", "Macro Specificity", "Micro Sensitivity", "Micro Specificity"),
-  Value = c(macro_sensitivity, macro_specificity, micro_sensitivity, micro_specificity)
+  Metric = c("Macro Sensitivity", "Macro Specificity", "Macro Precision",
+             "Micro Sensitivity", "Micro Specificity", "Micro Precision",
+             "Accuracy"),
+  Value = c(macro_sensitivity, macro_specificity, macro_precision,
+            micro_sensitivity, micro_specificity, micro_precision,
+            accuracy)
 )
 
 print(overall_results)
-
-
 
 
 ```
@@ -306,6 +336,7 @@ print(overall_results)
 
 
 # Kappa retest
+habe ich hier jeweils nur gpt genommen? oder auch olmo ausversehen?!
 
 ## test, retest korrelation Cohens Kappa per category
 
@@ -423,8 +454,7 @@ retest_kappa_summary <- do.call(rbind, retest_kappa_results)
 # Step 6: Display the results
 print(retest_kappa_summary)
 
-# Optional: Speichern der zusammengeführten Test-Retest-Daten in einer Excel-Datei
-write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx")
+
 
 
 ```
@@ -445,18 +475,13 @@ retest_kappa_all <- cohen.kappa(cbind(all_test_values, all_retest_values))
 retest_kappa_all
 
 ```
-
+weighted macht heir absolut keinen sinn...
 
 ##test, retest korrelation gesamt kappa...v2 mit p wert etc..
 
 p wert noch leer:/
 
 ```{r}
-# Lade notwendige Bibliotheken
-library(dplyr)
-library(irr)  # Für Cohen's Kappa aus dem irr Paket
-library(openxlsx)  # Für das Schreiben der Datei
-
 # Step 1: Filter the dataset into test and retest subsets
 test_data <- comparison_data_processed %>% filter(test_retest == "Test")
 retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
@@ -498,18 +523,20 @@ if (p_e == 1) {
   z_value <- kappa_value / se_kappa
 }
 
-# Schritt 6: Zeige das Gesamtergebnis an
+# Schritt 6: Zeige das Gesamtergebnis an und füge `n` als zusätzliche Information ein
 retest_kappa_all_summary <- data.frame(
   Kappa = kappa_value,
   Agreement_Percentage = agreement_percentage,
   z_value = z_value,
-  p_value = p_value
+  p_value = p_value,
+  n = n  # Anzahl der Beobachtungen
 )
 
 # Zeige das Gesamtergebnis an
 print(retest_kappa_all_summary)
 
 ```
+naja z wert und p wert muss ich noch anschauen...
 
 
 
@@ -733,7 +760,7 @@ cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n")
 
 
 
-## besser nur bei promt version 4? im Vergleich zu den anderen?
+## besser nur bei promt version d? im Vergleich zu den anderen?
 
 hier noch n reinnehmen
 
@@ -955,6 +982,321 @@ und noch schauen ob es einen unterschied macht ob experiment oder nicht....)
 
 ```
 
+# new!
+## kappa new per category
+```{r}
+
+
+# Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
+                             "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
+
+# Liste zur Speicherung der Ergebnisse
+results_ve <- data.frame(Variable_ve = character(), 
+                         Kappa_ve = numeric(), 
+                         N_ve = numeric(),
+                         Agreement_Percent_ve = numeric(),
+                         Z_Value_ve = numeric(),
+                         P_Value_ve = numeric(), 
+                         stringsAsFactors = FALSE)
+
+# Berechnung von Cohen's Kappa und weiteren Kennzahlen für jede Variable
+for (variable in variables_to_compare_ve) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column <- paste0(variable, "_gpt")
+  olmo_column <- paste0(variable, "_olmo")
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data <- data_gpt_ve_filtered %>%
+    select(gpt_column, olmo_column) %>%
+    filter(!is.na(.[[gpt_column]]) & !is.na(.[[olmo_column]]))
+  
+  # Berechne Cohen's Kappa für die aktuelle Variable
+  kappa_obj_ve <- kappa2(comparison_data)
+  kappa_value_ve <- kappa_obj_ve$value
+  
+  # Anzahl der Vergleiche (N)
+  n_comparisons_ve <- nrow(comparison_data)
+  
+  # Berechne den prozentualen Anteil der Übereinstimmungen
+  agreement_percent_ve <- mean(comparison_data[[gpt_column]] == comparison_data[[olmo_column]]) * 100
+
+  # Berechne Z-Wert und p-Wert (Standardmäßig aus dem Kappa-Objekt)
+  z_value_ve <- kappa_obj_ve$statistic # Z-Wert aus dem Kappa-Objekt
+  p_value_ve <- kappa_obj_ve$p.value   # p-Wert aus dem Kappa-Objekt
+  
+  # Ergebnisse speichern mit den Endungen _ve
+  results_ve <- rbind(results_ve, data.frame(Variable_ve = variable, 
+                                             Kappa_ve = kappa_value_ve, 
+                                             N_ve = n_comparisons_ve,
+                                             Agreement_Percent_ve = agreement_percent_ve,
+                                             Z_Value_ve = z_value_ve,
+                                             P_Value_ve = p_value_ve))
+}
+
+# Ausgabe der Ergebnisse als DataFrame
+print(results_ve)
+
+```
+p sind nicht signifikant?!
+
+## kappa ve totat
+```{r}
+
+
+# Daten filtern: Nur Zeilen behalten, die nicht "exclude" in master_exclude haben
+data_gpt_ve_total_filtered <- data_gpt_ve_processed %>%
+  filter(master_exclude != "exclude")
+
+# Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve_total <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
+                                   "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
+
+# Liste zur Speicherung der kombinierten Ratings
+combined_data_ve_total <- data.frame(GPT_Rating_ve_total = character(), 
+                                     Olmo_Rating_ve_total = character(), 
+                                     stringsAsFactors = FALSE)
+
+# Kombinieren der Daten aus allen relevanten Variablenpaaren
+for (variable in variables_to_compare_ve_total) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column <- paste0(variable, "_gpt")
+  olmo_column <- paste0(variable, "_olmo")
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data <- data_gpt_ve_total_filtered %>%
+    select(gpt_column, olmo_column) %>%
+    filter(!is.na(.[[gpt_column]]) & !is.na(.[[olmo_column]])) %>%
+    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+  
+  # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
+  combined_data_ve_total <- rbind(combined_data_ve_total, comparison_data)
+}
+
+# Berechnung des Gesamt-Kappa über alle kombinierten Kategorien hinweg
+kappa_obj_ve_total <- kappa2(combined_data_ve_total)
+kappa_value_ve_total <- kappa_obj_ve_total$value
+
+# Berechnung zusätzlicher Kennzahlen
+n_comparisons_ve_total <- nrow(combined_data_ve_total)  # Anzahl der Vergleiche (N)
+agreement_percent_ve_total <- mean(combined_data_ve_total$GPT_Rating_ve_total == combined_data_ve_total$Olmo_Rating_ve_total) * 100
+z_value_ve_total <- kappa_obj_ve_total$statistic  # Z-Wert aus dem Kappa-Objekt
+p_value_ve_total <- kappa_obj_ve_total$p.value    # p-Wert aus dem Kappa-Objekt
+
+# Ausgabe der Ergebnisse
+results_ve_total <- data.frame(Variable_ve_total = "Overall",
+                               Kappa_ve_total = kappa_value_ve_total,
+                               N_ve_total = n_comparisons_ve_total,
+                               Agreement_Percent_ve_total = agreement_percent_ve_total,
+                               Z_Value_ve_total = z_value_ve_total,
+                               P_Value_ve_total = p_value_ve_total)
+
+print(results_ve_total)
+
+
+
+```
+
+
+
+## confusion matrix VE
+```{r}
+
+
+
+# Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve_total <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
+                                   "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
+
+# Liste zur Speicherung der kombinierten Ratings
+combined_data_ve_total <- data.frame(GPT_Rating_ve_total = character(), 
+                                     Olmo_Rating_ve_total = character(), 
+                                     stringsAsFactors = FALSE)
+
+# Kombinieren der Daten aus allen relevanten Variablenpaaren
+for (variable in variables_to_compare_ve_total) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column <- paste0(variable, "_gpt")
+  olmo_column <- paste0(variable, "_olmo")
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data_ve_total <- data_gpt_ve_total_filtered %>%
+    select(gpt_column, olmo_column) %>%
+    filter(!is.na(.[[gpt_column]]) & !is.na(.[[olmo_column]])) %>%
+    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+  
+  # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
+  combined_data_ve_total <- rbind(combined_data_ve_total, comparison_data_ve_total)
+}
+
+# Erstellen der Confusion Matrix mit _ve Endungen
+conf_matrix_ve <- table(combined_data_ve_total$Olmo_Rating_ve_total, combined_data_ve_total$GPT_Rating_ve_total)
+
+# Anzeige der Confusion Matrix mit _ve Endung
+print("Confusion Matrix (ve):")
+print(conf_matrix_ve)
+
+# Berechnung weiterer Metriken: Sensitivität, Spezifität, etc. mit _ve Endung
+confusion_summary_ve <- confusionMatrix(conf_matrix_ve)
+
+# Ausgabe der detaillierten Ergebnisse mit _ve Endung
+print("Detailed Confusion Matrix Metrics (ve):")
+print(confusion_summary_ve)
+
+
+```
+<!-- n, n = 73: Olmo und GPT stimmen beide überein und haben n (Nein) vorhergesagt. -->
+<!-- n, y = 155: Olmo hat n (Nein) angegeben, aber GPT hat y (Ja) vorhergesagt (False Positive). -->
+<!-- y, n = 41: Olmo hat y (Ja) angegeben, aber GPT hat n (Nein) vorhergesagt (False Negative). -->
+<!-- y, y = 199: Olmo und GPT stimmen beide überein und haben y (Ja) vorhergesagt. -->
+
+
+
+## new frickes ü
+
+
+```{r}
+
+
+# Definiere die zu vergleichenden Variablenpaare
+variables_to_compare_ve_total <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
+                                   "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
+
+# Liste zur Speicherung der kombinierten Ratings
+combined_data_ve_total <- data.frame(GPT_Rating_ve_total = character(), 
+                                     Olmo_Rating_ve_total = character(), 
+                                     stringsAsFactors = FALSE)
+
+# Kombinieren der Daten aus allen relevanten Variablenpaaren
+for (variable in variables_to_compare_ve_total) {
+  # Definiere die Spaltennamen für GPT und Olmo
+  gpt_column <- paste0(variable, "_gpt")
+  olmo_column <- paste0(variable, "_olmo")
+  
+  # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
+  comparison_data_ve_total <- data_gpt_ve_total_filtered %>%
+    select(gpt_column, olmo_column) %>%
+    filter(!is.na(.[[gpt_column]]) & !is.na(.[[olmo_column]])) %>%
+    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+  
+  # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
+  combined_data_ve_total <- rbind(combined_data_ve_total, comparison_data_ve_total)
+}
+
+# Berechnung von Fricke's Ü-Koeffizient
+calculate_fricke_ue <- function(true_values, predicted_values) {
+  # Erstelle eine Kreuztabelle (Contingency Table)
+  contingency_table <- table(true_values, predicted_values)
+  
+  # Beobachtete Übereinstimmungen (C_o)
+  C_o <- sum(diag(contingency_table))
+  
+  # Maximale Anzahl der Übereinstimmungen (C_max)
+  C_max <- sum(contingency_table)
+  
+  # Erwartete Übereinstimmungen unter Zufallsbedingungen (C_er)
+  row_totals <- rowSums(contingency_table)
+  col_totals <- colSums(contingency_table)
+  C_er <- sum(row_totals * col_totals) / C_max
+  
+  # Berechnung von Fricke's Ü-Koeffizient
+  Ue <- (C_o - C_er) / (C_max - C_er)
+  return(Ue)
+}
+
+# Berechnung von Fricke's Ü-Koeffizient für die kombinierten Daten
+fricke_ue_value <- calculate_fricke_ue(combined_data_ve_total$Olmo_Rating_ve_total, combined_data_ve_total$GPT_Rating_ve_total)
+
+# Ausgabe des Ergebnisses
+print(paste("Fricke's Ü-Koeffizient (ve_total):", round(fricke_ue_value, 4)))
+
+
+
+```
+
+##  test retest 
+```{r}
+
+
+
+# Step 1: Filter the dataset into test and retest subsets
+test_data_ve <- data_gpt_ve_filtered %>% filter(test_retest == "Test")
+retest_data_ve <- data_gpt_ve_filtered %>% filter(test_retest == "RETEST")
+
+# Step 2: Match test and retest based on 'psp' (this will contain only the 30 test-retest psp rows)
+retest_merged_data_ve <- merge(test_data_ve, retest_data_ve, by = "psp", suffixes = c("_test_ve", "_retest_ve"))
+
+# Step 3: Get all columns ending with '-gpt' or '_gpt'
+comp_columns_ve <- grep("[-_]gpt$", names(data_gpt_ve_filtered), value = TRUE)
+
+# Step 4: Loop through each 'gpt' column and calculate Cohen's Kappa using the irr package
+retest_kappa_results_ve <- lapply(comp_columns_ve, function(col_name) {
+  # Cohen's Kappa requires the two sets of categorical data (Test and RETEST)
+  test_col_ve <- retest_merged_data_ve[[paste0(col_name, "_test_ve")]]
+  retest_col_ve <- retest_merged_data_ve[[paste0(col_name, "_retest_ve")]]
+  
+  # Überprüfung auf gültige Daten (Nicht-NA-Daten) in beiden Spalten
+  if (all(is.na(test_col_ve)) || all(is.na(retest_col_ve))) {
+    # Falls alle Daten NA sind, gib eine Zeile mit NA zurück
+    return(data.frame(Column = col_name, Kappa = NA, z_value = NA, 
+                      Agreement_Percentage = NA, p_value = NA))
+  }
+  
+  # Berechnung von Cohen's Kappa mit dem irr-Paket
+  kappa_result_ve <- kappa2(data.frame(test_col_ve, retest_col_ve), weight = "unweighted")
+  
+  # Extrahiere den Kappa-Wert und p-Wert
+  kappa_value_ve <- kappa_result_ve$value
+  p_value_ve <- kappa_result_ve$p.value
+  agreement_percentage_ve <- mean(test_col_ve == retest_col_ve, na.rm = TRUE) * 100
+  
+  # Berechnung der erwarteten Übereinstimmung (p_e)
+  test_table_ve <- table(test_col_ve, retest_col_ve)
+  n_ve <- sum(test_table_ve)  # Anzahl der Paare
+  p_e_ve <- sum(rowSums(test_table_ve) * colSums(test_table_ve)) / (n_ve^2)
+  
+  # Berechnung der beobachteten Übereinstimmung (p_0)
+  p_0_ve <- agreement_percentage_ve / 100
+  
+  # Berechnung des Standardfehlers (SE)
+  if (p_e_ve == 1) {
+    se_kappa_ve <- NA  # Vermeide Division durch 0, wenn p_e = 1 (perfekte Übereinstimmung)
+    z_value_ve <- NA
+  } else {
+    se_kappa_ve <- sqrt((p_0_ve * (1 - p_0_ve)) / (n_ve * (1 - p_e_ve)^2))
+  
+    # Berechnung des z-Werts
+    z_value_ve <- kappa_value_ve / se_kappa_ve
+  }
+  
+  # Return the column name, Kappa, z-value, agreement %, and p-value
+  return(data.frame(Column = col_name, Kappa = kappa_value_ve, z_value = z_value_ve, 
+                    Agreement_Percentage = agreement_percentage_ve, p_value = p_value_ve))
+})
+
+# Step 5: Combine the results into a single data frame
+retest_kappa_summary_ve <- do.call(rbind, retest_kappa_results_ve)
+
+# Step 6: Display the results
+print(retest_kappa_summary_ve)
+
+
+# Berechnung des gesamten Kappa-Werts über alle "_gpt"-Spalten
+
+# Schritt 7: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den "_gpt"-Spalten
+all_test_values_ve <- unlist(retest_merged_data_ve[paste0(comp_columns_ve, "_test_ve")])
+all_retest_values_ve <- unlist(retest_merged_data_ve[paste0(comp_columns_ve, "_retest_ve")])
+
+# Schritt 8: Berechne Cohen's Kappa für alle Daten zusammen
+retest_kappa_all_ve <- cohen.kappa(cbind(all_test_values_ve, all_retest_values_ve))
+
+# Schritt 9: Zeige das Gesamtergebnis an
+print(retest_kappa_all_ve)
+
+
+```   
+weighted macht heir absolut keinen sinn...
+
 
 ## 
 ```{r}
@@ -963,16 +1305,12 @@ und noch schauen ob es einen unterschied macht ob experiment oder nicht....)
 
 ```
 
-
-
-
 ## 
 ```{r}
 
 
 
 ```
-
 
 
 

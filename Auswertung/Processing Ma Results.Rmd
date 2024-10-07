@@ -36,7 +36,7 @@ library(openxlsx)
 
 ```
 
-# clean GPT data_gpt
+# clean GPT data_gpt and new gpt data
 
 ## Read GPT data
 
@@ -125,8 +125,11 @@ gpt_categories_alphabetic <- c("pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1",
                             "match_imd_2",  "match_sm_1", "match_sm_2", "match_sm_3", "match_vsa_1", 
                             "match_vsa_2", "match_vsa_3", "match_ic")
 
-
+#for gpt
 gpt_frequencies_categories <- lapply(data_gpt_filtered[gpt_categories_alphabetic], table)
+
+#for new vE
+gpt_new_frequencies_categories <- lapply(data_gpt_new_filtered[gpt_categories_alphabetic], table)
 
 
 #frequencies_categories
@@ -156,6 +159,7 @@ gpt_new_frequencies_categories_cleaned <- lapply(data_gpt_new_filtered_clean[gpt
 
 #gpt_frequencies_categories_cleaned
 
+#gpt_new_frequencies_categories_cleaned
 
 
 
@@ -163,14 +167,25 @@ replace_with_exclude <- function(x) {
   ifelse(x %in% c("x", "y", "n"), x, "exclude")
 }
 
-
+#gpt
 data_gpt_filtered_clean_exclude <- data_gpt_filtered_clean %>%
   mutate_at(vars(one_of(gpt_categories_alphabetic)), replace_with_exclude)
 
-# Check frequencies after cleaning
+#new
+data_gpt_new_filtered_clean_exclude <- data_gpt_new_filtered_clean %>%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), replace_with_exclude)
+
+
+# Check gpt frequencies after cleaning
 gpt_frequencies_categories_cleaned_exclude <- lapply(data_gpt_filtered_clean_exclude[gpt_categories_alphabetic], table)
 
+# Check new frequencies after cleaning
+gpt_new_frequencies_categories_cleaned_exclude <- lapply(data_gpt_new_filtered_clean_exclude[gpt_categories_alphabetic], table)
+
+
 #gpt_frequencies_categories_cleaned_exclude
+
+#gpt_new_frequencies_categories_cleaned_exclude
 ```
 
 ## kategorien numeric säubern
@@ -184,16 +199,28 @@ gpt_categories_numeric <- c("pre_dcp_1_text", "pap_dcp_1_text", "s_pre_iv", "s_p
                         "prompt_version_a_strictness_pubstud", "con_iv", "con_dv", 
                         "con_dcp", "con_smu", "con_sic", "global_consistency_esimate")
 
-# Convert to numeric and replace non-numeric with 'exclude'
+# Convert gpt to numeric and replace non-numeric with 'exclude'
 data_gpt_filtered_clean_exclude_numeric <- data_gpt_filtered_clean_exclude %>%
   mutate_at(vars(one_of(gpt_categories_numeric)), 
             ~ifelse(is.na(as.numeric(.)), "exclude", as.numeric(.)))
 
+# Convert new to numeric and replace non-numeric with 'exclude'
+data_gpt_new_filtered_clean_exclude_numeric <- data_gpt_new_filtered_clean_exclude %>%
+  mutate_at(vars(one_of(gpt_categories_numeric)), 
+            ~ifelse(is.na(as.numeric(.)), "exclude", as.numeric(.)))
+
+
+#gpt
 # Check frequencies after cleaning
 gpt_frequencies_categories_cleaned_exclude_numeric <- lapply(data_gpt_filtered_clean_exclude_numeric[gpt_categories_numeric], table)
 
 #gpt_frequencies_categories_cleaned_exclude_numeric
 
+#new
+# Check new frequencies after cleaning
+gpt_new_frequencies_categories_cleaned_exclude_numeric <- lapply(data_gpt_new_filtered_clean_exclude_numeric[gpt_categories_numeric], table)
+
+#gpt_new_frequencies_categories_cleaned_exclude_numeric
 
 ```
 
@@ -202,7 +229,7 @@ gpt_frequencies_categories_cleaned_exclude_numeric <- lapply(data_gpt_filtered_c
 
 ```{r}
 
-
+#for gpt
 
 # Ändere die Werte "v4" und "V4" in der Spalte prompt_version zu "D"
 data_gpt_finito <- data_gpt_filtered_clean_exclude_numeric %>%
@@ -211,6 +238,29 @@ data_gpt_finito <- data_gpt_filtered_clean_exclude_numeric %>%
 # Neue Spalte master_exclude hinzufügen und standardmäßig auf "include" setzen
 data_gpt_finito <- data_gpt_finito %>%
   mutate(master_exclude = ifelse(is.na(date_gpt), "exclude", "include"))
+
+#for new
+# Ändere die Werte "v4" und "V4" in der Spalte prompt_version zu "D"
+data_gpt_new_finito <- data_gpt_new_filtered_clean_exclude_numeric %>%
+  mutate(prompt_version = ifelse(prompt_version %in% c("v4", "V4"), "D", prompt_version))
+
+# Neue Spalte master_exclude hinzufügen und standardmäßig auf "include" setzen
+data_gpt_new_finito <- data_gpt_new_finito %>%
+  mutate(master_exclude = ifelse(is.na(date_gpt), "exclude", "include"))
+
+
+# Erstellen des neuen Datensatzes
+data_gpt_ve <- data_gpt_new_finito %>%
+  # Filtern nach Zeilen, bei denen die Spalte 'prompt_version' den Wert 'E' hat
+  filter(prompt_version == "E") %>%
+  # Auswahl der gewünschten Spalten
+  select(psp, title_pap, study_pap, date_gpt, prompt_version, test_retest,
+         deviation_text_new, master_exclude, match_dv_0, match_dv_1,
+         match_dv_2, match_dv_3, match_dcp_1, match_dcp_2,
+         match_sm_1, match_sm_2, match_sm_3)
+
+# Optional: Überprüfung der ersten Zeilen des neuen Datensatzes
+head(data_gpt_ve)
 
 
 
@@ -1221,12 +1271,28 @@ data_gpt_finito$psp
 
 ```{r}
 
-
+#gpt
 data_gpt_olmo_merged <- left_join(data_gpt_finito, data_olmo_finito, by = "psp", suffix = c("_gpt", "_olmo"))
 
+#new
 
 
+# Auswahl der gewünschten Spalten aus dem Olmo-Datensatz
+data_olmo_new_filtered <- data_olmo_finito %>%
+  select(psp, match_dv_0, match_dv_1, match_dv_2, match_dv_3,
+         match_dcp_1, match_dcp_2, match_sm_1, match_sm_2, match_sm_3)
 
+# Merging von `data_gpt_ve` und `data_olmo_filtered` basierend auf der Spalte "psp"
+data_gpt_ve_merged <- left_join(data_gpt_ve, data_olmo_new_filtered, by = "psp", suffix = c("_gpt", "_olmo"))
+
+# Anpassen der Spalte 'master_exclude' basierend auf den Bedingungen für die "olmo"-Spalten
+data_gpt_ve_merged <- data_gpt_ve_merged %>%
+  mutate(master_exclude = if_else(rowSums(across(ends_with("_olmo"), ~ . == "x")) > 0, "exclude", "include"))
+
+# Optional: Überprüfung der ersten Zeilen des neuen Datensatzes
+head(data_gpt_ve_merged)
+
+  
 ```
 
 
@@ -1328,6 +1394,7 @@ PEanalysis of olmos dataset contains different strictness categories than gpt,
 ```{r}
 colnames(data_gpt_finito)
 
+
 # Gewünschten Spalten aus data_gpt_finito
 selected_columns <- c("psp", "title_pap", "study_pap", "date_gpt", "prompt_version", 
                       "test_retest", "chat_gpt_version", "time_extraction", 
@@ -1420,6 +1487,8 @@ print(data_gpt_olmo_processed)
 
 
 ## number before excluisone, for retest and for prompt versions...
+### hier eventuell ausserdem auch anzahl einträge ingesamt? und pro psp....
+### und auch noch für den new dataset
 
 ```{r}
 # Tabelle erstellen für Testanzahl und Prompt-Versionen
@@ -1457,6 +1526,16 @@ print(test_table)
 
 ```
 
+## number of trials for new
+
+```{r}
+
+
+
+```
+
+
+
 ## 
 
 ```{r}
@@ -1481,6 +1560,9 @@ write.xlsx(comparison_data_processed, "../Data/processed/comparison_data_process
 
 
 write.xlsx(data_gpt_olmo_processed, "../Data/processed/data_gpt_olmo_processed.xlsx")
+
+
+write.xlsx(data_gpt_ve_merged, "../Data/processed/data_gpt_ve_processed.xlsx")
 
 ```
 
