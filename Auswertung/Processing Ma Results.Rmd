@@ -1536,6 +1536,101 @@ print(test_table)
 
 
 
+#File Size
+## read data file size
+
+
+```{r}
+data_psp_filesize <- read_csv("../Data/raw/DATA_psp_filesize.csv") |>
+  janitor::clean_names()
+
+
+```
+
+## overview filesize
+
+```{r}
+
+
+
+# Zunächst: Einen Überblick der Dateigrößen-Spalte anzeigen
+summary(data_psp_filesize$size_kb)
+
+# Histogramm der Verteilung der Dateigrößen (in KB)
+ggplot(data_psp_filesize, aes(x = size_kb)) +
+  geom_histogram(binwidth = 100, fill = "lightblue", color = "black") +
+  labs(title = "Verteilung der Dateigrößen (in KB)", x = "Dateigröße (KB)", y = "Anzahl der Dateien") +
+  theme_minimal()
+
+  # Optional: Boxplot für eine zusätzliche visuelle Darstellung der Verteilung
+  ggplot(data_psp_filesize, aes(y = size_kb)) +
+    geom_boxplot(fill = "lightgreen") +
+    labs(title = "Boxplot der Dateigrößen (in KB)", y = "Dateigröße (KB)") +
+    theme_minimal()
+
+
+```
+## filesize sum
+
+```{r}
+# Neuen Datensatz erstellen mit der Spalte 'psp' (Nummer aus dem Dateinamen)
+data_psp_filesize_sum <- data_psp_filesize %>%
+  # Extrahiere die Nummer aus dem Dateinamen
+  mutate(psp = gsub("\\D", "", name)) %>%
+  group_by(psp) %>%
+  summarise(
+    # Summe der Dateigrößen für das gesamte Paar (Prereg und Publikation)
+    size_kb_sum = sum(size_kb),
+    
+    # Größe der Prereg-Datei extrahieren
+    size_kb_prereg = sum(size_kb[grepl("Prereg.pdf", name)]),
+    
+    # Größe der Publikationsdatei (nicht "Prereg.pdf") extrahieren
+    size_kb_pubstud = sum(size_kb[!grepl("Prereg.pdf", name)])
+  )
+
+# Ergebnis anzeigen
+print(data_psp_filesize_sum)
+
+# Histogramm der summierten Dateigrößen (in KB)
+ggplot(data_psp_filesize_sum, aes(x = size_kb_sum)) +
+  geom_histogram(binwidth = 100, fill = "blue", color = "black") +
+  labs(title = "Verteilung der summierten Dateigrößen (in KB)", x = "Summierte Dateigröße (KB)", y = "Anzahl der Dateien") +
+  theme_minimal()
+
+
+```
+
+
+## merge file size to the processed tatasets.
+
+```{r}
+
+# Umwandeln der 'psp'-Spalte in data_psp_filesize_sum in numerisch (double), um sie mit den anderen Datensätzen kompatibel zu machen
+data_psp_filesize_sum <- data_psp_filesize_sum %>%
+  mutate(psp = as.numeric(psp))
+
+# Left Join des Datensatzes data_psp_filesize_sum mit comparison_data_processed
+comparison_data_processed <- comparison_data_processed %>%
+  left_join(data_psp_filesize_sum, by = "psp")
+
+# Left Join des Datensatzes data_psp_filesize_sum mit data_gpt_olmo_processed
+data_gpt_olmo_processed <- data_gpt_olmo_processed %>%
+  left_join(data_psp_filesize_sum, by = "psp")
+
+# Left Join des Datensatzes data_psp_filesize_sum mit data_gpt_ve_merged
+data_gpt_ve_merged <- data_gpt_ve_merged %>%
+  left_join(data_psp_filesize_sum, by = "psp")
+
+# Optional: Anzeigen der Ergebnisse (hier ein Beispiel für die Ausgabe)
+head(comparison_data_processed)
+head(data_gpt_olmo_processed)
+head(data_gpt_ve_merged)
+
+```
+
+
+
 ## 
 
 ```{r}
@@ -1543,6 +1638,29 @@ print(test_table)
 
 
 ```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
+
+
+
+## 
+
+```{r}
+
+
+
+```
+
 
 
 # Write to disk

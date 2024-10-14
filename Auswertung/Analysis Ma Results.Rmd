@@ -223,6 +223,7 @@ hier könnte man noch sensitivität für jedes Item...!
 ```{r}
 
 print(confusion_matrix)
+n_total <- sum(confusion_matrix)
 
 # Berechnung der Sensitivität, Spezifität und Präzision für jede Klasse
 
@@ -294,17 +295,21 @@ micro_precision <- TP_total / (TP_total + FP_total)
 
 
 
-# Berechnung der Accuracy (Genauigkeit)
-accuracy <- (TP_total + TN_total) / (TP_total + TN_total + FP_total + FN_total)
+# Berechnung der Accuracy (Genauigkeit)s
+accuracy1 <- (TP_total + TN_total) / (TP_total + TN_total + FP_total + FN_total)
+
+accuracy2 <- TP_total/(n_total)
+
+balanced_accuracy <- (sensitivity_Y + sensitivity_N + sensitivity_X)/3
 
 # Ergebnisse für Macro, Micro und Accuracy anzeigen
 overall_results <- data.frame(
   Metric = c("Macro Sensitivity", "Macro Specificity", "Macro Precision",
              "Micro Sensitivity", "Micro Specificity", "Micro Precision",
-             "Accuracy"),
+            "accuracy1","accuracy2","balanced_accuracy"),
   Value = c(macro_sensitivity, macro_specificity, macro_precision,
             micro_sensitivity, micro_specificity, micro_precision,
-            accuracy)
+            accuracy1,accuracy2,balanced_accuracy)
 )
 
 print(overall_results)
@@ -709,7 +714,74 @@ print(kappa_results_v2)
 ```
 
 
+# gpt /olmo interrater nur comparison/nur extraction  prompt (gesamtdatenset)
 
+
+```{r}
+
+# Extrahiere die GPT und OLMO Spalten für beide Vergleiche (Extraction und Comparison)
+gpt_columns_extract <- grep("^(c_pre|pre|c_pap|pap).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_extract <- gsub("_gpt$", "_olmo", gpt_columns_extract)
+
+gpt_columns_comp <- grep("^(c_match|match).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_comp <- gsub("_gpt$", "_olmo", gpt_columns_comp)
+
+# Überprüfen, ob die entsprechenden OLMO-Spalten existieren (für beide Gruppen)
+valid_gpt_columns_extract <- gpt_columns_extract[olmo_columns_extract %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_extract <- olmo_columns_extract[olmo_columns_extract %in% colnames(data_gpt_olmo_processed)]
+
+valid_gpt_columns_comp <- gpt_columns_comp[olmo_columns_comp %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_comp <- olmo_columns_comp[olmo_columns_comp %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_extract) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten für Extraction gefunden!")
+}
+if(length(valid_gpt_columns_comp) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten für Comparison gefunden!")
+}
+
+# Daten für beide Vergleiche kombinieren und NA-Werte entfernen
+combined_data_extract <- data.frame()
+combined_data_comp <- data.frame()
+
+# Kombinierte Daten für den Extraction-Vergleich
+for(i in 1:length(valid_gpt_columns_extract)) {
+  combined_data_extract <- rbind(combined_data_extract, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns_extract[i]]],
+                                                                   OLMO = data_gpt_olmo_processed[[valid_olmo_columns_extract[i]]]))
+}
+combined_data_extract <- na.omit(combined_data_extract)
+
+# Kombinierte Daten für den Comparison-Vergleich
+for(i in 1:length(valid_gpt_columns_comp)) {
+  combined_data_comp <- rbind(combined_data_comp, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns_comp[i]]],
+                                                             OLMO = data_gpt_olmo_processed[[valid_olmo_columns_comp[i]]]))
+}
+combined_data_comp <- na.omit(combined_data_comp)
+
+# Berechne Cohen's Kappa für Extraction
+kappa_result_extract <- irr::kappa2(combined_data_extract, "unweighted")
+percent_agreement_extract <- sum(combined_data_extract$GPT == combined_data_extract$OLMO) / nrow(combined_data_extract) * 100
+
+# Berechne Cohen's Kappa für Comparison
+kappa_result_comp <- irr::kappa2(combined_data_comp, "unweighted")
+percent_agreement_comp <- sum(combined_data_comp$GPT == combined_data_comp$OLMO) / nrow(combined_data_comp) * 100
+
+# Ergebnisse anzeigen
+cat("Cohen's Kappa für Extraction (gesamt_kappa_extraction):\n")
+cat("Kappa:", kappa_result_extract$value, "\n")
+cat("p-Wert:", kappa_result_extract$p.value, "\n")
+cat("z-Wert:", kappa_result_extract$statistic, "\n")
+cat("Prozentuale Übereinstimmung:", percent_agreement_extract, "%\n")
+
+cat("\nCohen's Kappa für Comparison (gesamt_kappa_comparison):\n")
+cat("Kappa:", kappa_result_comp$value, "\n")
+cat("p-Wert:", kappa_result_comp$p.value, "\n")
+cat("z-Wert:", kappa_result_comp$statistic, "\n")
+cat("Prozentuale Übereinstimmung:", percent_agreement_comp, "%\n")
+
+
+```
 
 
 ## Kappa interrater gpt zu olmo gesamt
@@ -1214,6 +1286,11 @@ print(paste("Fricke's Ü-Koeffizient (ve_total):", round(fricke_ue_value, 4)))
 
 ```
 
+
+
+
+
+
 ##  test retest 
 ```{r}
 
@@ -1296,6 +1373,203 @@ print(retest_kappa_all_ve)
 
 ```   
 weighted macht heir absolut keinen sinn...
+
+
+
+
+# kappa sample size...
+```{r}
+# Vergleichs-Spalten für c_match und match extrahieren
+gpt_columns_comp <- grep("^(c_match|match).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_comp <- gsub("_gpt$", "_olmo", gpt_columns_comp)
+
+# Überprüfen, ob die entsprechenden OLMO-Spalten existieren
+valid_gpt_columns_comp <- gpt_columns_comp[olmo_columns_comp %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_comp <- olmo_columns_comp[olmo_columns_comp %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_comp) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten für Comparison gefunden!")
+}
+
+# Daten für Comparison kombinieren und NA-Werte entfernen
+combined_data_comp <- data.frame()
+for(i in 1:length(valid_gpt_columns_comp)) {
+  combined_data_comp <- rbind(combined_data_comp, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns_comp[i]]],
+                                                             OLMO = data_gpt_olmo_processed[[valid_olmo_columns_comp[i]]],
+                                                             size_kb_sum = data_gpt_olmo_processed$size_kb_sum))
+}
+combined_data_comp <- na.omit(combined_data_comp)
+
+# Berechne die Terzile basierend auf der Spalte 'size_kb_sum'
+tertile_cutoffs <- quantile(combined_data_comp$size_kb_sum, probs = c(1/3, 2/3))
+
+# Einteilung in small, medium und large Terzile
+combined_data_comp$tertile <- cut(combined_data_comp$size_kb_sum, 
+                                  breaks = c(-Inf, tertile_cutoffs[1], tertile_cutoffs[2], Inf), 
+                                  labels = c("small", "medium", "large"))
+
+# Funktion zum Berechnen von Cohen's Kappa für eine bestimmte Terzile
+compute_kappa_for_tertile <- function(data, tertile_label) {
+  # Filtere Daten für das gegebene Terzil
+  data_filtered <- subset(data, tertile == tertile_label)
+  
+  # Berechne Cohen's Kappa
+  kappa_result <- irr::kappa2(data_filtered[, c("GPT", "OLMO")], "unweighted")
+  
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement <- sum(data_filtered$GPT == data_filtered$OLMO) / nrow(data_filtered) * 100
+  
+  # Ergebnisse anzeigen
+  cat("Cohen's Kappa für", tertile_label, ":\n")
+  cat("Kappa:", kappa_result$value, "\n")
+  cat("p-Wert:", kappa_result$p.value, "\n")
+  cat("z-Wert:", kappa_result$statistic, "\n")
+  cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n\n")
+}
+
+# Berechne Cohen's Kappa für small, medium und large
+compute_kappa_for_tertile(combined_data_comp, "small")
+compute_kappa_for_tertile(combined_data_comp, "medium")
+compute_kappa_for_tertile(combined_data_comp, "large")
+
+
+
+```
+
+
+
+# kappa sample size nur exgtraction prereg
+```{r}
+
+# Extrahiere die GPT und OLMO Spalten für c_pre und pre
+gpt_columns_extract_prereg <- grep("^(c_pre|pre).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_extract_prereg <- gsub("_gpt$", "_olmo", gpt_columns_extract_prereg)
+
+# Überprüfen, ob die entsprechenden OLMO-Spalten existieren
+valid_gpt_columns_extract_prereg <- gpt_columns_extract_prereg[olmo_columns_extract_prereg %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_extract_prereg <- olmo_columns_extract_prereg[olmo_columns_extract_prereg %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_extract_prereg) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten für extract_prereg gefunden!")
+}
+
+# Daten für den Vergleich kombinieren und NA-Werte entfernen
+combined_data_extract_prereg <- data.frame()
+for(i in 1:length(valid_gpt_columns_extract_prereg)) {
+  combined_data_extract_prereg <- rbind(combined_data_extract_prereg, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns_extract_prereg[i]]],
+                                                                                OLMO = data_gpt_olmo_processed[[valid_olmo_columns_extract_prereg[i]]],
+                                                                                size_kb_prereg = data_gpt_olmo_processed$size_kb_prereg))
+}
+combined_data_extract_prereg <- na.omit(combined_data_extract_prereg)
+
+# Berechne die Terzile basierend auf der Spalte 'size_kb_prereg'
+tertile_cutoffs_prereg <- quantile(combined_data_extract_prereg$size_kb_prereg, probs = c(1/3, 2/3))
+
+# Einteilung in small, medium und large Terzile
+combined_data_extract_prereg$tertile_prereg <- cut(combined_data_extract_prereg$size_kb_prereg, 
+                                                  breaks = c(-Inf, tertile_cutoffs_prereg[1], tertile_cutoffs_prereg[2], Inf), 
+                                                  labels = c("small", "medium", "large"))
+
+# Funktion zum Berechnen von Cohen's Kappa für eine bestimmte Terzile
+compute_kappa_for_tertile_prereg <- function(data, tertile_label) {
+  # Filtere Daten für das gegebene Terzil
+  data_filtered <- subset(data, tertile_prereg == tertile_label)
+  
+  # Berechne Cohen's Kappa
+  kappa_result <- irr::kappa2(data_filtered[, c("GPT", "OLMO")], "unweighted")
+  
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement <- sum(data_filtered$GPT == data_filtered$OLMO) / nrow(data_filtered) * 100
+  
+  # Ergebnisse anzeigen
+  cat("Cohen's Kappa für", tertile_label, "in extract_prereg:\n")
+  cat("Kappa:", kappa_result$value, "\n")
+  cat("p-Wert:", kappa_result$p.value, "\n")
+  cat("z-Wert:", kappa_result$statistic, "\n")
+  cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n\n")
+}
+
+# Berechne Cohen's Kappa für small, medium und large in extract_prereg
+compute_kappa_for_tertile_prereg(combined_data_extract_prereg, "small")
+compute_kappa_for_tertile_prereg(combined_data_extract_prereg, "medium")
+compute_kappa_for_tertile_prereg(combined_data_extract_prereg, "large")
+
+
+```
+
+
+# kappa sample size nur extraction pubstud
+```{r}
+# Extrahiere die GPT und OLMO Spalten für c_pap und pap
+gpt_columns_extract_pubstud <- grep("^(c_pap|pap).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_extract_pubstud <- gsub("_gpt$", "_olmo", gpt_columns_extract_pubstud)
+
+# Überprüfen, ob die entsprechenden OLMO-Spalten existieren
+valid_gpt_columns_extract_pubstud <- gpt_columns_extract_pubstud[olmo_columns_extract_pubstud %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_extract_pubstud <- olmo_columns_extract_pubstud[olmo_columns_extract_pubstud %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_extract_pubstud) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten für extract_pubstud gefunden!")
+}
+
+# Daten für den Vergleich kombinieren und NA-Werte entfernen
+combined_data_extract_pubstud <- data.frame()
+for(i in 1:length(valid_gpt_columns_extract_pubstud)) {
+  combined_data_extract_pubstud <- rbind(combined_data_extract_pubstud, data.frame(GPT = data_gpt_olmo_processed[[valid_gpt_columns_extract_pubstud[i]]],
+                                                                                  OLMO = data_gpt_olmo_processed[[valid_olmo_columns_extract_pubstud[i]]],
+                                                                                  size_kb_pubstud = data_gpt_olmo_processed$size_kb_pubstud))
+}
+combined_data_extract_pubstud <- na.omit(combined_data_extract_pubstud)
+
+# Berechne die Terzile basierend auf der Spalte 'size_kb_pubstud'
+tertile_cutoffs_pubstud <- quantile(combined_data_extract_pubstud$size_kb_pubstud, probs = c(1/3, 2/3))
+
+# Einteilung in small, medium und large Terzile
+combined_data_extract_pubstud$tertile_pubstud <- cut(combined_data_extract_pubstud$size_kb_pubstud, 
+                                                    breaks = c(-Inf, tertile_cutoffs_pubstud[1], tertile_cutoffs_pubstud[2], Inf), 
+                                                    labels = c("small", "medium", "large"))
+
+# Funktion zum Berechnen von Cohen's Kappa für eine bestimmte Terzile
+compute_kappa_for_tertile_pubstud <- function(data, tertile_label) {
+  # Filtere Daten für das gegebene Terzil
+  data_filtered <- subset(data, tertile_pubstud == tertile_label)
+  
+  # Berechne Cohen's Kappa
+  kappa_result <- irr::kappa2(data_filtered[, c("GPT", "OLMO")], "unweighted")
+  
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement <- sum(data_filtered$GPT == data_filtered$OLMO) / nrow(data_filtered) * 100
+  
+  # Ergebnisse anzeigen
+  cat("Cohen's Kappa für", tertile_label, "in extract_pubstud:\n")
+  cat("Kappa:", kappa_result$value, "\n")
+  cat("p-Wert:", kappa_result$p.value, "\n")
+  cat("z-Wert:", kappa_result$statistic, "\n")
+  cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n\n")
+}
+
+# Berechne Cohen's Kappa für small, medium und large in extract_pubstud
+compute_kappa_for_tertile_pubstud(combined_data_extract_pubstud, "small")
+compute_kappa_for_tertile_pubstud(combined_data_extract_pubstud, "medium")
+compute_kappa_for_tertile_pubstud(combined_data_extract_pubstud, "large")
+
+
+
+```
+
+
+
+# 
+```{r}
+
+
+
+```
+
+
 
 
 ## 
