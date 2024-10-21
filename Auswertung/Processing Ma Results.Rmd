@@ -292,7 +292,7 @@ data_olmo_raw <- data_olmo_raw %>%
 
 ```{r}
 olmo_selected_columns <- c(
-  "psp", "coder", "pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pre_niv1_1", 
+  "psp",  "coder", "type" ,"pre_pre_mi1", "pre_mi1", "pre_iv1", "c_pre_iv1", "pre_niv1_1", 
   "pre_niv1_2", "pre_niv1_3", "pre_pre_mi2", "pre_mi2", "pre_iv2", "c_pre_iv2", 
   "pre_niv2_1", "pre_niv2_2", "pre_niv2_3", "pre_pre_mt", "pre_mt", "pre_tv", 
   "c_pre_tv", "pre_ntv_1", "pre_ntv_2", "pre_ntv_3", "pre_dv", "c_pre_dv", 
@@ -1535,6 +1535,14 @@ print(test_table)
 ```
 
 
+## number of trials for new
+
+```{r}
+
+
+
+```
+
 
 #File Size
 ## read data file size
@@ -1562,12 +1570,7 @@ ggplot(data_psp_filesize, aes(x = size_kb)) +
   labs(title = "Verteilung der Dateigrößen (in KB)", x = "Dateigröße (KB)", y = "Anzahl der Dateien") +
   theme_minimal()
 
-  # Optional: Boxplot für eine zusätzliche visuelle Darstellung der Verteilung
-  ggplot(data_psp_filesize, aes(y = size_kb)) +
-    geom_boxplot(fill = "lightgreen") +
-    labs(title = "Boxplot der Dateigrößen (in KB)", y = "Dateigröße (KB)") +
-    theme_minimal()
-
+  
 
 ```
 ## filesize sum

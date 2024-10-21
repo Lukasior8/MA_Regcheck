@@ -47,6 +47,8 @@ library(kableExtra)
 library(gt)
 library(irr)
 library(caret) 
+library(flextable)
+
 
 
 
@@ -75,7 +77,7 @@ data_gpt_ve_filtered <- data_gpt_ve_processed %>%
   filter(master_exclude != "exclude")
 
 ```
-# Category Counts
+# Category COUNTS
 ## category counts total
 
 hier noch die absoluten zahlen ohne.oo hinschreiben...
@@ -126,7 +128,7 @@ print(data_category_counts_total)
 
 
 
-### 3x3 confusionsmatrix
+### 3x3 confusionsmatrix absolut
 
 hier müsste ich evventuell noch zusätzlich die Anzahl vvon Olmo... als Vergleich.
 
@@ -174,6 +176,106 @@ print(confusion_matrix)
 bei den category counts total sieht man welche kategorie insgesamt viel verwendet wurde…. Aber halt nicht so aussagekräftig, da n kommt auch bei olmo seltener vor...ncith so aussagekräfitg... man müsste prozentual zu allen berechnungen( also dass y,n,x gleich häufig vorkommen) aber man sieht schon, dass nur ca 50 & richtig predictet... halt sehr schlecht... 
 
 
+
+
+
+###  confusion matrix absolut inkl. summen!
+```{r}
+# Konfusionsmatrix anzeigen
+print(confusion_matrix)
+
+# Berechnung der Summe der Zeilen und Spalten
+row_sums <- rowSums(confusion_matrix)  # Summe über die Zeilen (horizontal)
+col_sums <- colSums(confusion_matrix)  # Summe über die Spalten (vertikal)
+n_total <- sum(confusion_matrix)       # Gesamtsumme
+
+# Erstelle eine erweiterte Konfusionsmatrix, die Zeilen- und Spaltensummen enthält
+confusion_matrix_with_sums <- rbind(confusion_matrix, "Sum" = col_sums)  # Spaltensummen als neue Zeile hinzufügen
+confusion_matrix_with_sums <- cbind(confusion_matrix_with_sums, "Sum" = c(row_sums, n_total))  # Zeilensummen und Gesamtsumme hinzufügen
+
+# Ergebnis als Matrix anzeigen, um alle Summen zu überprüfen
+library(knitr)
+library(kableExtra)
+
+# Zeige die erweiterte Konfusionsmatrix mit Summen im APA-Stil an (ohne doppelte Kopfzeile)
+kable(confusion_matrix_with_sums, format = "html", caption = "Confusion Matrix with Row and Column Sums (APA style)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>%
+  row_spec(0, bold = TRUE, extra_css = "border-bottom: 1px solid black;") %>% # Horizontale Linie nach der Kopfzeile
+  row_spec(nrow(confusion_matrix_with_sums), extra_css = "border-top: 1px solid black;") # Linie über der letzten Zeile (Summe)
+
+```
+
+
+
+
+
+
+
+
+# confusionmatrix in percent
+```{r}
+# Angenommen, deine 2x11-Tabelle heißt "data_category_counts_total"
+# und enthält die Prozentsätze für jede Kategorie (z.B. Y, N, X).
+
+# Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
+actual_Y_in_percent <- data_category_counts_total$Identical_YES[2]  # Prozentsatz der Y-Zuordnungen
+actual_N_in_percent <- data_category_counts_total$Identical_NO[2]   # Prozentsatz der N-Zuordnungen
+actual_X_in_percent <- data_category_counts_total$Identical_X[2]    # Prozentsatz der X-Zuordnungen
+
+pred_Y_to_N_in_percent <- data_category_counts_total$Different_Y_to_N[2]  # Y -> N Prozentsatz
+pred_N_to_Y_in_percent <- data_category_counts_total$Different_N_to_Y[2]  # N -> Y Prozentsatz
+pred_Y_to_X_in_percent <- data_category_counts_total$GPT_Y_Olmo_X[2]      # Y -> X Prozentsatz
+pred_N_to_X_in_percent <- data_category_counts_total$GPT_N_Olmo_X[2]      # N -> X Prozentsatz
+pred_X_to_N_in_percent <- data_category_counts_total$GPT_X_Olmo_N[2]      # X -> N Prozentsatz
+pred_X_to_Y_in_percent <- data_category_counts_total$GPT_X_Olmo_Y[2]      # X -> Y Prozentsatz
+
+# Erstelle eine leere 3x3-Matrix
+confusion_matrix_in_percent <- matrix(0, nrow = 3, ncol = 3, 
+                           dimnames = list(c("Actual_Y", "Actual_N", "Actual_X"), 
+                                           c("Predicted_Y", "Predicted_N", "Predicted_X")))
+
+# Fülle die Konfusionsmatrix basierend auf den Prozentsätzen aus
+confusion_matrix_in_percent["Actual_Y", "Predicted_Y"] <- actual_Y_in_percent
+confusion_matrix_in_percent["Actual_N", "Predicted_N"] <- actual_N_in_percent
+confusion_matrix_in_percent["Actual_X", "Predicted_X"] <- actual_X_in_percent
+
+# Füge die 'False Positives' und 'False Negatives' hinzu
+confusion_matrix_in_percent["Actual_Y", "Predicted_N"] <- pred_Y_to_N_in_percent
+confusion_matrix_in_percent["Actual_N", "Predicted_Y"] <- pred_N_to_Y_in_percent
+confusion_matrix_in_percent["Actual_Y", "Predicted_X"] <- pred_Y_to_X_in_percent
+confusion_matrix_in_percent["Actual_X", "Predicted_Y"] <- pred_X_to_Y_in_percent
+confusion_matrix_in_percent["Actual_N", "Predicted_X"] <- pred_N_to_X_in_percent
+confusion_matrix_in_percent["Actual_X", "Predicted_N"] <- pred_X_to_N_in_percent
+
+# Ausgabe der 3x3 Konfusionsmatrix in Prozent
+print(confusion_matrix_in_percent)
+
+# Berechnung der Summe der Zeilen und Spalten
+row_sums_in_percent <- rowSums(confusion_matrix_in_percent)  # Summe über die Zeilen (horizontal)
+col_sums_in_percent <- colSums(confusion_matrix_in_percent)  # Summe über die Spalten (vertikal)
+n_total_in_percent <- sum(confusion_matrix_in_percent)       # Gesamtsumme
+
+# Erstelle eine erweiterte Konfusionsmatrix, die Zeilen- und Spaltensummen enthält
+confusion_matrix_with_sums_in_percent <- rbind(confusion_matrix_in_percent, "Sum" = col_sums_in_percent)  # Spaltensummen als neue Zeile hinzufügen
+confusion_matrix_with_sums_in_percent <- cbind(confusion_matrix_with_sums_in_percent, "Sum" = c(row_sums_in_percent, n_total_in_percent))  # Zeilensummen und Gesamtsumme hinzufügen
+
+# Ergebnis als Matrix anzeigen, um alle Summen zu überprüfen
+library(knitr)
+library(kableExtra)
+
+# Zeige die erweiterte Konfusionsmatrix mit Summen im APA-Stil an (ohne doppelte Kopfzeile)
+kable(confusion_matrix_with_sums_in_percent, format = "html", caption = "Confusion Matrix with Row and Column Sums (Percent, APA style)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>%
+  row_spec(0, bold = TRUE, extra_css = "border-bottom: 1px solid black;") %>% # Horizontale Linie nach der Kopfzeile
+  row_spec(nrow(confusion_matrix_with_sums_in_percent), extra_css = "border-top: 1px solid black;") # Linie über der letzten Zeile (Summe)
+
+
+```
+
+
+
+
+
 ## category counts per item
 
 ```{r}
@@ -211,7 +313,7 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 ```
 
-# sensitivity & specifity 
+# Quality MEASURES
 
 
 
@@ -257,16 +359,15 @@ sensitivity_X <- TP_X / (TP_X + FN_X)
 specificity_X <- TN_X / (TN_X + FP_X)
 precision_X <- TP_X / (TP_X + FP_X)
 
-# Ergebnisse in einer Tabelle anzeigen
+# Ergebnisse in einer Tabelle anzeigen und auf 2 Nachkommastellen runden
 results <- data.frame(
   Class = c("Y", "N", "X"),
-  Sensitivity = c(sensitivity_Y, sensitivity_N, sensitivity_X),
-  Specificity = c(specificity_Y, specificity_N, specificity_X),
-  Precision = c(precision_Y, precision_N, precision_X)
+  Sensitivity = round(c(sensitivity_Y, sensitivity_N, sensitivity_X), 2),
+  Specificity = round(c(specificity_Y, specificity_N, specificity_X), 2),
+  Precision = round(c(precision_Y, precision_N, precision_X), 2)
 )
 
 print(results)
-
 ```
 
 Sensitivity (Sensitivität) gibt an, wie gut das Modell positive Fälle (z.B. "Y") korrekt erkennt. Es ist das Verhältnis von richtig-positiven Vorhersagen zu allen tatsächlichen positiven Fällen. Höhere Werte zeigen eine bessere Erkennungsrate der positiven Fälle.
@@ -319,13 +420,6 @@ print(overall_results)
 
 
 
-## 
-
-```{r}
-
-
-
-```
 
 
 
@@ -340,7 +434,7 @@ print(overall_results)
 
 
 
-# Kappa retest
+# Kappa RETEST
 habe ich hier jeweils nur gpt genommen? oder auch olmo ausversehen?!
 
 ## test, retest korrelation Cohens Kappa per category
@@ -487,27 +581,16 @@ weighted macht heir absolut keinen sinn...
 p wert noch leer:/
 
 ```{r}
-# Step 1: Filter the dataset into test and retest subsets
-test_data <- comparison_data_processed %>% filter(test_retest == "Test")
-retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
-
-# Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest psp rows)
-retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
-
-# Step 3: Get all columns ending with '_comp'
-comp_columns <- grep("_comp$", names(comparison_data_processed), value = TRUE)
-
-# Schritt 4: Erstelle zwei Vektoren mit allen Test- und Retest-Werten aus den "_comp"-Spalten
-all_test_values <- unlist(retest_merged_data[paste0(comp_columns, "_test")])
-all_retest_values <- unlist(retest_merged_data[paste0(comp_columns, "_retest")])
-
-# Schritt 5: Berechne Cohen's Kappa für alle Daten zusammen mit dem irr-Paket
-kappa_result_all <- kappa2(data.frame(all_test_values, all_retest_values), "unweighted")
-
-# Extrahiere den Kappa-Wert und den p-Wert
-kappa_value <- kappa_result_all$value
-p_value <- kappa_result_all$p.value
-agreement_percentage <- mean(all_test_values == all_retest_values, na.rm = TRUE) * 100
+# Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen's Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, se_kappa) {
+  if (!is.na(se_kappa)) {
+    ci_lower <- kappa_value - 1.96 * se_kappa
+    ci_upper <- kappa_value + 1.96 * se_kappa
+    return(c(ci_lower, ci_upper))
+  } else {
+    return(c(NA, NA))  # Kein CI, falls SE nicht berechnet werden kann
+  }
+}
 
 # Berechnung der erwarteten Übereinstimmung (p_e)
 test_table <- table(all_test_values, all_retest_values)
@@ -528,17 +611,23 @@ if (p_e == 1) {
   z_value <- kappa_value / se_kappa
 }
 
-# Schritt 6: Zeige das Gesamtergebnis an und füge `n` als zusätzliche Information ein
+# Berechne das 95%-Konfidenzintervall für Cohen's Kappa
+ci_kappa <- calculate_kappa_confidence_interval(kappa_value, se_kappa)
+
+# Schritt 6: Zeige das Gesamtergebnis an, einschließlich des Konfidenzintervalls
 retest_kappa_all_summary <- data.frame(
   Kappa = kappa_value,
   Agreement_Percentage = agreement_percentage,
   z_value = z_value,
   p_value = p_value,
+  CI_Lower = ci_kappa[1],
+  CI_Upper = ci_kappa[2],
   n = n  # Anzahl der Beobachtungen
 )
 
 # Zeige das Gesamtergebnis an
 print(retest_kappa_all_summary)
+
 
 ```
 naja z wert und p wert muss ich noch anschauen...
@@ -612,12 +701,13 @@ formattable(retest_kappa_summary_overview, list(
 
 
 
-#Kappa interrater gpt zu olmo
+#Kappa INTERRATER gpt zu olmo
 
 
-- wieso anderes kappa als? bei jamovi?
+- 
 - sollte ich im gesamten script die selbe mehto wählen?
 - wie ist die differenz zu interpretieren?
+- kann man es überhaupt ausrechnen für die text variablen? also etwa die einzigen guten kapps?--> nein das muss ich noch anschauen...
 
 ## Kappa interrater gpt zu olmo per category
 
@@ -665,7 +755,7 @@ print(kappa_results)
 ```
 
 
-#achtung kappa result und results!!
+achtung kappa result und results!!
 
 
 ##Kappa interrater gpt zu olmo  per category 2. ansatz
@@ -714,10 +804,120 @@ print(kappa_results_v2)
 ```
 
 
+
+
+
+## Average kappa over categories...
+
+
+hmm ich dachte dies sollte gleich hoch sein wie kappa total?
+```{r}
+# Überprüfen, ob die Spalte "Kappa" im Datensatz kappa_results existiert
+if("Kappa" %in% colnames(kappa_results)) {
+  # Berechne den Durchschnitt der Spalte Kappa
+  Average_Kappa_over_categories <- mean(kappa_results$Kappa, na.rm = TRUE)
+  
+  # Ausgabe des Ergebnisses
+  cat("Durchschnittlicher Kappa-Wert über alle Kategorien:", Average_Kappa_over_categories, "\n")
+} else {
+  stop("Die Spalte 'Kappa' existiert nicht im Datensatz kappa_results!")
+}
+
+
+```
+
+
+
+
+# 
+```{r}
+
+
+```
+
+
+
+
+# Kappa interrater gpt zu olmo  per category 3. ansatz
+```{r}
+# Spalten mit _gpt und _olmo suffix finden
+gpt_columns_per_item_v3 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_per_item_v3 <- gsub("_gpt$", "_olmo", gpt_columns_per_item_v3)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns_per_item_v3 <- gpt_columns_per_item_v3[olmo_columns_per_item_v3 %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_per_item_v3 <- olmo_columns_per_item_v3[olmo_columns_per_item_v3 %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_per_item_v3) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Erstelle einen DataFrame, um die Ergebnisse für jede Spalte zu speichern
+kappa_results_per_item_v3 <- data.frame(Item = character(),
+                                        Kappa = numeric(),
+                                        P_Value = numeric(),
+                                        Z_Value = numeric(),
+                                        Percent_Agreement = numeric(),
+                                        stringsAsFactors = FALSE)
+
+# Berechnung für jede Spalte einzeln
+for(i in 1:length(valid_gpt_columns_per_item_v3)) {
+  gpt_column_per_item_v3 <- data_gpt_olmo_processed[[valid_gpt_columns_per_item_v3[i]]]
+  olmo_column_per_item_v3 <- data_gpt_olmo_processed[[valid_olmo_columns_per_item_v3[i]]]
+  
+  # Kombiniere GPT und OLMO Spalten für den Vergleich
+  combined_data_per_item_v3 <- data.frame(GPT = gpt_column_per_item_v3,
+                                          OLMO = olmo_column_per_item_v3)
+
+  # Entferne NA-Werte
+  combined_data_per_item_v3 <- na.omit(combined_data_per_item_v3)
+  
+  # Berechne Cohen's Kappa
+  kappa_result_per_item_v3 <- irr::kappa2(combined_data_per_item_v3, "unweighted")
+  
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement_per_item_v3 <- sum(combined_data_per_item_v3$GPT == combined_data_per_item_v3$OLMO) / nrow(combined_data_per_item_v3) * 100
+  
+  # Ergebnisse in den DataFrame hinzufügen
+  kappa_results_per_item_v3 <- rbind(kappa_results_per_item_v3, data.frame(Item = valid_gpt_columns_per_item_v3[i],
+                                                                           Kappa = kappa_result_per_item_v3$value,
+                                                                           P_Value = kappa_result_per_item_v3$p.value,
+                                                                           Z_Value = kappa_result_per_item_v3$statistic,
+                                                                           Percent_Agreement = percent_agreement_per_item_v3))
+}
+
+# Ergebnisse anzeigen
+print(kappa_results_per_item_v3)
+
+
+```
+
+
+
+
+# 
+```{r}
+
+
+```
+
+
+
 # gpt /olmo interrater nur comparison/nur extraction  prompt (gesamtdatenset)
 
 
 ```{r}
+# Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen's Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, se_kappa) {
+  if (!is.na(se_kappa)) {
+    ci_lower <- kappa_value - 1.96 * se_kappa
+    ci_upper <- kappa_value + 1.96 * se_kappa
+    return(c(ci_lower, ci_upper))
+  } else {
+    return(c(NA, NA))  # Kein CI, falls SE nicht berechnet werden kann
+  }
+}
 
 # Extrahiere die GPT und OLMO Spalten für beide Vergleiche (Extraction und Comparison)
 gpt_columns_extract <- grep("^(c_pre|pre|c_pap|pap).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
@@ -762,23 +962,59 @@ combined_data_comp <- na.omit(combined_data_comp)
 # Berechne Cohen's Kappa für Extraction
 kappa_result_extract <- irr::kappa2(combined_data_extract, "unweighted")
 percent_agreement_extract <- sum(combined_data_extract$GPT == combined_data_extract$OLMO) / nrow(combined_data_extract) * 100
+n_extract <- nrow(combined_data_extract)
+
+# Berechnung des Standardfehlers für Extraction
+p_e_extract <- sum(rowSums(table(combined_data_extract$GPT, combined_data_extract$OLMO)) * colSums(table(combined_data_extract$GPT, combined_data_extract$OLMO))) / (n_extract^2)
+p_0_extract <- percent_agreement_extract / 100
+
+if (p_e_extract == 1) {
+  se_kappa_extract <- NA
+  z_value_extract <- NA
+} else {
+  se_kappa_extract <- sqrt((p_0_extract * (1 - p_0_extract)) / (n_extract * (1 - p_e_extract)^2))
+  z_value_extract <- kappa_result_extract$value / se_kappa_extract
+}
+
+# Konfidenzintervall für Kappa (Extraction)
+ci_extract <- calculate_kappa_confidence_interval(kappa_result_extract$value, se_kappa_extract)
 
 # Berechne Cohen's Kappa für Comparison
 kappa_result_comp <- irr::kappa2(combined_data_comp, "unweighted")
 percent_agreement_comp <- sum(combined_data_comp$GPT == combined_data_comp$OLMO) / nrow(combined_data_comp) * 100
+n_comp <- nrow(combined_data_comp)
+
+# Berechnung des Standardfehlers für Comparison
+p_e_comp <- sum(rowSums(table(combined_data_comp$GPT, combined_data_comp$OLMO)) * colSums(table(combined_data_comp$GPT, combined_data_comp$OLMO))) / (n_comp^2)
+p_0_comp <- percent_agreement_comp / 100
+
+if (p_e_comp == 1) {
+  se_kappa_comp <- NA
+  z_value_comp <- NA
+} else {
+  se_kappa_comp <- sqrt((p_0_comp * (1 - p_0_comp)) / (n_comp * (1 - p_e_comp)^2))
+  z_value_comp <- kappa_result_comp$value / se_kappa_comp
+}
+
+# Konfidenzintervall für Kappa (Comparison)
+ci_comp <- calculate_kappa_confidence_interval(kappa_result_comp$value, se_kappa_comp)
 
 # Ergebnisse anzeigen
 cat("Cohen's Kappa für Extraction (gesamt_kappa_extraction):\n")
 cat("Kappa:", kappa_result_extract$value, "\n")
+cat("95%-Konfidenzintervall:", sprintf("[%.3f, %.3f]", ci_extract[1], ci_extract[2]), "\n")
 cat("p-Wert:", kappa_result_extract$p.value, "\n")
-cat("z-Wert:", kappa_result_extract$statistic, "\n")
+cat("z-Wert:", z_value_extract, "\n")
 cat("Prozentuale Übereinstimmung:", percent_agreement_extract, "%\n")
+cat("Anzahl der Vergleiche (n):", n_extract, "\n")
 
 cat("\nCohen's Kappa für Comparison (gesamt_kappa_comparison):\n")
 cat("Kappa:", kappa_result_comp$value, "\n")
+cat("95%-Konfidenzintervall:", sprintf("[%.3f, %.3f]", ci_comp[1], ci_comp[2]), "\n")
 cat("p-Wert:", kappa_result_comp$p.value, "\n")
-cat("z-Wert:", kappa_result_comp$statistic, "\n")
+cat("z-Wert:", z_value_comp, "\n")
 cat("Prozentuale Übereinstimmung:", percent_agreement_comp, "%\n")
+cat("Anzahl der Vergleiche (n):", n_comp, "\n")
 
 
 ```
@@ -787,8 +1023,18 @@ cat("Prozentuale Übereinstimmung:", percent_agreement_comp, "%\n")
 ## Kappa interrater gpt zu olmo gesamt
 
 ```{r}
+# Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen's Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, se_kappa) {
+  if (!is.na(se_kappa)) {
+    ci_lower <- kappa_value - 1.96 * se_kappa
+    ci_upper <- kappa_value + 1.96 * se_kappa
+    return(c(ci_lower, ci_upper))
+  } else {
+    return(c(NA, NA))  # Kein CI, falls SE nicht berechnet werden kann
+  }
+}
 
-# Spalten mit _gpt und _olmo suffix finden
+# Spalten mit _gpt und _olmo Suffix finden
 gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
 
@@ -815,16 +1061,35 @@ combined_data <- na.omit(combined_data)
 
 # Berechne Cohen's Kappa für den gesamten Test
 kappa_result <- irr::kappa2(combined_data, "unweighted")
+n_total <- nrow(combined_data)  # Anzahl der Vergleiche
 
 # Berechne den Prozentsatz der Übereinstimmung
-percent_agreement <- sum(combined_data$GPT == combined_data$OLMO) / nrow(combined_data) * 100
+percent_agreement <- sum(combined_data$GPT == combined_data$OLMO) / n_total * 100
+
+# Berechnung des Standardfehlers
+p_e <- sum(rowSums(table(combined_data$GPT, combined_data$OLMO)) * colSums(table(combined_data$GPT, combined_data$OLMO))) / (n_total^2)
+p_0 <- percent_agreement / 100
+
+if (p_e == 1) {
+  se_kappa <- NA
+  z_value <- NA
+} else {
+  se_kappa <- sqrt((p_0 * (1 - p_0)) / (n_total * (1 - p_e)^2))
+  z_value <- kappa_result$value / se_kappa
+}
+
+# Berechne das 95%-Konfidenzintervall für Kappa
+ci_kappa <- calculate_kappa_confidence_interval(kappa_result$value, se_kappa)
 
 # Ergebnisse anzeigen
 cat("Cohen's Kappa für den gesamten Test:\n")
 cat("Kappa:", kappa_result$value, "\n")
+cat("95%-Konfidenzintervall:", sprintf("[%.3f, %.3f]", ci_kappa[1], ci_kappa[2]), "\n")
 cat("p-Wert:", kappa_result$p.value, "\n")
-cat("z-Wert:", kappa_result$statistic, "\n")
+cat("z-Wert:", z_value, "\n")
 cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n")
+cat("Anzahl der Vergleiche (n):", n_total, "\n")
+
 
 
 ```
@@ -837,7 +1102,18 @@ cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n")
 hier noch n reinnehmen
 
 ```{r}
-# Spalten mit _gpt und _olmo suffix finden
+# Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen's Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, se_kappa) {
+  if (!is.na(se_kappa)) {
+    ci_lower <- kappa_value - 1.96 * se_kappa
+    ci_upper <- kappa_value + 1.96 * se_kappa
+    return(c(ci_lower, ci_upper))
+  } else {
+    return(c(NA, NA))  # Kein CI, falls SE nicht berechnet werden kann
+  }
+}
+
+# Spalten mit _gpt und _olmo Suffix finden
 gpt_columns_PromptV <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns_PromptV <- gsub("_gpt$", "_olmo", gpt_columns_PromptV)
 
@@ -872,31 +1148,93 @@ for (version_PromptV in versions_PromptV) {
   
   # Berechne Cohen's Kappa für die aktuelle Version
   kappa_result_PromptV <- irr::kappa2(combined_data_PromptV, "unweighted")
+  n_PromptV <- nrow(combined_data_PromptV)  # Anzahl der Vergleiche
   
   # Berechne den Prozentsatz der Übereinstimmung
-  percent_agreement_PromptV <- sum(combined_data_PromptV$GPT == combined_data_PromptV$OLMO) / nrow(combined_data_PromptV) * 100
+  percent_agreement_PromptV <- sum(combined_data_PromptV$GPT == combined_data_PromptV$OLMO) / n_PromptV * 100
+  
+  # Berechnung des Standardfehlers
+  p_e_PromptV <- sum(rowSums(table(combined_data_PromptV$GPT, combined_data_PromptV$OLMO)) * colSums(table(combined_data_PromptV$GPT, combined_data_PromptV$OLMO))) / (n_PromptV^2)
+  p_0_PromptV <- percent_agreement_PromptV / 100
+  
+  if (p_e_PromptV == 1) {
+    se_kappa_PromptV <- NA
+    z_value_PromptV <- NA
+  } else {
+    se_kappa_PromptV <- sqrt((p_0_PromptV * (1 - p_0_PromptV)) / (n_PromptV * (1 - p_e_PromptV)^2))
+    z_value_PromptV <- kappa_result_PromptV$value / se_kappa_PromptV
+  }
+  
+  # Berechne das 95%-Konfidenzintervall für Kappa
+  ci_kappa_PromptV <- calculate_kappa_confidence_interval(kappa_result_PromptV$value, se_kappa_PromptV)
   
   # Ergebnisse anzeigen
   cat("\nCohen's Kappa für Version", version_PromptV, ":\n")
   cat("Kappa:", kappa_result_PromptV$value, "\n")
+  cat("95%-Konfidenzintervall:", sprintf("[%.3f, %.3f]", ci_kappa_PromptV[1], ci_kappa_PromptV[2]), "\n")
   cat("p-Wert:", kappa_result_PromptV$p.value, "\n")
-  cat("z-Wert:", kappa_result_PromptV$statistic, "\n")
+  cat("z-Wert:", z_value_PromptV, "\n")
   cat("Prozentuale Übereinstimmung:", percent_agreement_PromptV, "%\n")
+  cat("Anzahl der Vergleiche (n):", n_PromptV, "\n")
 }
+
 
 
 
 ```
 
 
-## differenz zw promt versionen? 
+
+
+
+## kappa interrater gpt olmo zusammengefügt
+
+```{r}
+
+
+# Erstelle den DataFrame mit den Kappa-Ergebnissen, Zahlen auf 2 Nachkommastellen gerundet
+kappas_total_zusammengeführt <- data.frame(
+  Test = c("Gesamter Test", "Extraction", "Comparison", "Version A", "Version B", "Version C", "Version D"),
+  Kappa = round(c(0.3129825, 0.312971, 0.2757249, 0.2820128, 0.2892539, 0.2424722, 0.333917), 2),
+  CI_Lower = round(c(0.308, 0.307, 0.260, 0.266, 0.276, 0.226, 0.328), 2),
+  CI_Upper = round(c(0.318, 0.319, 0.292, 0.298, 0.303, 0.259, 0.340), 2),
+  Percent_Agreement = round(c(54.92, 53.31, 58.65, 51.50, 51.84, 48.29, 57.11), 2),
+  N_Comparisons = c(36955, 25831, 11124, 3590, 5374, 3703, 24288)
+)
+
+# Erstelle die Tabelle mit flextable
+ft <- flextable(kappas_total_zusammengeführt)
+
+# Setze die Spaltenüberschriften im APA-Stil
+ft <- set_header_labels(ft, 
+                        Test = "Test",
+                        Kappa = "Kappa",
+                        CI_Lower = "95% CI Lower",
+                        CI_Upper = "95% CI Upper",
+                        Percent_Agreement = "Percent Agreement (%)",
+                        N_Comparisons = "N")
+
+# Wende APA-konforme Formatierung an
+ft <- theme_vanilla(ft) # Minimalistisches Design ohne vertikale Linien
+ft <- fontsize(ft, part = "all", size = 12) # Schriftgröße auf 12 setzen
+ft <- bold(ft, part = "header") # Kopfzeile fett machen
+ft <- align(ft, part = "all", align = "center") # Text zentrieren
+ft <- autofit(ft) # Automatisch die Spaltenbreiten anpassen
+
+# Optional: Tabelle als Word-Dokument speichern
+# save_as_docx(ft, path = "kappas_total_zusammengeführt.docx")
+
+# Zeige die Tabelle an
+ft
+
+
+
+```
 
 
 
 
-
-
-# Kappa nur y & n 
+# Kappa NUR Y & N 
 
 ## kappa y_n all categories
 
@@ -982,53 +1320,102 @@ print(kappa_results_filtered_debug)
 
 ```{r}
 
+# Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen's Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, se_kappa) {
+  if (!is.na(se_kappa)) {
+    ci_lower <- kappa_value - 1.96 * se_kappa
+    ci_upper <- kappa_value + 1.96 * se_kappa
+    return(c(ci_lower, ci_upper))
+  } else {
+    return(c(NA, NA))  # Kein CI, falls SE nicht berechnet werden kann
+  }
+}
 
-# Function to calculate Cohen's Kappa, p-value, z-value, percentage agreement, and number of comparisons over all columns
+# Funktion zur Berechnung des Standardfehlers und der erwarteten Übereinstimmung
+calculate_standard_error <- function(data) {
+  # Erstelle die Kontingenztabelle
+  contingency_table <- table(data$GPT, data$OLMO)
+  
+  # Berechne die Zeilen- und Spaltensummen der Kontingenztabelle
+  row_sums <- rowSums(contingency_table)
+  col_sums <- colSums(contingency_table)
+  
+  # Anzahl der Paare
+  n <- sum(contingency_table)
+  
+  # Berechnung der erwarteten Übereinstimmung (p_e)
+  p_e <- sum(row_sums * col_sums) / (n^2)
+  
+  # Berechne den beobachteten Prozentsatz der Übereinstimmung (p_0)
+  percent_agreement <- sum(diag(contingency_table)) / n * 100
+  p_0 <- percent_agreement / 100
+  
+  return(list(p_e = p_e, p_0 = p_0, n = n))
+}
+
+# Funktion zur Berechnung von Cohen's Kappa, p-Wert, z-Wert, prozentuale Übereinstimmung, Anzahl der Vergleiche und Konfidenzintervall
 calculate_overall_kappa <- function(data, gpt_columns, olmo_columns) {
-  # Create an empty dataframe to store all relevant rows for comparison
+  # Erstelle einen leeren DataFrame für die relevanten Vergleichswerte
   combined_data <- data.frame(GPT = character(), OLMO = character(), stringsAsFactors = FALSE)
   
-  # Loop over each pair of GPT and OLMO columns to collect valid cells
+  # Schleife über alle GPT und OLMO Spalten, um gültige Zeilen zu sammeln
   for (i in 1:length(gpt_columns)) {
     if (gpt_columns[i] %in% colnames(data) & olmo_columns[i] %in% colnames(data)) {
-      # Filter only rows where the OLMO value is "Y" or "N"
+      # Filtere nur Zeilen, in denen der OLMO-Wert "y" oder "n" ist
       valid_rows <- data[data[[olmo_columns[i]]] %in% c("y", "n"), ]
       
-      # Select the relevant GPT and OLMO values and remove NA values
+      # Wähle die relevanten GPT- und OLMO-Werte aus und entferne NA-Werte
       valid_rows <- valid_rows[!is.na(valid_rows[[gpt_columns[i]]]) & !is.na(valid_rows[[olmo_columns[i]]]), ]
       
-      # Combine the valid GPT and OLMO values into the combined dataframe
+      # Füge die gültigen GPT- und OLMO-Werte in den kombinierten DataFrame ein
       combined_data <- rbind(combined_data, data.frame(GPT = valid_rows[[gpt_columns[i]]], OLMO = valid_rows[[olmo_columns[i]]]))
     }
   }
   
-  # Check if there are enough data points to calculate Kappa
+  # Überprüfe, ob genügend Datenpunkte vorhanden sind, um Kappa zu berechnen
   if (nrow(combined_data) > 0) {
-    # Calculate Cohen's Kappa over all the combined cells
+    # Berechne Cohen's Kappa über alle kombinierten Zellen
     kappa_result <- irr::kappa2(combined_data, "unweighted")
     
-    # Extract values
+    # Extrahiere Kappa-Wert, p-Wert und z-Wert
     kappa_value <- kappa_result$value
     p_value <- kappa_result$p.value
     z_value <- kappa_result$statistic
     percent_agreement <- sum(combined_data$GPT == combined_data$OLMO) / nrow(combined_data) * 100
+    n_comparisons <- nrow(combined_data)
     
-    # Return the results including the number of comparisons (N)
-    return(data.frame(Kappa_Gesamt = kappa_value, P_Value = p_value, Z_Value = z_value, Percent_Agreement = percent_agreement, N_Comparisons = nrow(combined_data)))
+    # Berechne den Standardfehler und die erwartete Übereinstimmung
+    agreement_info <- calculate_standard_error(combined_data)
+    p_e <- agreement_info$p_e
+    p_0 <- agreement_info$p_0
+    
+    # Berechne den Standardfehler
+    if (p_e == 1) {
+      se_kappa <- NA
+    } else {
+      se_kappa <- sqrt((p_0 * (1 - p_0)) / (n_comparisons * (1 - p_e)^2))
+    }
+    
+    # Berechne das 95%-Konfidenzintervall für Kappa
+    ci_kappa <- calculate_kappa_confidence_interval(kappa_value, se_kappa)
+    
+    # Rückgabe der Ergebnisse einschließlich des Konfidenzintervalls
+    return(data.frame(Kappa_Gesamt = kappa_value, P_Value = p_value, Z_Value = z_value, Percent_Agreement = percent_agreement, 
+                      N_Comparisons = n_comparisons, CI_Lower = ci_kappa[1], CI_Upper = ci_kappa[2]))
   } else {
-    # Return NA if no valid comparisons are available
-    return(data.frame(Kappa_Gesamt = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA, N_Comparisons = 0))
+    # Rückgabe von NA, wenn keine gültigen Vergleiche vorhanden sind
+    return(data.frame(Kappa_Gesamt = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA, N_Comparisons = 0, CI_Lower = NA, CI_Upper = NA))
   }
 }
 
-# Get all columns that have _gpt or _olmo suffix
+# Hole alle Spalten mit _gpt oder _olmo Suffix
 gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
 
-# Calculate the overall Kappa over all relevant cells
+# Berechne das Gesamtkappa über alle relevanten Zellen
 kappa_gesamt_yn <- calculate_overall_kappa(data_gpt_olmo_processed, gpt_columns, olmo_columns)
 
-# Show the overall result
+# Zeige das Gesamtergebnis an
 print(kappa_gesamt_yn)
 
 
@@ -1054,7 +1441,7 @@ und noch schauen ob es einen unterschied macht ob experiment oder nicht....)
 
 ```
 
-# new!
+# NEW
 ## kappa new per category
 ```{r}
 
@@ -1112,9 +1499,22 @@ print(results_ve)
 ```
 p sind nicht signifikant?!
 
-## kappa ve totat
+## kappa ve total
 ```{r}
-
+# Funktion zur Berechnung des Konfidenzintervalls für Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, n, alpha = 0.05) {
+  # Standardfehler von Kappa
+  standard_error <- sqrt((1 - kappa_value^2) / n)
+  
+  # Z-Wert für das gewünschte Konfidenzniveau (z.B. 95%)
+  z_value <- qnorm(1 - alpha / 2)
+  
+  # Berechnung der unteren und oberen Grenze des Konfidenzintervalls
+  ci_lower <- kappa_value - z_value * standard_error
+  ci_upper <- kappa_value + z_value * standard_error
+  
+  return(c(ci_lower, ci_upper))
+}
 
 # Daten filtern: Nur Zeilen behalten, die nicht "exclude" in master_exclude haben
 data_gpt_ve_total_filtered <- data_gpt_ve_processed %>%
@@ -1149,19 +1549,24 @@ for (variable in variables_to_compare_ve_total) {
 kappa_obj_ve_total <- kappa2(combined_data_ve_total)
 kappa_value_ve_total <- kappa_obj_ve_total$value
 
+# Berechnung des Konfidenzintervalls für Kappa (manuell)
+ci_kappa_ve_total <- calculate_kappa_confidence_interval(kappa_value_ve_total, nrow(combined_data_ve_total))
+
 # Berechnung zusätzlicher Kennzahlen
 n_comparisons_ve_total <- nrow(combined_data_ve_total)  # Anzahl der Vergleiche (N)
 agreement_percent_ve_total <- mean(combined_data_ve_total$GPT_Rating_ve_total == combined_data_ve_total$Olmo_Rating_ve_total) * 100
 z_value_ve_total <- kappa_obj_ve_total$statistic  # Z-Wert aus dem Kappa-Objekt
 p_value_ve_total <- kappa_obj_ve_total$p.value    # p-Wert aus dem Kappa-Objekt
 
-# Ausgabe der Ergebnisse
+# Ergebnisse auf 2 Nachkommastellen runden
 results_ve_total <- data.frame(Variable_ve_total = "Overall",
-                               Kappa_ve_total = kappa_value_ve_total,
+                               Kappa_ve_total = round(kappa_value_ve_total, 2),
+                               CI_Lower_ve_total = round(ci_kappa_ve_total[1], 2),  # Untere Grenze des CIs
+                               CI_Upper_ve_total = round(ci_kappa_ve_total[2], 2),  # Obere Grenze des CIs
                                N_ve_total = n_comparisons_ve_total,
-                               Agreement_Percent_ve_total = agreement_percent_ve_total,
-                               Z_Value_ve_total = z_value_ve_total,
-                               P_Value_ve_total = p_value_ve_total)
+                               Agreement_Percent_ve_total = round(agreement_percent_ve_total, 2),
+                               Z_Value_ve_total = round(z_value_ve_total, 2),
+                               P_Value_ve_total = round(p_value_ve_total, 2))
 
 print(results_ve_total)
 
@@ -1300,7 +1705,7 @@ print(paste("Fricke's Ü-Koeffizient (ve_total):", round(fricke_ue_value, 4)))
 test_data_ve <- data_gpt_ve_filtered %>% filter(test_retest == "Test")
 retest_data_ve <- data_gpt_ve_filtered %>% filter(test_retest == "RETEST")
 
-# Step 2: Match test and retest based on 'psp' (this will contain only the 30 test-retest psp rows)
+# Step 2: Match test and retest based on 'psp' (this will contain only the  test-retest psp rows)
 retest_merged_data_ve <- merge(test_data_ve, retest_data_ve, by = "psp", suffixes = c("_test_ve", "_retest_ve"))
 
 # Step 3: Get all columns ending with '-gpt' or '_gpt'
@@ -1375,10 +1780,25 @@ print(retest_kappa_all_ve)
 weighted macht heir absolut keinen sinn...
 
 
+# SAMPLE SIZE...
 
-
-# kappa sample size...
+## kappa sample size comp match
 ```{r}
+# Funktion zur Berechnung des Konfidenzintervalls für Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, n, alpha = 0.05) {
+  # Standardfehler von Kappa
+  standard_error <- sqrt((1 - kappa_value^2) / n)
+  
+  # Z-Wert für das gewünschte Konfidenzniveau (z.B. 95%)
+  z_value <- qnorm(1 - alpha / 2)
+  
+  # Berechnung der unteren und oberen Grenze des Konfidenzintervalls
+  ci_lower <- kappa_value - z_value * standard_error
+  ci_upper <- kappa_value + z_value * standard_error
+  
+  return(c(ci_lower, ci_upper))
+}
+
 # Vergleichs-Spalten für c_match und match extrahieren
 gpt_columns_comp <- grep("^(c_match|match).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns_comp <- gsub("_gpt$", "_olmo", gpt_columns_comp)
@@ -1416,16 +1836,21 @@ compute_kappa_for_tertile <- function(data, tertile_label) {
   
   # Berechne Cohen's Kappa
   kappa_result <- irr::kappa2(data_filtered[, c("GPT", "OLMO")], "unweighted")
+  kappa_value <- kappa_result$value
+  
+  # Berechne das Konfidenzintervall
+  ci_kappa <- calculate_kappa_confidence_interval(kappa_value, nrow(data_filtered))
   
   # Berechne den Prozentsatz der Übereinstimmung
   percent_agreement <- sum(data_filtered$GPT == data_filtered$OLMO) / nrow(data_filtered) * 100
   
-  # Ergebnisse anzeigen
+  # Ergebnisse runden und anzeigen
   cat("Cohen's Kappa für", tertile_label, ":\n")
-  cat("Kappa:", kappa_result$value, "\n")
-  cat("p-Wert:", kappa_result$p.value, "\n")
-  cat("z-Wert:", kappa_result$statistic, "\n")
-  cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n\n")
+  cat("Kappa:", round(kappa_value, 2), "\n")
+  cat("Konfidenzintervall:", round(ci_kappa[1], 2), "-", round(ci_kappa[2], 2), "\n")
+  cat("p-Wert:", round(kappa_result$p.value, 2), "\n")
+  cat("z-Wert:", round(kappa_result$statistic, 2), "\n")
+  cat("Prozentuale Übereinstimmung:", round(percent_agreement, 2), "%\n\n")
 }
 
 # Berechne Cohen's Kappa für small, medium und large
@@ -1439,8 +1864,22 @@ compute_kappa_for_tertile(combined_data_comp, "large")
 
 
 
-# kappa sample size nur exgtraction prereg
+## kappa sample size nur exgtraction prereg
 ```{r}
+# Funktion zur Berechnung des Konfidenzintervalls für Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, n, alpha = 0.05) {
+  # Standardfehler von Kappa
+  standard_error <- sqrt((1 - kappa_value^2) / n)
+  
+  # Z-Wert für das gewünschte Konfidenzniveau (z.B. 95%)
+  z_value <- qnorm(1 - alpha / 2)
+  
+  # Berechnung der unteren und oberen Grenze des Konfidenzintervalls
+  ci_lower <- kappa_value - z_value * standard_error
+  ci_upper <- kappa_value + z_value * standard_error
+  
+  return(c(ci_lower, ci_upper))
+}
 
 # Extrahiere die GPT und OLMO Spalten für c_pre und pre
 gpt_columns_extract_prereg <- grep("^(c_pre|pre).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
@@ -1479,16 +1918,21 @@ compute_kappa_for_tertile_prereg <- function(data, tertile_label) {
   
   # Berechne Cohen's Kappa
   kappa_result <- irr::kappa2(data_filtered[, c("GPT", "OLMO")], "unweighted")
+  kappa_value <- kappa_result$value
+  
+  # Berechne das Konfidenzintervall
+  ci_kappa <- calculate_kappa_confidence_interval(kappa_value, nrow(data_filtered))
   
   # Berechne den Prozentsatz der Übereinstimmung
   percent_agreement <- sum(data_filtered$GPT == data_filtered$OLMO) / nrow(data_filtered) * 100
   
-  # Ergebnisse anzeigen
+  # Ergebnisse runden und anzeigen
   cat("Cohen's Kappa für", tertile_label, "in extract_prereg:\n")
-  cat("Kappa:", kappa_result$value, "\n")
-  cat("p-Wert:", kappa_result$p.value, "\n")
-  cat("z-Wert:", kappa_result$statistic, "\n")
-  cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n\n")
+  cat("Kappa:", round(kappa_value, 2), "\n")
+  cat("Konfidenzintervall:", round(ci_kappa[1], 2), "-", round(ci_kappa[2], 2), "\n")
+  cat("p-Wert:", round(kappa_result$p.value, 2), "\n")
+  cat("z-Wert:", round(kappa_result$statistic, 2), "\n")
+  cat("Prozentuale Übereinstimmung:", round(percent_agreement, 2), "%\n\n")
 }
 
 # Berechne Cohen's Kappa für small, medium und large in extract_prereg
@@ -1500,8 +1944,23 @@ compute_kappa_for_tertile_prereg(combined_data_extract_prereg, "large")
 ```
 
 
-# kappa sample size nur extraction pubstud
+## kappa sample size nur extraction pubstud
 ```{r}
+# Funktion zur Berechnung des Konfidenzintervalls für Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, n, alpha = 0.05) {
+  # Standardfehler von Kappa
+  standard_error <- sqrt((1 - kappa_value^2) / n)
+  
+  # Z-Wert für das gewünschte Konfidenzniveau (z.B. 95%)
+  z_value <- qnorm(1 - alpha / 2)
+  
+  # Berechnung der unteren und oberen Grenze des Konfidenzintervalls
+  ci_lower <- kappa_value - z_value * standard_error
+  ci_upper <- kappa_value + z_value * standard_error
+  
+  return(c(ci_lower, ci_upper))
+}
+
 # Extrahiere die GPT und OLMO Spalten für c_pap und pap
 gpt_columns_extract_pubstud <- grep("^(c_pap|pap).*_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns_extract_pubstud <- gsub("_gpt$", "_olmo", gpt_columns_extract_pubstud)
@@ -1539,16 +1998,21 @@ compute_kappa_for_tertile_pubstud <- function(data, tertile_label) {
   
   # Berechne Cohen's Kappa
   kappa_result <- irr::kappa2(data_filtered[, c("GPT", "OLMO")], "unweighted")
+  kappa_value <- kappa_result$value
+  
+  # Berechne das Konfidenzintervall
+  ci_kappa <- calculate_kappa_confidence_interval(kappa_value, nrow(data_filtered))
   
   # Berechne den Prozentsatz der Übereinstimmung
   percent_agreement <- sum(data_filtered$GPT == data_filtered$OLMO) / nrow(data_filtered) * 100
   
-  # Ergebnisse anzeigen
+  # Ergebnisse runden und anzeigen
   cat("Cohen's Kappa für", tertile_label, "in extract_pubstud:\n")
-  cat("Kappa:", kappa_result$value, "\n")
-  cat("p-Wert:", kappa_result$p.value, "\n")
-  cat("z-Wert:", kappa_result$statistic, "\n")
-  cat("Prozentuale Übereinstimmung:", percent_agreement, "%\n\n")
+  cat("Kappa:", round(kappa_value, 2), "\n")
+  cat("Konfidenzintervall:", round(ci_kappa[1], 2), "-", round(ci_kappa[2], 2), "\n")
+  cat("p-Wert:", round(kappa_result$p.value, 2), "\n")
+  cat("z-Wert:", round(kappa_result$statistic, 2), "\n")
+  cat("Prozentuale Übereinstimmung:", round(percent_agreement, 2), "%\n\n")
 }
 
 # Berechne Cohen's Kappa für small, medium und large in extract_pubstud
@@ -1561,35 +2025,334 @@ compute_kappa_for_tertile_pubstud(combined_data_extract_pubstud, "large")
 ```
 
 
+# 
+```{r}
+
+
+```
+
+
+
 
 # 
 ```{r}
 
 
-
 ```
 
 
 
+#PER PSP
 
-## 
+##kappa per psp 
 ```{r}
 
 
+# Spalten mit _gpt und _olmo suffix finden
+gpt_columns_peritem <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_peritem <- gsub("_gpt$", "_olmo", gpt_columns_peritem)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns_peritem <- gpt_columns_peritem[olmo_columns_peritem %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_peritem <- olmo_columns_peritem[olmo_columns_peritem %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_peritem) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Berechnung von Kappa pro Zeile basierend auf der Spalte 'psp'
+psp_values <- unique(data_gpt_olmo_processed$psp)
+results_peritem <- data.frame(psp = psp_values, kappa_value = NA, percent_agreement = NA)
+
+for (i in 1:length(psp_values)) {
+  # Filtere die Daten für die aktuelle Zeile/psp-Nummer
+  current_data <- data_gpt_olmo_processed[data_gpt_olmo_processed$psp == psp_values[i], ]
+  
+  # Kombiniere die Spalten von GPT und OLMO
+  combined_data_peritem <- data.frame()
+  
+  for(j in 1:length(valid_gpt_columns_peritem)) {
+    combined_data_peritem <- rbind(combined_data_peritem, data.frame(GPT = current_data[[valid_gpt_columns_peritem[j]]],
+                                                                     OLMO = current_data[[valid_olmo_columns_peritem[j]]]))
+  }
+  
+  # Entferne NA-Werte
+  combined_data_peritem <- na.omit(combined_data_peritem)
+  
+  # Berechne Cohen's Kappa pro Zeile/psp
+  if (nrow(combined_data_peritem) > 0) {
+    kappa_result_peritem <- irr::kappa2(combined_data_peritem, "unweighted")
+    percent_agreement_peritem <- sum(combined_data_peritem$GPT == combined_data_peritem$OLMO) / nrow(combined_data_peritem) * 100
+    results_peritem$kappa_value[i] <- kappa_result_peritem$value
+    results_peritem$percent_agreement[i] <- percent_agreement_peritem
+  }
+}
+
+# Ergebnisse anzeigen
+cat("Kappa pro Zeile (psp):\n")
+print(results_peritem)
+
+
+
 
 ```
 
-## 
+
+
+## average over psp
+```{r}
+# Überprüfen, ob die Spalte "kappa_value" im Datensatz results_peritem existiert
+if("kappa_value" %in% colnames(results_peritem)) {
+  # Berechne den Durchschnitt der Spalte kappa_value
+  Average_Kappa_over_psp <- mean(results_peritem$kappa_value, na.rm = TRUE)
+  
+  # Ausgabe des Ergebnisses
+  cat("Durchschnittlicher Kappa-Wert über alle psp:", Average_Kappa_over_psp, "\n")
+} else {
+  stop("Die Spalte 'kappa_value' existiert nicht im Datensatz results_peritem!")
+}
+
+
+```
+
+
+
+## Overview per psp
+```{r}
+# Überblick über die Kappa-Werte und Prozentübereinstimmung
+
+# Datensatz nach Kappa-Werten sortieren (absteigend)
+results_sorted_kappa <- results_peritem[order(-results_peritem$kappa_value), ]
+
+# Datensatz nach Prozentübereinstimmung sortieren (absteigend)
+results_sorted_agreement <- results_peritem[order(-results_peritem$percent_agreement), ]
+
+# Kategorisierung der Kappa-Werte (Beispiel: gut >= 0.75, mittel >= 0.4, schlecht < 0.4)
+results_peritem$kappa_category <- cut(results_peritem$kappa_value, 
+                                      breaks = c(-Inf, 0.4, 0.75, Inf), 
+                                      labels = c("schlecht", "mittel", "gut"))
+
+# Zusammenfassung der Kategorien
+summary_kappa <- table(results_peritem$kappa_category)
+
+# Ergebnisse anzeigen
+cat("Kappa-Kategorien Überblick:\n")
+print(summary_kappa)
+
+# Optional: Visualisierung der Kappa-Werte
+boxplot(results_peritem$kappa_value, main = "Verteilung der Kappa-Werte", ylab = "Kappa-Wert")
+
+# Optional: Histogramm der Kappa-Werte
+hist(results_peritem$kappa_value, main = "Histogramm der Kappa-Werte", xlab = "Kappa-Wert", breaks = 10)
+
+# Übersicht der besten und schlechtesten psp-Werte (Top 5 und Bottom 5)
+cat("Top 5 PSP nach Kappa-Wert:\n")
+print(head(results_sorted_kappa, 5))
+
+cat("Bottom 5 PSP nach Kappa-Wert:\n")
+print(tail(results_sorted_kappa, 5))
+
+cat("Top 5 PSP nach Prozentübereinstimmung:\n")
+print(head(results_sorted_agreement, 5))
+
+cat("Bottom 5 PSP nach Prozentübereinstimmung:\n")
+print(tail(results_sorted_agreement, 5))
+
+
+
+```
+
+## für analyse welche psp gut
 ```{r}
 
 
+# Left join: data_gpt_olmo_processed und results_sorted_kappa auf Basis der Spalte 'psp' zusammenführen
+analyse_per_psp <-  results_sorted_kappa %>%
+  left_join(data_gpt_olmo_processed, by = "psp")
+
+# Optional: Einen Überblick über den neuen Datensatz anzeigen
+head(analyse_per_psp)
+
+# Optional: Die Struktur des neuen Datensatzes anzeigen
+str(analyse_per_psp)
+
+
+```
+
+
+# kappa per expeiment type 
+```{r}
+# Funktion zur Berechnung des Konfidenzintervalls für Kappa
+calculate_kappa_confidence_interval <- function(kappa_value, n, alpha = 0.05) {
+  # Standardfehler von Kappa
+  standard_error <- sqrt((1 - kappa_value^2) / n)
+  
+  # Z-Wert für das gewünschte Konfidenzniveau (z.B. 95%)
+  z_value <- qnorm(1 - alpha / 2)
+  
+  # Berechnung der unteren und oberen Grenze des Konfidenzintervalls
+  ci_lower <- kappa_value - z_value * standard_error
+  ci_upper <- kappa_value + z_value * standard_error
+  
+  return(c(ci_lower, ci_upper))
+}
+
+# Spalten mit _gpt und _olmo Suffix finden
+gpt_columns_experimenttype <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_experimenttype <- gsub("_gpt$", "_olmo", gpt_columns_experimenttype)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns_experimenttype <- gpt_columns_experimenttype[olmo_columns_experimenttype %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_experimenttype <- olmo_columns_experimenttype[olmo_columns_experimenttype %in% colnames(data_gpt_olmo_processed)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_experimenttype) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Definiere die verschiedenen Kategorien in der 'type' Spalte
+types_experimenttype <- c("Association", "Interaction / moderated effect", "Effect", "Mediated effect", "Moderated association")
+
+# Schleife durch jede Kategorie und berechne das Kappa für jede
+for (type_experimenttype in types_experimenttype) {
+  # Filtere die Zeilen, die zur aktuellen Kategorie gehören
+  type_data_experimenttype <- data_gpt_olmo_processed[data_gpt_olmo_processed$type == type_experimenttype, ]
+  
+  # Kombinieren der Spalten in einem DataFrame für den Vergleich der aktuellen Kategorie
+  combined_data_experimenttype <- data.frame()
+  
+  for(i in 1:length(valid_gpt_columns_experimenttype)) {
+    # Füge die Werte der GPT und OLMO Spalten zur kombinierten Datensatz hinzu
+    combined_data_experimenttype <- rbind(combined_data_experimenttype, 
+                                          data.frame(GPT = type_data_experimenttype[[valid_gpt_columns_experimenttype[i]]],
+                                                     OLMO = type_data_experimenttype[[valid_olmo_columns_experimenttype[i]]]))
+  }
+  
+  # Überprüfen, ob die Daten eine ausreichende Anzahl von Spalten haben
+  nc <- ncol(combined_data_experimenttype)
+  
+  if (!is.null(nc) && nc > 1) {
+    # Entferne NA-Werte
+    combined_data_experimenttype <- na.omit(combined_data_experimenttype)
+    
+    # Berechne Cohen's Kappa für die aktuelle Kategorie
+    if (nrow(combined_data_experimenttype) > 0) {
+      kappa_result_experimenttype <- irr::kappa2(combined_data_experimenttype, "unweighted")
+      kappa_value_experimenttype <- kappa_result_experimenttype$value
+      
+      # Berechne das Konfidenzintervall
+      ci_kappa_experimenttype <- calculate_kappa_confidence_interval(kappa_value_experimenttype, nrow(combined_data_experimenttype))
+      
+      # Berechne den Prozentsatz der Übereinstimmung
+      percent_agreement_experimenttype <- sum(combined_data_experimenttype$GPT == combined_data_experimenttype$OLMO) / nrow(combined_data_experimenttype) * 100
+      
+      # Ergebnisse runden und anzeigen
+      cat("\nCohen's Kappa für Kategorie", type_experimenttype, ":\n")
+      cat("Kappa_experimenttype:", round(kappa_value_experimenttype, 2), "\n")
+      cat("Konfidenzintervall_experimenttype:", round(ci_kappa_experimenttype[1], 2), "-", round(ci_kappa_experimenttype[2], 2), "\n")
+      cat("p-Wert_experimenttype:", round(kappa_result_experimenttype$p.value, 2), "\n")
+      cat("z-Wert_experimenttype:", round(kappa_result_experimenttype$statistic, 2), "\n")
+      cat("Prozentuale Übereinstimmung_experimenttype:", round(percent_agreement_experimenttype, 2), "%\n")
+    } else {
+      cat("Keine ausreichenden Daten für die Kategorie", type_experimenttype, "\n")
+    }
+  } else {
+    cat("Nicht genügend Spalten für die Kategorie", type_experimenttype, "\n")
+  }
+}
+
+
+```
+
+
+# protoype olmo
+```{r}
+#prototypische Kategorien
+
+# Spalten, die auf _olmo enden, finden
+olmo_columns <- grep("_olmo$", colnames(data_gpt_olmo_processed), value = TRUE)
+
+# Erstelle einen leeren Vektor für die prototypischen Kategorien
+prototyp_olmo <- vector("list", length(olmo_columns))
+
+# Berechne die prototypische Kategorie (häufigste Kategorie) für jede _olmo-Spalte
+for (i in seq_along(olmo_columns)) {
+  column <- olmo_columns[i]
+  
+  # Häufigkeiten der Kategorien in der aktuellen Spalte berechnen
+  category_frequencies <- table(data_gpt_olmo_processed[[column]])
+  
+  if (length(category_frequencies) > 0) {
+    # Die häufigste Kategorie (prototypische Kategorie) bestimmen
+    most_frequent_category <- names(which.max(category_frequencies))
+    # Speichern der prototypischen Kategorie
+    prototyp_olmo[[i]] <- most_frequent_category
+  } else {
+    # Falls die Spalte leer ist oder keine Kategorien vorhanden sind
+    prototyp_olmo[[i]] <- NA
+  }
+}
+
+# Erstelle ein DataFrame mit den prototypischen Kategorien
+prototyp_olmo_df <- data.frame(column_name = olmo_columns, prototyp_olmo = unlist(prototyp_olmo))
+
+# prototyp_olmo_df anzeigen
+print(prototyp_olmo_df)
+
 
 ```
 
 
 
 
-# Session info
+# sevtl protoype gpt .... fast stärker mit guten studien??
+```{r}
+
+
+```
+
+
+
+
+# 
+```{r}
+
+
+```
+
+
+
+
+# 
+```{r}
+
+
+```
+
+
+
+
+# 
+```{r}
+
+
+```
+
+
+
+
+# 
+```{r}
+
+
+```
+
+
+
+
+
+# Session info_
 ```{r}
 
 sessionInfo()
