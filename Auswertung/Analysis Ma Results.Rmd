@@ -48,6 +48,7 @@ library(gt)
 library(irr)
 library(caret) 
 library(flextable)
+library(ggplot2)
 
 
 
@@ -557,7 +558,20 @@ print(retest_kappa_summary)
 
 
 ```
+## average retest-kappa over items
 
+```{r}
+
+# Berechnung des Durchschnitts der Spalte 'Kappa'
+mean_kappa <- mean(retest_kappa_summary$Kappa, na.rm = TRUE)
+
+# Ausgabe des Ergebnisses
+mean_kappa
+
+
+
+```
+Ob der durchschnittliche Kappa-Wert (average Kappa) oder das Gesamtkappa größer ist, hängt von der Verteilung der Übereinstimmungen und Nicht-Übereinstimmungen innerhalb der einzelnen Items ab. Es gibt bestimmte Situationen, in denen der eine Wert größer ist als der andere, und das hängt von der Struktur der Daten ab.
 
 ## test, retest korrelation gesamt kappa...
 
@@ -709,7 +723,7 @@ formattable(retest_kappa_summary_overview, list(
 - wie ist die differenz zu interpretieren?
 - kann man es überhaupt ausrechnen für die text variablen? also etwa die einzigen guten kapps?--> nein das muss ich noch anschauen...
 
-## Kappa interrater gpt zu olmo per category
+## Kappa interrater gpt zu olmo per ITEM/category
 
 ```{r}
 
@@ -758,7 +772,7 @@ print(kappa_results)
 achtung kappa result und results!!
 
 
-##Kappa interrater gpt zu olmo  per category 2. ansatz
+##Kappa interrater gpt zu olmo  per ITEM 2. ansatz
 
 ```{r}
 
@@ -807,7 +821,7 @@ print(kappa_results_v2)
 
 
 
-## Average kappa over categories...
+## Average Interater kappa over ITEMS...
 
 
 hmm ich dachte dies sollte gleich hoch sein wie kappa total?
@@ -2025,9 +2039,37 @@ compute_kappa_for_tertile_pubstud(combined_data_extract_pubstud, "large")
 ```
 
 
-# 
+# tabelle zusammengeführt
 ```{r}
+# Erstelle die Daten für die Tabelle im gewünschten Format (K = ... [95% CI])
+terzile <- c("small", "medium", "large")
+match_kappa <- c("K = 0.30 [0.27, 0.33]", "K = 0.25 [0.22, 0.28]", "K = 0.28 [0.25, 0.31]")
+prereg_kappa <- c("K = 0.31 [0.28, 0.34]", "K = 0.36 [0.33, 0.39]", "K = 0.29 [0.26, 0.32]")
+pubstud_kappa <- c("K = 0.32 [0.29, 0.35]", "K = 0.30 [0.27, 0.32]", "K = 0.30 [0.27, 0.33]")
 
+# Erstelle ein Dataframe für die Tabelle
+df <- data.frame(
+  Terzile = terzile,
+  Match = match_kappa,
+  Extract_Prereg = prereg_kappa,
+  Extract_Pubstud = pubstud_kappa
+)
+
+# Erstelle die Tabelle mit flextable
+ft <- flextable(df)
+
+# Formatierungen und Spaltenüberschriften
+ft <- theme_booktabs(ft) %>%
+  autofit() %>%
+  set_header_labels(
+    Terzile = "Terzile",
+    Match = "Match",
+    Extract_Prereg = "Extract Prereg",
+    Extract_Pubstud = "Extract Pubstud"
+  )
+
+# Zeige die Tabelle direkt in der R-Konsole
+ft
 
 ```
 
@@ -2214,6 +2256,16 @@ if(length(valid_gpt_columns_experimenttype) == 0) {
 # Definiere die verschiedenen Kategorien in der 'type' Spalte
 types_experimenttype <- c("Association", "Interaction / moderated effect", "Effect", "Mediated effect", "Moderated association")
 
+# Initialisiere eine leere Tabelle für die Ergebnisse
+results_table <- data.frame(
+  Experiment_Type = character(),
+  Kappa = numeric(),
+  Confidence_Interval = character(),
+  Agreement_Percent = numeric(),
+  N_Comparisons = integer(),
+  stringsAsFactors = FALSE
+)
+
 # Schleife durch jede Kategorie und berechne das Kappa für jede
 for (type_experimenttype in types_experimenttype) {
   # Filtere die Zeilen, die zur aktuellen Kategorie gehören
@@ -2247,13 +2299,21 @@ for (type_experimenttype in types_experimenttype) {
       # Berechne den Prozentsatz der Übereinstimmung
       percent_agreement_experimenttype <- sum(combined_data_experimenttype$GPT == combined_data_experimenttype$OLMO) / nrow(combined_data_experimenttype) * 100
       
-      # Ergebnisse runden und anzeigen
+      # Füge die Ergebnisse der Tabelle hinzu
+      results_table <- rbind(results_table, data.frame(
+        Experiment_Type = type_experimenttype,
+        Kappa = round(kappa_value_experimenttype, 2),
+        Confidence_Interval = paste0("[", round(ci_kappa_experimenttype[1], 2), ", ", round(ci_kappa_experimenttype[2], 2), "]"),
+        Agreement_Percent = round(percent_agreement_experimenttype, 2),
+        N_Comparisons = nrow(combined_data_experimenttype)
+      ))
+      
+      # Ergebnisse anzeigen
       cat("\nCohen's Kappa für Kategorie", type_experimenttype, ":\n")
       cat("Kappa_experimenttype:", round(kappa_value_experimenttype, 2), "\n")
       cat("Konfidenzintervall_experimenttype:", round(ci_kappa_experimenttype[1], 2), "-", round(ci_kappa_experimenttype[2], 2), "\n")
-      cat("p-Wert_experimenttype:", round(kappa_result_experimenttype$p.value, 2), "\n")
-      cat("z-Wert_experimenttype:", round(kappa_result_experimenttype$statistic, 2), "\n")
       cat("Prozentuale Übereinstimmung_experimenttype:", round(percent_agreement_experimenttype, 2), "%\n")
+      cat("Anzahl der Vergleiche:", nrow(combined_data_experimenttype), "\n")
     } else {
       cat("Keine ausreichenden Daten für die Kategorie", type_experimenttype, "\n")
     }
@@ -2261,6 +2321,9 @@ for (type_experimenttype in types_experimenttype) {
     cat("Nicht genügend Spalten für die Kategorie", type_experimenttype, "\n")
   }
 }
+
+# Zeige die Tabelle mit den Ergebnissen an
+print(results_table)
 
 
 ```
@@ -2315,8 +2378,43 @@ print(prototyp_olmo_df)
 
 
 
-# 
+# versuchsperson extrahieren
 ```{r}
+# Erstellen eines neuen Datensatzes mit den relevanten Spalten (plus Versuchsperson)
+data_gpt_olmo_numeric <- data_gpt_olmo_processed[, c("psp", "pre_dcp_1_text_gpt", "pre_dcp_1_text_olmo", "pap_dcp_1_text_gpt", "pap_dcp_1_text_olmo")]
+
+# Umwandlung der Spalten in numerische Werte
+data_gpt_olmo_numeric$pre_dcp_1_text_gpt_numeric <- as.numeric(data_gpt_olmo_numeric$pre_dcp_1_text_gpt)
+data_gpt_olmo_numeric$pre_dcp_1_text_olmo_numeric <- as.numeric(data_gpt_olmo_numeric$pre_dcp_1_text_olmo)
+data_gpt_olmo_numeric$pap_dcp_1_text_gpt_numeric <- as.numeric(data_gpt_olmo_numeric$pap_dcp_1_text_gpt)
+data_gpt_olmo_numeric$pap_dcp_1_text_olmo_numeric <- as.numeric(data_gpt_olmo_numeric$pap_dcp_1_text_olmo)
+
+# Logik für übereinstimmend_pre
+data_gpt_olmo_numeric$uebereinstimmend_pre <- ifelse(
+  data_gpt_olmo_numeric$pre_dcp_1_text_gpt == "exclude", NA, 
+  ifelse(!is.na(data_gpt_olmo_numeric$pre_dcp_1_text_gpt_numeric) & is.na(data_gpt_olmo_numeric$pre_dcp_1_text_olmo_numeric), "INVENT", 
+    ifelse(data_gpt_olmo_numeric$pre_dcp_1_text_gpt_numeric == data_gpt_olmo_numeric$pre_dcp_1_text_olmo_numeric, "IDENTICAL", "DIFFERENT")
+  )
+)
+
+# Logik für übereinstimmend_pap
+data_gpt_olmo_numeric$uebereinstimmend_pap <- ifelse(
+  data_gpt_olmo_numeric$pap_dcp_1_text_gpt == "exclude", NA, 
+  ifelse(!is.na(data_gpt_olmo_numeric$pap_dcp_1_text_gpt_numeric) & is.na(data_gpt_olmo_numeric$pap_dcp_1_text_olmo_numeric), "INVENT", 
+    ifelse(data_gpt_olmo_numeric$pap_dcp_1_text_gpt_numeric == data_gpt_olmo_numeric$pap_dcp_1_text_olmo_numeric, "IDENTICAL", "DIFFERENT")
+  )
+)
+
+# Berechnung der Abweichung für pre
+data_gpt_olmo_numeric$abweichung_pre <- data_gpt_olmo_numeric$pre_dcp_1_text_gpt_numeric - data_gpt_olmo_numeric$pre_dcp_1_text_olmo_numeric
+
+# Berechnung der Abweichung für pap
+data_gpt_olmo_numeric$abweichung_pap <- data_gpt_olmo_numeric$pap_dcp_1_text_gpt_numeric - data_gpt_olmo_numeric$pap_dcp_1_text_olmo_numeric
+
+# Ausgabe eines Teils des Datensatzes zur Überprüfung
+head(data_gpt_olmo_numeric)
+
+
 
 
 ```
@@ -2324,17 +2422,70 @@ print(prototyp_olmo_df)
 
 
 
-# 
+# kuchendiagramm erstellen
 ```{r}
+# Zählen der Häufigkeiten für übereinstimmend_pre
+pre_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pre, useNA = "ifany"))
+colnames(pre_counts) <- c("Kategorie", "Anzahl")
 
+# Zählen der Häufigkeiten für übereinstimmend_pap
+pap_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pap, useNA = "ifany"))
+colnames(pap_counts) <- c("Kategorie", "Anzahl")
+
+# Kuchendiagramm für übereinstimmend_pre
+plot_pre <- ggplot(pre_counts, aes(x = "", y = Anzahl, fill = Kategorie)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "Übereinstimmung PRE") +
+  scale_fill_manual(values = c("NA" = "grey", "INVENT" = "orange", "IDENTICAL" = "green", "DIFFERENT" = "red"))
+
+# Kuchendiagramm für übereinstimmend_pap
+plot_pap <- ggplot(pap_counts, aes(x = "", y = Anzahl, fill = Kategorie)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "Übereinstimmung PAP") +
+  scale_fill_manual(values = c("NA" = "grey", "INVENT" = "orange", "IDENTICAL" = "green", "DIFFERENT" = "red"))
+
+# Anzeigen der beiden Diagramme
+print(plot_pre)
+print(plot_pap)
 
 ```
 
 
 
 
-# 
+# N zahlen
 ```{r}
+# Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pre
+pre_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pre, useNA = "ifany"))
+colnames(pre_counts) <- c("Kategorie", "Anzahl")
+pre_counts$Prozentsatz <- round(100 * pre_counts$Anzahl / sum(pre_counts$Anzahl), 2)
+
+# Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pap
+pap_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pap, useNA = "ifany"))
+colnames(pap_counts) <- c("Kategorie", "Anzahl")
+pap_counts$Prozentsatz <- round(100 * pap_counts$Anzahl / sum(pap_counts$Anzahl), 2)
+
+# Berechnung der durchschnittlichen Abweichung für abweichung_pre
+durchschnittliche_abweichung_pre <- mean(data_gpt_olmo_numeric$abweichung_pre, na.rm = TRUE)
+
+# Berechnung der durchschnittlichen Abweichung für abweichung_pap
+durchschnittliche_abweichung_pap <- mean(data_gpt_olmo_numeric$abweichung_pap, na.rm = TRUE)
+
+# Ausgabe der Ergebnisse für übereinstimmend_pre
+cat("Übereinstimmend PRE - Absolute Zahlen und Prozentsätze:\n")
+print(pre_counts)
+
+# Ausgabe der Ergebnisse für übereinstimmend_pap
+cat("Übereinstimmend PAP - Absolute Zahlen und Prozentsätze:\n")
+print(pap_counts)
+
+# Ausgabe der durchschnittlichen Abweichung
+cat("Durchschnittliche Abweichung PRE:", durchschnittliche_abweichung_pre, "\n")
+cat("Durchschnittliche Abweichung PAP:", durchschnittliche_abweichung_pap, "\n")
 
 
 ```
