@@ -324,51 +324,51 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 hier könnte man noch sensitivität für jedes Item...!
 
 ```{r}
+# Funktion zur Berechnung des Wilson-Konfidenzintervalls
+wilson_ci <- function(successes, total, conf_level = 0.95) {
+  z <- qnorm(1 - (1 - conf_level) / 2)
+  phat <- successes / total
+  denominator <- 1 + (z^2 / total)
+  center <- phat + (z^2 / (2 * total))
+  margin <- z * sqrt((phat * (1 - phat) + (z^2 / (4 * total))) / total)
+  
+  lower <- (center - margin) / denominator
+  upper <- (center + margin) / denominator
+  
+  return(c(lower = lower, upper = upper))
+}
 
-print(confusion_matrix)
-n_total <- sum(confusion_matrix)
+# Berechnung der Konfidenzintervalle für die Y-Klasse
+ci_sensitivity_Y <- wilson_ci(TP_Y, TP_Y + FN_Y)
+ci_specificity_Y <- wilson_ci(TN_Y, TN_Y + FP_Y)
+ci_precision_Y <- wilson_ci(TP_Y, TP_Y + FP_Y)
 
-# Berechnung der Sensitivität, Spezifität und Präzision für jede Klasse
+# Berechnung der Konfidenzintervalle für die N-Klasse
+ci_sensitivity_N <- wilson_ci(TP_N, TP_N + FN_N)
+ci_specificity_N <- wilson_ci(TN_N, TN_N + FP_N)
+ci_precision_N <- wilson_ci(TP_N, TP_N + FP_N)
 
-# Y-Klasse
-TP_Y <- confusion_matrix['Actual_Y', 'Predicted_Y']
-FN_Y <- sum(confusion_matrix['Actual_Y', ]) - TP_Y
-FP_Y <- sum(confusion_matrix[, 'Predicted_Y']) - TP_Y
-TN_Y <- sum(confusion_matrix) - (TP_Y + FN_Y + FP_Y)
+# Berechnung der Konfidenzintervalle für die X-Klasse
+ci_sensitivity_X <- wilson_ci(TP_X, TP_X + FN_X)
+ci_specificity_X <- wilson_ci(TN_X, TN_X + FP_X)
+ci_precision_X <- wilson_ci(TP_X, TP_X + FP_X)
 
-sensitivity_Y <- TP_Y / (TP_Y + FN_Y)
-specificity_Y <- TN_Y / (TN_Y + FP_Y)
-precision_Y <- TP_Y / (TP_Y + FP_Y)
-
-# N-Klasse
-TP_N <- confusion_matrix['Actual_N', 'Predicted_N']
-FN_N <- sum(confusion_matrix['Actual_N', ]) - TP_N
-FP_N <- sum(confusion_matrix[, 'Predicted_N']) - TP_N
-TN_N <- sum(confusion_matrix) - (TP_N + FN_N + FP_N)
-
-sensitivity_N <- TP_N / (TP_N + FN_N)
-specificity_N <- TN_N / (TN_N + FP_N)
-precision_N <- TP_N / (TP_N + FP_N)
-
-# X-Klasse
-TP_X <- confusion_matrix['Actual_X', 'Predicted_X']
-FN_X <- sum(confusion_matrix['Actual_X', ]) - TP_X
-FP_X <- sum(confusion_matrix[, 'Predicted_X']) - TP_X
-TN_X <- sum(confusion_matrix) - (TP_X + FN_X + FP_X)
-
-sensitivity_X <- TP_X / (TP_X + FN_X)
-specificity_X <- TN_X / (TN_X + FP_X)
-precision_X <- TP_X / (TP_X + FP_X)
-
-# Ergebnisse in einer Tabelle anzeigen und auf 2 Nachkommastellen runden
-results <- data.frame(
+# Ergebnisse in einer Tabelle mit Konfidenzintervallen anzeigen
+results_with_ci <- data.frame(
   Class = c("Y", "N", "X"),
   Sensitivity = round(c(sensitivity_Y, sensitivity_N, sensitivity_X), 2),
+  Sensitivity_CI = paste0("[", round(c(ci_sensitivity_Y[1], ci_sensitivity_N[1], ci_sensitivity_X[1]), 2), 
+                          ", ", round(c(ci_sensitivity_Y[2], ci_sensitivity_N[2], ci_sensitivity_X[2]), 2), "]"),
   Specificity = round(c(specificity_Y, specificity_N, specificity_X), 2),
-  Precision = round(c(precision_Y, precision_N, precision_X), 2)
+  Specificity_CI = paste0("[", round(c(ci_specificity_Y[1], ci_specificity_N[1], ci_specificity_X[1]), 2), 
+                          ", ", round(c(ci_specificity_Y[2], ci_specificity_N[2], ci_specificity_X[2]), 2), "]"),
+  Precision = round(c(precision_Y, precision_N, precision_X), 2),
+  Precision_CI = paste0("[", round(c(ci_precision_Y[1], ci_precision_N[1], ci_precision_X[1]), 2), 
+                        ", ", round(c(ci_precision_Y[2], ci_precision_N[2], ci_precision_X[2]), 2), "]")
 )
 
-print(results)
+print(results_with_ci)
+
 ```
 
 Sensitivity (Sensitivität) gibt an, wie gut das Modell positive Fälle (z.B. "Y") korrekt erkennt. Es ist das Verhältnis von richtig-positiven Vorhersagen zu allen tatsächlichen positiven Fällen. Höhere Werte zeigen eine bessere Erkennungsrate der positiven Fälle.
@@ -561,12 +561,19 @@ print(retest_kappa_summary)
 ## average retest-kappa over items
 
 ```{r}
+# Berechnung des Durchschnitts der Spalte 'Kappa' und Rundung auf 2 Nachkommastellen
+mean_kappa <- round(mean(retest_kappa_summary$Kappa, na.rm = TRUE), 2)
 
-# Berechnung des Durchschnitts der Spalte 'Kappa'
-mean_kappa <- mean(retest_kappa_summary$Kappa, na.rm = TRUE)
+# Berechnung der Standardabweichung der Spalte 'Kappa' und Rundung auf 2 Nachkommastellen
+sd_kappa <- round(sd(retest_kappa_summary$Kappa, na.rm = TRUE), 2)
 
-# Ausgabe des Ergebnisses
-mean_kappa
+# Berechnung des Bereichs (Range) der Spalte 'Kappa' und Rundung auf 2 Nachkommastellen
+range_kappa <- round(range(retest_kappa_summary$Kappa, na.rm = TRUE), 2)
+
+# Ausgabe der Ergebnisse
+cat("Durchschnittlicher Kappa-Wert:", mean_kappa, "\n")
+cat("Standardabweichung des Kappa-Werts:", sd_kappa, "\n")
+cat("Bereich des Kappa-Werts:", range_kappa[1], "-", range_kappa[2], "\n")
 
 
 
@@ -769,7 +776,31 @@ print(kappa_results)
 ```
 
 
-achtung kappa result und results!!
+
+## test nach normalverteilung über items
+```{r}
+# Shapiro-Wilk-Test zur Überprüfung auf Normalverteilung der Kappa-Werte
+shapiro_test <- shapiro.test(kappa_results$Kappa)
+
+# Shapiro-Wilk-Test-Ergebnisse anzeigen
+cat("Shapiro-Wilk-Test für Kappa-Werte:\n")
+print(shapiro_test)
+
+# Normalverteilungsgrafik erstellen
+# Histogramm mit angepasster Normalverteilungskurve
+hist(kappa_results$Kappa, breaks = 40, prob = TRUE, 
+     main = "Histogramm der Kappa-Werte mit Normalverteilungskurve", 
+     xlab = "Kappa-Wert", ylab = "Dichte")
+curve(dnorm(x, mean = mean(kappa_results$Kappa), sd = sd(kappa_results$Kappa)), 
+      add = TRUE, col = "blue", lwd = 2)
+
+# Q-Q-Plot zur Überprüfung der Normalverteilung
+qqnorm(kappa_results$Kappa, main = "Q-Q-Plot der Kappa-Werte")
+qqline(kappa_results$Kappa, col = "blue", lwd = 2)
+
+
+```
+
 
 
 ##Kappa interrater gpt zu olmo  per ITEM 2. ansatz
@@ -828,11 +859,19 @@ hmm ich dachte dies sollte gleich hoch sein wie kappa total?
 ```{r}
 # Überprüfen, ob die Spalte "Kappa" im Datensatz kappa_results existiert
 if("Kappa" %in% colnames(kappa_results)) {
-  # Berechne den Durchschnitt der Spalte Kappa
-  Average_Kappa_over_categories <- mean(kappa_results$Kappa, na.rm = TRUE)
+  # Berechne den Durchschnitt der Spalte Kappa und runde auf 2 Nachkommastellen
+  Average_Kappa_over_categories <- round(mean(kappa_results$Kappa, na.rm = TRUE), 2)
   
-  # Ausgabe des Ergebnisses
+  # Berechne die Standardabweichung der Spalte Kappa und runde auf 2 Nachkommastellen
+  SD_Kappa_over_categories <- round(sd(kappa_results$Kappa, na.rm = TRUE), 2)
+  
+  # Berechne den Bereich der Spalte Kappa und runde auf 2 Nachkommastellen
+  Range_Kappa_over_categories <- round(range(kappa_results$Kappa, na.rm = TRUE), 2)
+  
+  # Ausgabe der Ergebnisse
   cat("Durchschnittlicher Kappa-Wert über alle Kategorien:", Average_Kappa_over_categories, "\n")
+  cat("Standardabweichung des Kappa-Werts über alle Kategorien:", SD_Kappa_over_categories, "\n")
+  cat("Bereich des Kappa-Werts über alle Kategorien:", Range_Kappa_over_categories[1], "-", Range_Kappa_over_categories[2], "\n")
 } else {
   stop("Die Spalte 'Kappa' existiert nicht im Datensatz kappa_results!")
 }
@@ -843,8 +882,26 @@ if("Kappa" %in% colnames(kappa_results)) {
 
 
 
-# 
+# average percent agreement over items
 ```{r}
+# Überprüfen, ob die Spalte "Percent_Agreement" im Datensatz kappa_results existiert
+if("Percent_Agreement" %in% colnames(kappa_results)) {
+  # Berechne den Durchschnitt der Spalte Percent_Agreement und runde auf 2 Nachkommastellen
+  Average_Percent_Agreement_over_categories <- round(mean(kappa_results$Percent_Agreement, na.rm = TRUE), 2)
+  
+  # Berechne die Standardabweichung der Spalte Percent_Agreement und runde auf 2 Nachkommastellen
+  SD_Percent_Agreement_over_categories <- round(sd(kappa_results$Percent_Agreement, na.rm = TRUE), 2)
+  
+  # Berechne den Bereich der Spalte Percent_Agreement und runde auf 2 Nachkommastellen
+  Range_Percent_Agreement_over_categories <- round(range(kappa_results$Percent_Agreement, na.rm = TRUE), 2)
+  
+  # Ausgabe der Ergebnisse
+  cat("Durchschnittlicher Percent_Agreement-Wert über alle Kategorien:", Average_Percent_Agreement_over_categories, "\n")
+  cat("Standardabweichung des Percent_Agreement-Werts über alle Kategorien:", SD_Percent_Agreement_over_categories, "\n")
+  cat("Bereich des Percent_Agreement-Werts über alle Kategorien:", Range_Percent_Agreement_over_categories[1], "-", Range_Percent_Agreement_over_categories[2], "\n")
+} else {
+  stop("Die Spalte 'Percent_Agreement' existiert nicht im Datensatz kappa_results!")
+}
 
 
 ```
@@ -852,7 +909,7 @@ if("Kappa" %in% colnames(kappa_results)) {
 
 
 
-# Kappa interrater gpt zu olmo  per category 3. ansatz
+## Kappa interrater gpt zu olmo  per category 3. ansatz inkl sensitivity,specifity precision per item
 ```{r}
 # Spalten mit _gpt und _olmo suffix finden
 gpt_columns_per_item_v3 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
@@ -873,6 +930,9 @@ kappa_results_per_item_v3 <- data.frame(Item = character(),
                                         P_Value = numeric(),
                                         Z_Value = numeric(),
                                         Percent_Agreement = numeric(),
+                                        Sensitivity_n = numeric(),
+                                        Specificity_n = numeric(),
+                                        Precision_n = numeric(),
                                         stringsAsFactors = FALSE)
 
 # Berechnung für jede Spalte einzeln
@@ -893,17 +953,45 @@ for(i in 1:length(valid_gpt_columns_per_item_v3)) {
   # Berechne den Prozentsatz der Übereinstimmung
   percent_agreement_per_item_v3 <- sum(combined_data_per_item_v3$GPT == combined_data_per_item_v3$OLMO) / nrow(combined_data_per_item_v3) * 100
   
+  # Berechnung der Confusion Matrix (y, n, x Kategorien)
+  confusion_matrix <- table(combined_data_per_item_v3$GPT, combined_data_per_item_v3$OLMO)
+  
+  # Sicherstellen, dass "n" in der Matrix vorhanden ist
+  if("n" %in% rownames(confusion_matrix) && "n" %in% colnames(confusion_matrix)) {
+    TN <- confusion_matrix["n", "n"]
+  } else {
+    TN <- 0
+  }
+
+  # Berechne False Positives (FP) und False Negatives (FN) für "n"
+  FP <- if("n" %in% rownames(confusion_matrix)) sum(confusion_matrix["n", ]) - TN else 0
+  FN <- if("n" %in% colnames(confusion_matrix)) sum(confusion_matrix[, "n"]) - TN else 0
+  
+  # Berechne True Positives (TP) als restliche Übereinstimmungen
+  TP <- sum(confusion_matrix) - (TN + FP + FN)
+
+  # Berechne Sensitivity (n), Specificity (n) und Precision (n)
+  sensitivity_n <- if((TN + FN) > 0) TN / (TN + FN) else NA
+  specificity_n <- if((TP + FP) > 0) TP / (TP + FP) else NA
+  precision_n <- if((TP + FN) > 0) TP / (TP + FN) else NA
+  
   # Ergebnisse in den DataFrame hinzufügen
   kappa_results_per_item_v3 <- rbind(kappa_results_per_item_v3, data.frame(Item = valid_gpt_columns_per_item_v3[i],
                                                                            Kappa = kappa_result_per_item_v3$value,
                                                                            P_Value = kappa_result_per_item_v3$p.value,
                                                                            Z_Value = kappa_result_per_item_v3$statistic,
-                                                                           Percent_Agreement = percent_agreement_per_item_v3))
+                                                                           Percent_Agreement = percent_agreement_per_item_v3,
+                                                                           Sensitivity_n = sensitivity_n,
+                                                                           Specificity_n = specificity_n,
+                                                                           Precision_n = precision_n))
 }
 
 # Ergebnisse anzeigen
 print(kappa_results_per_item_v3)
 
+
+
+write.xlsx(kappa_results_per_item_v3, "../Data/processed/kappa_results_per_item_v3.xlsx")
 
 ```
 
@@ -1458,8 +1546,6 @@ und noch schauen ob es einen unterschied macht ob experiment oder nicht....)
 # NEW
 ## kappa new per category
 ```{r}
-
-
 # Definiere die zu vergleichenden Variablenpaare
 variables_to_compare_ve <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
                              "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
@@ -1469,8 +1555,15 @@ results_ve <- data.frame(Variable_ve = character(),
                          Kappa_ve = numeric(), 
                          N_ve = numeric(),
                          Agreement_Percent_ve = numeric(),
-                         Z_Value_ve = numeric(),
-                         P_Value_ve = numeric(), 
+                         CI_Lower_ve = numeric(),  # Konfidenzintervall untere Grenze
+                         CI_Upper_ve = numeric(),  # Konfidenzintervall obere Grenze
+                         Accuracy_ve = numeric(),
+                         Sensitivity_ve = numeric(),
+                         Specificity_ve = numeric(),
+                         N_Count_Olmo = numeric(),
+                         N_Count_GPT = numeric(),
+                         Y_Count_Olmo = numeric(),
+                         Y_Count_GPT = numeric(),
                          stringsAsFactors = FALSE)
 
 # Berechnung von Cohen's Kappa und weiteren Kennzahlen für jede Variable
@@ -1494,21 +1587,52 @@ for (variable in variables_to_compare_ve) {
   # Berechne den prozentualen Anteil der Übereinstimmungen
   agreement_percent_ve <- mean(comparison_data[[gpt_column]] == comparison_data[[olmo_column]]) * 100
 
-  # Berechne Z-Wert und p-Wert (Standardmäßig aus dem Kappa-Objekt)
-  z_value_ve <- kappa_obj_ve$statistic # Z-Wert aus dem Kappa-Objekt
-  p_value_ve <- kappa_obj_ve$p.value   # p-Wert aus dem Kappa-Objekt
+  # Berechne den Standardfehler für Cohen's Kappa
+  se_kappa_ve <- sqrt((1 - kappa_value_ve^2) / n_comparisons_ve)
+  
+  # Berechne das 95%-Konfidenzintervall (z-Wert von 1.96 für 95%)
+  ci_lower_ve <- kappa_value_ve - 1.96 * se_kappa_ve
+  ci_upper_ve <- kappa_value_ve + 1.96 * se_kappa_ve
+  
+  # Erstelle Confusion-Matrix
+  confusion_matrix <- table(comparison_data[[gpt_column]], comparison_data[[olmo_column]])
+  true_positive <- confusion_matrix[2, 2]
+  true_negative <- confusion_matrix[1, 1]
+  false_positive <- confusion_matrix[1, 2]
+  false_negative <- confusion_matrix[2, 1]
+
+  # Berechne Genauigkeit, Spezifität und Sensitivität
+  accuracy_ve <- (true_positive + true_negative) / n_comparisons_ve
+  sensitivity_ve <- true_positive / (true_positive + false_negative)
+  specificity_ve <- true_negative / (true_negative + false_positive)
+  
+  # Zähle die Anzahl der "N"- und "Y"-Werte in den Spalten von GPT und Olmo
+  n_count_olmo <- sum(comparison_data[[olmo_column]] == "n", na.rm = TRUE)
+  n_count_gpt <- sum(comparison_data[[gpt_column]] == "n", na.rm = TRUE)
+  y_count_olmo <- sum(comparison_data[[olmo_column]] == "y", na.rm = TRUE)
+  y_count_gpt <- sum(comparison_data[[gpt_column]] == "y", na.rm = TRUE)
   
   # Ergebnisse speichern mit den Endungen _ve
   results_ve <- rbind(results_ve, data.frame(Variable_ve = variable, 
                                              Kappa_ve = kappa_value_ve, 
                                              N_ve = n_comparisons_ve,
                                              Agreement_Percent_ve = agreement_percent_ve,
-                                             Z_Value_ve = z_value_ve,
-                                             P_Value_ve = p_value_ve))
+                                             CI_Lower_ve = ci_lower_ve,  
+                                             CI_Upper_ve = ci_upper_ve,
+                                             Accuracy_ve = accuracy_ve,
+                                             Sensitivity_ve = sensitivity_ve,
+                                             Specificity_ve = specificity_ve,
+                                             N_Count_Olmo = n_count_olmo,
+                                             N_Count_GPT = n_count_gpt,
+                                             Y_Count_Olmo = y_count_olmo,
+                                             Y_Count_GPT = y_count_gpt))
 }
 
 # Ausgabe der Ergebnisse als DataFrame
 print(results_ve)
+
+
+
 
 ```
 p sind nicht signifikant?!
@@ -1590,7 +1714,7 @@ print(results_ve_total)
 
 
 
-## confusion matrix VE
+## confusion matrix VE V1
 ```{r}
 
 
@@ -1643,63 +1767,65 @@ print(confusion_summary_ve)
 
 
 
-## new frickes ü
 
 
+
+
+
+
+# confusion matrix VE new v2
 ```{r}
+# Definiere die zu vergleichenden Variablenpaare mit 've_new'
+variables_to_compare_ve_new <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
+                                 "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
 
-
-# Definiere die zu vergleichenden Variablenpaare
-variables_to_compare_ve_total <- c("match_dv_0", "match_dv_1", "match_dv_2", "match_dv_3",
-                                   "match_dcp_1", "match_dcp_2", "match_sm_1", "match_sm_2", "match_sm_3")
-
-# Liste zur Speicherung der kombinierten Ratings
-combined_data_ve_total <- data.frame(GPT_Rating_ve_total = character(), 
-                                     Olmo_Rating_ve_total = character(), 
-                                     stringsAsFactors = FALSE)
+# Liste zur Speicherung der kombinierten Ratings mit 've_new'
+combined_data_ve_new <- data.frame(GPT_Rating_ve_new = character(), 
+                                   Olmo_Rating_ve_new = character(), 
+                                   stringsAsFactors = FALSE)
 
 # Kombinieren der Daten aus allen relevanten Variablenpaaren
-for (variable in variables_to_compare_ve_total) {
+for (variable in variables_to_compare_ve_new) {
   # Definiere die Spaltennamen für GPT und Olmo
   gpt_column <- paste0(variable, "_gpt")
   olmo_column <- paste0(variable, "_olmo")
   
   # Selektiere die relevanten Spalten und entferne Zeilen mit NA-Werten nur in diesen Spalten
-  comparison_data_ve_total <- data_gpt_ve_total_filtered %>%
+  comparison_data_ve_new <- data_gpt_ve_total_filtered %>%
     select(gpt_column, olmo_column) %>%
     filter(!is.na(.[[gpt_column]]) & !is.na(.[[olmo_column]])) %>%
-    rename(GPT_Rating_ve_total = gpt_column, Olmo_Rating_ve_total = olmo_column)
+    rename(GPT_Rating_ve_new = gpt_column, Olmo_Rating_ve_new = olmo_column)
   
   # Füge die gefilterten Daten zum kombinierten Datensatz hinzu
-  combined_data_ve_total <- rbind(combined_data_ve_total, comparison_data_ve_total)
+  combined_data_ve_new <- rbind(combined_data_ve_new, comparison_data_ve_new)
 }
 
-# Berechnung von Fricke's Ü-Koeffizient
-calculate_fricke_ue <- function(true_values, predicted_values) {
-  # Erstelle eine Kreuztabelle (Contingency Table)
-  contingency_table <- table(true_values, predicted_values)
-  
-  # Beobachtete Übereinstimmungen (C_o)
-  C_o <- sum(diag(contingency_table))
-  
-  # Maximale Anzahl der Übereinstimmungen (C_max)
-  C_max <- sum(contingency_table)
-  
-  # Erwartete Übereinstimmungen unter Zufallsbedingungen (C_er)
-  row_totals <- rowSums(contingency_table)
-  col_totals <- colSums(contingency_table)
-  C_er <- sum(row_totals * col_totals) / C_max
-  
-  # Berechnung von Fricke's Ü-Koeffizient
-  Ue <- (C_o - C_er) / (C_max - C_er)
-  return(Ue)
-}
+# Erstellen der Konfusionsmatrix mit Y/N Kategorien für die kombinierten Ratings mit 've_new'
+conf_matrix_ve_new <- table(combined_data_ve_new$Olmo_Rating_ve_new, combined_data_ve_new$GPT_Rating_ve_new)
 
-# Berechnung von Fricke's Ü-Koeffizient für die kombinierten Daten
-fricke_ue_value <- calculate_fricke_ue(combined_data_ve_total$Olmo_Rating_ve_total, combined_data_ve_total$GPT_Rating_ve_total)
+# Ausgabe der Konfusionsmatrix mit Y/N Kategorien
+print("Confusion Matrix (ve_new):")
+print(conf_matrix_ve_new)
 
-# Ausgabe des Ergebnisses
-print(paste("Fricke's Ü-Koeffizient (ve_total):", round(fricke_ue_value, 4)))
+# Berechnung der Summe der Zeilen und Spalten
+row_sums_ve_new <- rowSums(conf_matrix_ve_new)  # Summe über die Zeilen (horizontal)
+col_sums_ve_new <- colSums(conf_matrix_ve_new)  # Summe über die Spalten (vertikal)
+n_total_ve_new <- sum(conf_matrix_ve_new)       # Gesamtsumme
+
+# Erstelle eine erweiterte Konfusionsmatrix mit Summen und 've_new'
+conf_matrix_with_sums_ve_new <- rbind(conf_matrix_ve_new, "Sum_ve_new" = col_sums_ve_new)  # Spaltensummen als neue Zeile hinzufügen
+conf_matrix_with_sums_ve_new <- cbind(conf_matrix_with_sums_ve_new, "Sum_ve_new" = c(row_sums_ve_new, n_total_ve_new))  # Zeilensummen und Gesamtsumme hinzufügen
+
+# Ausgabe der erweiterten Konfusionsmatrix mit Summen
+print("Confusion Matrix with Sums (ve_new):")
+print(conf_matrix_with_sums_ve_new)
+
+# Anzeige im APA-Stil
+library(kableExtra)
+kable(conf_matrix_with_sums_ve_new, format = "html", caption = "Confusion Matrix (ve_new) with Row and Column Sums (APA style)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>%
+  row_spec(0, bold = TRUE, extra_css = "border-bottom: 1px solid black;") %>%
+  row_spec(nrow(conf_matrix_with_sums_ve_new), extra_css = "border-top: 1px solid black;")
 
 
 
@@ -2144,16 +2270,25 @@ print(results_peritem)
 
 ## average over psp
 ```{r}
-# Überprüfen, ob die Spalte "kappa_value" im Datensatz results_peritem existiert
 if("kappa_value" %in% colnames(results_peritem)) {
-  # Berechne den Durchschnitt der Spalte kappa_value
-  Average_Kappa_over_psp <- mean(results_peritem$kappa_value, na.rm = TRUE)
+  # Berechne den Durchschnitt der Spalte kappa_value und runde auf 2 Nachkommastellen
+  Average_Kappa_over_psp <- round(mean(results_peritem$kappa_value, na.rm = TRUE), 2)
   
-  # Ausgabe des Ergebnisses
+  # Berechne die Standardabweichung der Spalte kappa_value und runde auf 2 Nachkommastellen
+  SD_Kappa_over_psp <- round(sd(results_peritem$kappa_value, na.rm = TRUE), 2)
+  
+  # Berechne den Bereich der Spalte kappa_value und runde auf 2 Nachkommastellen
+  Range_Kappa_over_psp <- round(range(results_peritem$kappa_value, na.rm = TRUE), 2)
+  
+  # Ausgabe der Ergebnisse
   cat("Durchschnittlicher Kappa-Wert über alle psp:", Average_Kappa_over_psp, "\n")
+  cat("Standardabweichung des Kappa-Werts über alle psp:", SD_Kappa_over_psp, "\n")
+  cat("Bereich des Kappa-Werts über alle psp:", Range_Kappa_over_psp[1], "-", Range_Kappa_over_psp[2], "\n")
 } else {
   stop("Die Spalte 'kappa_value' existiert nicht im Datensatz results_peritem!")
 }
+
+
 
 
 ```
@@ -2186,7 +2321,16 @@ print(summary_kappa)
 boxplot(results_peritem$kappa_value, main = "Verteilung der Kappa-Werte", ylab = "Kappa-Wert")
 
 # Optional: Histogramm der Kappa-Werte
-hist(results_peritem$kappa_value, main = "Histogramm der Kappa-Werte", xlab = "Kappa-Wert", breaks = 10)
+hist(results_peritem$kappa_value, main = "Histogramm der Kappa-Werte", xlab = "Kappa-Wert", breaks = 50)
+
+
+# Shapiro-Wilk-Test zur Überprüfung auf Normalverteilung der Kappa-Werte
+shapiro_test <- shapiro.test(results_peritem$kappa_value)
+
+# Shapiro-Wilk-Test-Ergebnisse anzeigen
+cat("Shapiro-Wilk-Test für Kappa-Werte:\n")
+print(shapiro_test)
+
 
 # Übersicht der besten und schlechtesten psp-Werte (Top 5 und Bottom 5)
 cat("Top 5 PSP nach Kappa-Wert:\n")
@@ -2200,6 +2344,9 @@ print(head(results_sorted_agreement, 5))
 
 cat("Bottom 5 PSP nach Prozentübereinstimmung:\n")
 print(tail(results_sorted_agreement, 5))
+
+
+
 
 
 
@@ -2422,7 +2569,7 @@ head(data_gpt_olmo_numeric)
 
 
 
-# kuchendiagramm erstellen
+## kuchendiagramm erstellen
 ```{r}
 # Zählen der Häufigkeiten für übereinstimmend_pre
 pre_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pre, useNA = "ifany"))
@@ -2457,7 +2604,7 @@ print(plot_pap)
 
 
 
-# N zahlen
+## N zahlen
 ```{r}
 # Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pre
 pre_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pre, useNA = "ifany"))
@@ -2469,26 +2616,55 @@ pap_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pap, us
 colnames(pap_counts) <- c("Kategorie", "Anzahl")
 pap_counts$Prozentsatz <- round(100 * pap_counts$Anzahl / sum(pap_counts$Anzahl), 2)
 
+# Zusammenführen der Kategorien
+combined_counts <- merge(pre_counts, pap_counts, by = "Kategorie", all = TRUE, suffixes = c("_PRE", "_PAP"))
+
+# Falls NA-Werte vorhanden sind, diese durch 0 ersetzen
+combined_counts[is.na(combined_counts)] <- 0
+
+# Berechnung der Gesamtsummen
+combined_counts$Anzahl_Gesamt <- combined_counts$Anzahl_PRE + combined_counts$Anzahl_PAP
+combined_counts$Prozentsatz_Gesamt <- round(100 * combined_counts$Anzahl_Gesamt / sum(combined_counts$Anzahl_Gesamt), 2)
+
 # Berechnung der durchschnittlichen Abweichung für abweichung_pre
 durchschnittliche_abweichung_pre <- mean(data_gpt_olmo_numeric$abweichung_pre, na.rm = TRUE)
 
 # Berechnung der durchschnittlichen Abweichung für abweichung_pap
 durchschnittliche_abweichung_pap <- mean(data_gpt_olmo_numeric$abweichung_pap, na.rm = TRUE)
 
-# Ausgabe der Ergebnisse für übereinstimmend_pre
-cat("Übereinstimmend PRE - Absolute Zahlen und Prozentsätze:\n")
-print(pre_counts)
-
-# Ausgabe der Ergebnisse für übereinstimmend_pap
-cat("Übereinstimmend PAP - Absolute Zahlen und Prozentsätze:\n")
-print(pap_counts)
+# Ausgabe der kombinierten Tabelle
+cat("Kombinierte Tabelle für übereinstimmend_pre und übereinstimmend_pap - Absolute Zahlen und Prozentsätze:\n")
+print(combined_counts)
 
 # Ausgabe der durchschnittlichen Abweichung
 cat("Durchschnittliche Abweichung PRE:", durchschnittliche_abweichung_pre, "\n")
 cat("Durchschnittliche Abweichung PAP:", durchschnittliche_abweichung_pap, "\n")
 
 
+
 ```
+
+
+
+
+# promptdauer...
+```{r}
+## Berechnung des Mittelwerts und der Standardabweichung für time_extraction und time_comparison, gerundet auf 2 Dezimalstellen
+summary_stats <- data_gpt_olmo_processed %>%
+  summarise(
+    mean_time_extraction = round(mean(time_extraction, na.rm = TRUE), 2),
+    sd_time_extraction = round(sd(time_extraction, na.rm = TRUE), 2),
+    mean_time_comparison = round(mean(time_comparison, na.rm = TRUE), 2),
+    sd_time_comparison = round(sd(time_comparison, na.rm = TRUE), 2)
+  )
+
+# Ausgabe der Ergebnisse
+print(summary_stats)
+
+
+
+```
+
 
 
 
@@ -2499,6 +2675,16 @@ cat("Durchschnittliche Abweichung PAP:", durchschnittliche_abweichung_pap, "\n")
 
 ```
 
+
+
+
+
+
+# 
+```{r}
+
+
+```
 
 
 
