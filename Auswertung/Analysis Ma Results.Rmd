@@ -49,9 +49,7 @@ library(irr)
 library(caret) 
 library(flextable)
 library(ggplot2)
-
-
-
+library(irrCAC)
 
 
 
@@ -654,6 +652,47 @@ print(retest_kappa_all_summary)
 naja z wert und p wert muss ich noch anschauen...
 
 
+# test retest nur extraction nurcomparison...
+```{r}
+
+# Step 1: Filter the dataset into test and retest subsets
+test_data <- comparison_data_processed %>% filter(test_retest == "Test")
+retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
+
+# Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest PSP rows)
+retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+
+# Step 3: Define columns for extraction and comparison
+extract_columns <- grep("^(c_pre|pre|c_pap|pap).*_comp$", names(comparison_data_processed), value = TRUE)
+comp_columns <- grep("^(c_match|match).*_comp$", names(comparison_data_processed), value = TRUE)
+
+# Funktion zur Berechnung von Kappa nur für ausgewählte Spalten und Zeilen
+calculate_kappa_for_selected <- function(columns, label_suffix) {
+  # Berechnung für die ausgewählten Spalten (Extract oder Comparison)
+  all_test_values <- unlist(retest_merged_data[paste0(columns, "_test")])
+  all_retest_values <- unlist(retest_merged_data[paste0(columns, "_retest")])
+  
+  # Berechne Cohen's Kappa für die aktuellen Spalten und speichere die Ergebnisse
+  kappa_result <- cohen.kappa(cbind(all_test_values, all_retest_values))
+  data.frame(Category = label_suffix, Kappa = kappa_result$kappa)
+}
+
+# Berechnung für Extraktions-Items
+retest_kappa_extraction <- calculate_kappa_for_selected(extract_columns, "retest_extraction")
+
+# Berechnung für Vergleichs-Items
+retest_kappa_comparison <- calculate_kappa_for_selected(comp_columns, "retest_comparison")
+
+# Zusammenfassung der Ergebnisse
+retest_kappa_summary <- rbind(retest_kappa_extraction, retest_kappa_comparison)
+
+# Ergebnisse anzeigen
+print(retest_kappa_summary)
+
+
+```
+
+
 
 
 ##  test-retest Überblick kappas
@@ -767,6 +806,10 @@ for(i in 1:length(gpt_columns)) {
   kappa_stats <- calculate_kappa_stats(data_gpt_olmo_processed, gpt_columns[i], olmo_columns[i])
   kappa_results[i, 2:5] <- kappa_stats
 }
+
+
+# Entfernen der Variablen pre_dcp_1_text_gpt und pap_dcp_1_text_gpt aus kappa_results, da diese numerische variablen sind...
+kappa_results <- kappa_results[!(kappa_results$Variable %in% c("pre_dcp_1_text_gpt", "pap_dcp_1_text_gpt")), ]
 
 # Show the results
 print(kappa_results)
@@ -919,6 +962,11 @@ olmo_columns_per_item_v3 <- gsub("_gpt$", "_olmo", gpt_columns_per_item_v3)
 valid_gpt_columns_per_item_v3 <- gpt_columns_per_item_v3[olmo_columns_per_item_v3 %in% colnames(data_gpt_olmo_processed)]
 valid_olmo_columns_per_item_v3 <- olmo_columns_per_item_v3[olmo_columns_per_item_v3 %in% colnames(data_gpt_olmo_processed)]
 
+# Entfernen der Variablen pre_dcp_1_text_gpt und pap_dcp_1_text_gpt, da diese nummerisch sind...
+excluded_items <- c("pre_dcp_1_text_gpt", "pap_dcp_1_text_gpt")
+valid_gpt_columns_per_item_v3 <- valid_gpt_columns_per_item_v3[!valid_gpt_columns_per_item_v3 %in% excluded_items]
+valid_olmo_columns_per_item_v3 <- valid_olmo_columns_per_item_v3[!valid_olmo_columns_per_item_v3 %in% gsub("_gpt$", "_olmo", excluded_items)]
+
 # Sicherstellen, dass nur gültige Paare verwendet werden
 if(length(valid_gpt_columns_per_item_v3) == 0) {
   stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
@@ -986,12 +1034,301 @@ for(i in 1:length(valid_gpt_columns_per_item_v3)) {
                                                                            Precision_n = precision_n))
 }
 
+
+
 # Ergebnisse anzeigen
 print(kappa_results_per_item_v3)
 
 
 
 write.xlsx(kappa_results_per_item_v3, "../Data/processed/kappa_results_per_item_v3.xlsx")
+
+```
+
+
+#gwets ac1 
+
+# GWET's AC1 per item
+```{r}
+
+
+# Spalten mit _gpt und _olmo suffix finden
+gpt_columns_per_item_v4 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_per_item_v4 <- gsub("_gpt$", "_olmo", gpt_columns_per_item_v4)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns_per_item_v4 <- gpt_columns_per_item_v4[olmo_columns_per_item_v4 %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_per_item_v4 <- olmo_columns_per_item_v4[olmo_columns_per_item_v4 %in% colnames(data_gpt_olmo_processed)]
+
+# Entfernen der Variablen pre_dcp_1_text_gpt und pap_dcp_1_text_gpt, da diese nummerisch sind
+excluded_items <- c("pre_dcp_1_text_gpt", "pap_dcp_1_text_gpt")
+valid_gpt_columns_per_item_v4 <- valid_gpt_columns_per_item_v4[!valid_gpt_columns_per_item_v4 %in% excluded_items]
+valid_olmo_columns_per_item_v4 <- valid_olmo_columns_per_item_v4[!valid_olmo_columns_per_item_v4 %in% gsub("_gpt$", "_olmo", excluded_items)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns_per_item_v4) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Erstelle einen DataFrame, um die Ergebnisse für jede Spalte zu speichern
+ac1_results_per_item_v4 <- data.frame(Item = character(),
+                                      AC1 = numeric(),
+                                      Percent_Agreement = numeric(),
+                                      Sensitivity_n = numeric(),
+                                      Specificity_n = numeric(),
+                                      Precision_n = numeric(),
+                                      stringsAsFactors = FALSE)
+
+# Berechnung für jede Spalte einzeln
+for(i in 1:length(valid_gpt_columns_per_item_v4)) {
+  gpt_column_per_item_v4 <- data_gpt_olmo_processed[[valid_gpt_columns_per_item_v4[i]]]
+  olmo_column_per_item_v4 <- data_gpt_olmo_processed[[valid_olmo_columns_per_item_v4[i]]]
+  
+  # Kombiniere GPT und OLMO Spalten für den Vergleich
+  combined_data_per_item_v4 <- data.frame(GPT = gpt_column_per_item_v4,
+                                          OLMO = olmo_column_per_item_v4)
+
+  # Entferne NA-Werte
+  combined_data_per_item_v4 <- na.omit(combined_data_per_item_v4)
+  
+  # Erstelle die Häufigkeitstabelle für GWET's AC1
+  agreement_table <- table(combined_data_per_item_v4$GPT, combined_data_per_item_v4$OLMO)
+
+  # Berechne GWET's AC1
+  ac1_result_per_item_v4 <- gwet.ac1.raw(agreement_table)
+
+  # Berechne den Prozentsatz der Übereinstimmung
+  percent_agreement_per_item_v4 <- sum(combined_data_per_item_v4$GPT == combined_data_per_item_v4$OLMO) / nrow(combined_data_per_item_v4) * 100
+  
+  # Berechnung der Confusion Matrix (y, n, x Kategorien)
+  confusion_matrix <- table(combined_data_per_item_v4$GPT, combined_data_per_item_v4$OLMO)
+  
+  # Sicherstellen, dass "n" in der Matrix vorhanden ist
+  if("n" %in% rownames(confusion_matrix) && "n" %in% colnames(confusion_matrix)) {
+    TN <- confusion_matrix["n", "n"]
+  } else {
+    TN <- 0
+  }
+
+  # Berechne False Positives (FP) und False Negatives (FN) für "n"
+  FP <- if("n" %in% rownames(confusion_matrix)) sum(confusion_matrix["n", ]) - TN else 0
+  FN <- if("n" %in% colnames(confusion_matrix)) sum(confusion_matrix[, "n"]) - TN else 0
+  
+  # Berechne True Positives (TP) als restliche Übereinstimmungen
+  TP <- sum(confusion_matrix) - (TN + FP + FN)
+
+  # Berechne Sensitivity (n), Specificity (n) und Precision (n)
+  sensitivity_n <- if((TN + FN) > 0) TN / (TN + FN) else NA
+  specificity_n <- if((TP + FP) > 0) TP / (TP + FP) else NA
+  precision_n <- if((TP + FN) > 0) TP / (TP + FN) else NA
+  
+  # Ergebnisse in den DataFrame hinzufügen
+  ac1_results_per_item_v4 <- rbind(ac1_results_per_item_v4, data.frame(Item = valid_gpt_columns_per_item_v4[i],
+                                                                        AC1 = ac1_result_per_item_v4$est,
+                                                                        Percent_Agreement = percent_agreement_per_item_v4,
+                                                                        Sensitivity_n = sensitivity_n,
+                                                                        Specificity_n = specificity_n,
+                                                                        Precision_n = precision_n))
+}
+
+# Ergebnisse anzeigen
+print(ac1_results_per_item_v4)
+
+
+
+
+```
+
+
+
+
+
+# gwet über alle kategorien..
+```{r}
+# Spalten mit _gpt und _olmo suffix finden
+gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns <- gsub("_gpt$", "_olmo", gpt_columns)
+
+# Überprüfen, ob die entsprechenden _olmo-Spalten existieren
+valid_gpt_columns <- gpt_columns[olmo_columns %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns <- olmo_columns[olmo_columns %in% colnames(data_gpt_olmo_processed)]
+
+# Entfernen der Variablen pre_dcp_1_text_gpt und pap_dcp_1_text_gpt, da diese nummerisch sind
+excluded_items <- c("pre_dcp_1_text_gpt", "pap_dcp_1_text_gpt")
+valid_gpt_columns <- valid_gpt_columns[!valid_gpt_columns %in% excluded_items]
+valid_olmo_columns <- valid_olmo_columns[!valid_olmo_columns %in% gsub("_gpt$", "_olmo", excluded_items)]
+
+# Sicherstellen, dass nur gültige Paare verwendet werden
+if(length(valid_gpt_columns) == 0) {
+  stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
+}
+
+# Kombiniere alle gültigen GPT und OLMO Spalten in eine lange Liste
+all_gpt_values <- unlist(data_gpt_olmo_processed[valid_gpt_columns])
+all_olmo_values <- unlist(data_gpt_olmo_processed[valid_olmo_columns])
+
+# Sicherstellen, dass die Kategorien konsistent sind (3 Kategorien z.B. Y, N, X)
+# Umwandlung in Faktoren, falls die Werte nicht schon Faktoren sind
+all_gpt_values <- factor(all_gpt_values, levels = c("Y", "N", "X"))
+all_olmo_values <- factor(all_olmo_values, levels = c("Y", "N", "X"))
+
+# Erstelle eine Häufigkeitstabelle für GWET's AC1
+combined_data <- data.frame(GPT = all_gpt_values, OLMO = all_olmo_values)
+combined_data <- na.omit(combined_data)
+agreement_table <- table(combined_data$GPT, combined_data$OLMO)
+
+# Berechne GWET's AC1 über alle Items
+ac1_overall <- gwet.ac1.raw(agreement_table)
+
+# Extrahiere den Schätzwert und zeige das Ergebnis an
+cat("GWET's AC1 über alle Items:", ac1_overall$est$coeff.val, "\n")
+
+# Vollständiges Ergebnis von GWET's AC1 anzeigen
+print(ac1_overall)
+```
+
+
+
+
+# 
+```{r}
+
+# Initialize a DataFrame to store the results
+gwets_ac1_results_per_item <- data.frame(Item = character(),
+                                         Gwet_AC1 = numeric(),
+                                         Observed_Agreement = numeric(),
+                                         Expected_Agreement = numeric(),
+                                         stringsAsFactors = FALSE)
+
+# Iterate through each valid GPT and OLMO column pair
+for (i in seq_along(valid_gpt_columns_per_item_v3)) {
+  gpt_column <- data_gpt_olmo_processed[[valid_gpt_columns_per_item_v3[i]]]
+  olmo_column <- data_gpt_olmo_processed[[valid_olmo_columns_per_item_v3[i]]]
+
+  # Combine GPT and OLMO columns for comparison, removing NAs
+  combined_data <- na.omit(data.frame(GPT = gpt_column, OLMO = olmo_column))
+  
+  # Calculate observed agreement
+  observed_agreement <- mean(combined_data$GPT == combined_data$OLMO)
+  
+  # Calculate category proportions for each rater
+  categories <- unique(c(combined_data$GPT, combined_data$OLMO))
+  rater1_props <- prop.table(table(combined_data$GPT))
+  rater2_props <- prop.table(table(combined_data$OLMO))
+  
+  # Compute expected agreement based on Gwet's formula
+  expected_agreement <- mean(
+    sapply(categories, function(k) {
+      p1 <- ifelse(!is.na(rater1_props[k]), rater1_props[k], 0)
+      p2 <- ifelse(!is.na(rater2_props[k]), rater2_props[k], 0)
+      2 * p1 * p2 + (1 - p1) * (1 - p2)
+    })
+  )
+  
+  # Calculate Gwet's AC1
+  gwet_ac1 <- (observed_agreement - expected_agreement) / (1 - expected_agreement)
+  
+  # Append results to the DataFrame
+  gwets_ac1_results_per_item <- rbind(gwets_ac1_results_per_item, 
+                                      data.frame(Item = valid_gpt_columns_per_item_v3[i],
+                                                 Gwet_AC1 = gwet_ac1,
+                                                 Observed_Agreement = observed_agreement,
+                                                 Expected_Agreement = expected_agreement))
+}
+
+# Display results
+print(gwets_ac1_results_per_item)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+# gwet über alle kategorie v2
+```{r}
+# Initialize a DataFrame to store the results
+gwets_ac1_results_per_item <- data.frame(Item = character(),
+                                         Gwet_AC1 = numeric(),
+                                         Observed_Agreement = numeric(),
+                                         Expected_Agreement = numeric(),
+                                         stringsAsFactors = FALSE)
+
+# Iterate through each valid GPT and corresponding OLMO column pair
+for (i in seq_along(valid_gpt_columns_per_item_v3)) {
+  gpt_column <- data_gpt_olmo_processed[[valid_gpt_columns_per_item_v3[i]]]
+  olmo_column <- data_gpt_olmo_processed[[valid_olmo_columns_per_item_v3[i]]]  # Correct column for comparison
+
+  # Combine GPT and OLMO columns for comparison, removing NAs
+  combined_data <- na.omit(data.frame(GPT = gpt_column, OLMO = olmo_column))
+  
+  if (nrow(combined_data) > 0) {
+    # Calculate observed agreement
+    observed_agreement <- mean(combined_data$GPT == combined_data$OLMO)
+    
+    # Calculate expected agreement using Gwet's AC1 formula
+    rater1_props <- prop.table(table(combined_data$GPT))
+    rater2_props <- prop.table(table(combined_data$OLMO))
+    categories <- unique(c(combined_data$GPT, combined_data$OLMO))
+    
+    # Diagnostic: Display proportions for categories
+    print(paste("Item:", valid_gpt_columns_per_item_v3[i]))
+    print("Rater1 Proportions:")
+    print(rater1_props)
+    print("Rater2 Proportions:")
+    print(rater2_props)
+    
+    # Gwet's expected agreement: weighted calculation for each category
+    expected_agreement <- mean(
+      sapply(categories, function(k) {
+        p1 <- ifelse(!is.na(rater1_props[k]), rater1_props[k], 0)
+        p2 <- ifelse(!is.na(rater2_props[k]), rater2_props[k], 0)
+        2 * p1 * p2 + (1 - p1) * (1 - p2)
+      })
+    )
+    
+    # Print expected agreement if it exceeds 1
+    if (expected_agreement > 1) {
+      print(paste("Warning: Expected Agreement > 1 for item", valid_gpt_columns_per_item_v3[i]))
+      print(expected_agreement)
+    }
+    
+    # Calculate Gwet's AC1
+    if (expected_agreement != 1) {
+      gwet_ac1 <- (observed_agreement - expected_agreement) / (1 - expected_agreement)
+    } else {
+      gwet_ac1 <- NA  # AC1 is undefined if expected agreement is 1
+    }
+    
+    # Append results to the DataFrame
+    gwets_ac1_results_per_item <- rbind(gwets_ac1_results_per_item, 
+                                        data.frame(Item = valid_gpt_columns_per_item_v3[i],
+                                                   Gwet_AC1 = gwet_ac1,
+                                                   Observed_Agreement = observed_agreement,
+                                                   Expected_Agreement = expected_agreement))
+  } else {
+    # If no data in combined_data, append NA values
+    gwets_ac1_results_per_item <- rbind(gwets_ac1_results_per_item, 
+                                        data.frame(Item = valid_gpt_columns_per_item_v3[i],
+                                                   Gwet_AC1 = NA,
+                                                   Observed_Agreement = NA,
+                                                   Expected_Agreement = NA))
+  }
+}
+
+# Display results
+print(gwets_ac1_results_per_item)
+
+
+
+
+
 
 ```
 
@@ -1199,7 +1536,7 @@ cat("Anzahl der Vergleiche (n):", n_total, "\n")
 
 
 
-## besser nur bei promt version d? im Vergleich zu den anderen?
+## interrater kappa per prompt version
 
 hier noch n reinnehmen
 
@@ -1280,6 +1617,83 @@ for (version_PromptV in versions_PromptV) {
   cat("Anzahl der Vergleiche (n):", n_PromptV, "\n")
 }
 
+
+
+
+```
+
+
+# siginifikanztest unterscheid promptversion a zu d
+```{r}
+# Funktion zur Berechnung des Fisher-Z-Werts für den Unterschied zwischen zwei Kappa-Werten
+calculate_z_difference <- function(kappa1, se_kappa1, kappa2, se_kappa2) {
+  if (!is.na(se_kappa1) & !is.na(se_kappa2)) {
+    z_diff <- (kappa1 - kappa2) / sqrt(se_kappa1^2 + se_kappa2^2)
+    p_value <- 2 * (1 - pnorm(abs(z_diff)))  # zweiseitiger Test
+    return(c(z_diff, p_value))
+  } else {
+    return(c(NA, NA))  # Kein Vergleich möglich, falls SE nicht berechnet werden kann
+  }
+}
+
+# Definiere die Versionen A und D für den Vergleich
+version_compare <- c("A", "D")
+
+# Speichern der Kappa-Ergebnisse für A und D
+kappa_results <- list()
+
+for (version_PromptV in version_compare) {
+  # Filtere die Zeilen für die aktuelle Version
+  version_data_PromptV <- data_gpt_olmo_processed[data_gpt_olmo_processed$prompt_version == version_PromptV, ]
+  
+  combined_data_PromptV <- data.frame()
+  
+  for(i in 1:length(valid_gpt_columns_PromptV)) {
+    combined_data_PromptV <- rbind(combined_data_PromptV, data.frame(GPT = version_data_PromptV[[valid_gpt_columns_PromptV[i]]],
+                                                                     OLMO = version_data_PromptV[[valid_olmo_columns_PromptV[i]]]))
+  }
+  
+  combined_data_PromptV <- na.omit(combined_data_PromptV)
+  
+  kappa_result_PromptV <- irr::kappa2(combined_data_PromptV, "unweighted")
+  n_PromptV <- nrow(combined_data_PromptV)
+  
+  p_e_PromptV <- sum(rowSums(table(combined_data_PromptV$GPT, combined_data_PromptV$OLMO)) * colSums(table(combined_data_PromptV$GPT, combined_data_PromptV$OLMO))) / (n_PromptV^2)
+  p_0_PromptV <- sum(combined_data_PromptV$GPT == combined_data_PromptV$OLMO) / n_PromptV
+  
+  if (p_e_PromptV == 1) {
+    se_kappa_PromptV <- NA
+  } else {
+    se_kappa_PromptV <- sqrt((p_0_PromptV * (1 - p_0_PromptV)) / (n_PromptV * (1 - p_e_PromptV)^2))
+  }
+  
+  # Speichern der Kappa-Werte und Standardfehler für Vergleich
+  kappa_results[[version_PromptV]] <- list(kappa = kappa_result_PromptV$value, se = se_kappa_PromptV)
+}
+
+# Berechnen des Z-Werts und p-Werts für den Unterschied zwischen A und D
+z_diff_results <- calculate_z_difference(kappa_results[["A"]]$kappa, kappa_results[["A"]]$se,
+                                         kappa_results[["D"]]$kappa, kappa_results[["D"]]$se)
+
+cat("\nUnterschied zwischen Cohen's Kappa für Version A und D:\n")
+cat("Z-Wert:", z_diff_results[1], "\n")
+cat("p-Wert:", z_diff_results[2], "\n")
+
+
+```
+
+
+
+
+##signifikanztest unterschied extraction comparison
+```{r}
+# Berechne den Unterschied zwischen den Kappa-Werten für Extraction und Comparison
+z_diff_results <- calculate_z_difference(kappa_result_extract$value, se_kappa_extract,
+                                         kappa_result_comp$value, se_kappa_comp)
+
+cat("\nUnterschied zwischen Kappa für Extraction und Comparison:\n")
+cat("Z-Wert:", z_diff_results[1], "\n")
+cat("p-Wert:", z_diff_results[2], "\n")
 
 
 
@@ -1523,7 +1937,7 @@ print(kappa_gesamt_yn)
 
 
 ```
-# i thought it would be better, but its actually worse...
+i thought it would be better, but its actually worse...
 
 hmm ich ersuhe jetz noch einen kürzeren promt mit ausgewählten fragen... dann muss ich nur diese ausgewählte fragen noch testen beim ursprünglichen datensatz und dann kann ich diesn vergleichen mit dem neuen gekürzeten...
 
@@ -1533,6 +1947,11 @@ ausserdem sollte ich wohl noch die ratings auch auswerten(alos die nummern obwoh
 
 
 und noch schauen ob es einen unterschied macht ob experiment oder nicht....)
+
+
+
+
+
 
 
 ## ich könnte noch kappa pro psp machen.... dh..
@@ -2295,7 +2714,7 @@ if("kappa_value" %in% colnames(results_peritem)) {
 
 
 
-## Overview per psp
+## Overview and analysis per psp
 ```{r}
 # Überblick über die Kappa-Werte und Prozentübereinstimmung
 
@@ -2476,39 +2895,60 @@ print(results_table)
 ```
 
 
-# protoype olmo
+
+
+# significant per intterater experiment/hypothese type
 ```{r}
-#prototypische Kategorien
-
-# Spalten, die auf _olmo enden, finden
-olmo_columns <- grep("_olmo$", colnames(data_gpt_olmo_processed), value = TRUE)
-
-# Erstelle einen leeren Vektor für die prototypischen Kategorien
-prototyp_olmo <- vector("list", length(olmo_columns))
-
-# Berechne die prototypische Kategorie (häufigste Kategorie) für jede _olmo-Spalte
-for (i in seq_along(olmo_columns)) {
-  column <- olmo_columns[i]
-  
-  # Häufigkeiten der Kategorien in der aktuellen Spalte berechnen
-  category_frequencies <- table(data_gpt_olmo_processed[[column]])
-  
-  if (length(category_frequencies) > 0) {
-    # Die häufigste Kategorie (prototypische Kategorie) bestimmen
-    most_frequent_category <- names(which.max(category_frequencies))
-    # Speichern der prototypischen Kategorie
-    prototyp_olmo[[i]] <- most_frequent_category
+# Funktion zur Berechnung des Z-Tests für den Unterschied zwischen zwei Kappa-Werten
+calculate_z_difference <- function(kappa1, se_kappa1, kappa2, se_kappa2) {
+  if (!is.na(se_kappa1) & !is.na(se_kappa2)) {
+    z_diff <- (kappa1 - kappa2) / sqrt(se_kappa1^2 + se_kappa2^2)
+    p_value <- 2 * (1 - pnorm(abs(z_diff)))  # Zweiseitiger Test
+    return(c(z_diff, p_value))
   } else {
-    # Falls die Spalte leer ist oder keine Kategorien vorhanden sind
-    prototyp_olmo[[i]] <- NA
+    return(c(NA, NA))  # Kein Vergleich möglich, falls SE nicht berechnet werden kann
   }
 }
 
-# Erstelle ein DataFrame mit den prototypischen Kategorien
-prototyp_olmo_df <- data.frame(column_name = olmo_columns, prototyp_olmo = unlist(prototyp_olmo))
+# Spezifische Experimenttypen für den Vergleich
+type1 <- "Effect"
+type2 <- "Association"
 
-# prototyp_olmo_df anzeigen
-print(prototyp_olmo_df)
+# Funktion zur Berechnung des Kappa und SE für einen spezifischen Experimenttyp
+calculate_kappa_for_type <- function(type) {
+  type_data <- data_gpt_olmo_processed[data_gpt_olmo_processed$type == type, ]
+  combined_data <- data.frame()
+  
+  for(i in 1:length(valid_gpt_columns_experimenttype)) {
+    combined_data <- rbind(combined_data, 
+                           data.frame(GPT = type_data[[valid_gpt_columns_experimenttype[i]]],
+                                      OLMO = type_data[[valid_olmo_columns_experimenttype[i]]]))
+  }
+  
+  combined_data <- na.omit(combined_data)
+  
+  if (nrow(combined_data) > 0) {
+    kappa_result <- irr::kappa2(combined_data, "unweighted")
+    kappa_value <- kappa_result$value
+    n <- nrow(combined_data)
+    standard_error <- sqrt((1 - kappa_value^2) / n)
+    return(list(kappa = kappa_value, se = standard_error))
+  } else {
+    return(list(kappa = NA, se = NA))
+  }
+}
+
+# Berechnung für die beiden Experimenttypen
+kappa_results_type1 <- calculate_kappa_for_type(type1)
+kappa_results_type2 <- calculate_kappa_for_type(type2)
+
+# Berechnung des Z-Werts und p-Werts für den Unterschied zwischen den beiden Kappa-Werten
+z_diff_results <- calculate_z_difference(kappa_results_type1$kappa, kappa_results_type1$se,
+                                         kappa_results_type2$kappa, kappa_results_type2$se)
+
+cat("Unterschied zwischen Kappa für", type1, "und", type2, ":\n")
+cat("Z-Wert:", z_diff_results[1], "\n")
+cat("p-Wert:", z_diff_results[2], "\n")
 
 
 ```
@@ -2516,11 +2956,165 @@ print(prototyp_olmo_df)
 
 
 
-# sevtl protoype gpt .... fast stärker mit guten studien??
+
+
+
+## protoype olmo
+```{r}
+# Erstellen des neuen Datensatzes `data_prototype`
+data_prototype <- data.frame(Variable = character(),
+                             Prototype = character(),
+                             Prototype_Percentage = numeric(),
+                             stringsAsFactors = FALSE)
+
+# Schleife über jede Spalte in `data_gpt_olmo_processed`
+for (col_name in names(data_gpt_olmo_processed)) {
+  # Prüfen, ob die Spalte gültige Werte enthält
+  if (sum(!is.na(data_gpt_olmo_processed[[col_name]])) > 0) {
+    # Ermitteln der häufigsten Antwort und deren Häufigkeit
+    prototype_value <- as.character(names(sort(table(data_gpt_olmo_processed[[col_name]]), decreasing = TRUE)[1]))
+    prototype_count <- max(table(data_gpt_olmo_processed[[col_name]]))
+    
+    # Berechnen des Prozentsatzes
+    prototype_percentage <- (prototype_count / nrow(data_gpt_olmo_processed)) * 100
+  } else {
+    # Falls die Spalte nur NAs enthält, setzen wir Werte auf NA
+    prototype_value <- NA
+    prototype_percentage <- NA
+  }
+  
+  # Hinzufügen der Werte zu `data_prototype`
+  data_prototype <- rbind(data_prototype, 
+                          data.frame(Variable = col_name,
+                                     Prototype = prototype_value,
+                                     Prototype_Percentage = prototype_percentage))
+}
+
+
+# Filtere data_prototype, um nur Zeilen mit Prototype-Werten 'y', 'n' oder 'x' zu behalten
+data_prototype <- subset(data_prototype, Prototype %in% c("y", "n", "x"))
+
+# Daten anzeigen
+head(data_prototype)
+
+
+```
+
+
+# mergen von data_protoype und retest_kappa summary
 ```{r}
 
+# Anzeigen der einzigartigen Werte von 'Column' in retest_kappa_summary
+unique(retest_kappa_summary$Column)
+
+# Anzeigen der einzigartigen Werte von 'Variable_clean' in data_prototype (nach Bearbeitung)
+data_prototype$Variable_clean <- gsub("_gpt$", "_comp", data_prototype$Variable)
+unique(data_prototype$Variable_clean)
+
+# Optional: Zeige Zeilen, die keine Übereinstimmung haben
+anti_join(data_prototype, retest_kappa_summary, by = c("Variable_clean" = "Column"))
+
+# Durchführung des Merges nach Überprüfung
+data_retest_prototype <- retest_kappa_summary %>%
+  inner_join(data_prototype, by = c("Column" = "Variable_clean"))
+
+# Ergebnis anzeigen
+head(data_retest_prototype)
 
 ```
+
+
+
+# korrelation zw protoype percentage und kappa(retest)
+```{r}
+# Korrelation berechnen
+correlation_result <- cor.test(data_retest_prototype$Kappa, data_retest_prototype$Prototype_Percentage, method = "pearson")
+
+# Ergebnisse im APA-Format ausgeben
+cat(sprintf("r(%d) = %.2f, p = %.3f, 95%% CI [%.2f, %.2f]",
+            correlation_result$parameter,               # Freiheitsgrade (df)
+            correlation_result$estimate,               # Korrelationskoeffizient (r)
+            correlation_result$p.value,                # p-Wert
+            correlation_result$conf.int[1],            # Untere Grenze des Konfidenzintervalls
+            correlation_result$conf.int[2]))           # Obere Grenze des Konfidenzintervalls
+
+
+```
+
+
+
+
+
+
+# mergen von data_protoype und kappa_results
+```{r}
+# Sicherstellen, dass die Spalten 'Variable' in beiden Datensätzen den gleichen Datentyp haben
+data_prototype$Variable <- as.character(data_prototype$Variable)
+kappa_results$Variable <- as.character(kappa_results$Variable)
+
+# Entfernen von '_comp' in data_prototype und '_gpt' in kappa_results, um das Matching zu ermöglichen
+data_prototype$Variable_clean <- sub("_comp$", "", data_prototype$Variable)
+kappa_results$Variable_clean <- sub("_gpt$", "", kappa_results$Variable)
+
+# Merging der beiden Datensätze anhand der 'Variable_clean' Spalte und die neue Datei data_interrater_prototype nennen
+data_interrater_prototype <- merge(
+  data_prototype, 
+  kappa_results, 
+  by.x = "Variable_clean", 
+  by.y = "Variable_clean", 
+  all = TRUE
+)
+# Entfernen aller Zeilen, bei denen die Variable `Variable_clean` auf '_olmo' oder '_date' endet
+data_interrater_prototype <- data_interrater_prototype[!grepl("(_olmo|date)$", data_interrater_prototype$Variable_clean), ]
+
+# Ergebnis anzeigen
+head(data_interrater_prototype)
+
+
+```
+
+
+
+
+## korrelation zw protoype percentage und kappa(interrater) sowie agreement
+```{r}
+
+## Berechnung der Korrelation zwischen Kappa und Prototype_Percentage
+correlation_kappa_prototype <- cor.test(data_interrater_prototype$Kappa, data_interrater_prototype$Prototype_Percentage)
+
+# Ausgabe im APA-Format für Kappa und Prototype_Percentage
+cat(sprintf("Kappa und Prototype_Percentage: r(%d) = %.2f, p = %.3f, 95%% CI [%.2f, %.2f]\n",
+            correlation_kappa_prototype$parameter,
+            correlation_kappa_prototype$estimate,
+            correlation_kappa_prototype$p.value,
+            correlation_kappa_prototype$conf.int[1],
+            correlation_kappa_prototype$conf.int[2]))
+
+# Berechnung der Korrelation zwischen Percent_Agreement und Prototype_Percentage
+correlation_percent_prototype <- cor.test(data_interrater_prototype$Percent_Agreement, data_interrater_prototype$Prototype_Percentage)
+
+# Ausgabe im APA-Format für Percent_Agreement und Prototype_Percentage
+cat(sprintf("Percent_Agreement und Prototype_Percentage: r(%d) = %.2f, p = %.3f, 95%% CI [%.2f, %.2f]\n",
+            correlation_percent_prototype$parameter,
+            correlation_percent_prototype$estimate,
+            correlation_percent_prototype$p.value,
+            correlation_percent_prototype$conf.int[1],
+            correlation_percent_prototype$conf.int[2]))
+
+# Berechnung der Korrelation zwischen Percent_Agreement und Kappa
+correlation_percent_kappa <- cor.test(data_interrater_prototype$Percent_Agreement, data_interrater_prototype$Kappa)
+
+# Ausgabe im APA-Format für Percent_Agreement und Kappa
+cat(sprintf("Percent_Agreement und Kappa: r(%d) = %.2f, p = %.3f, 95%% CI [%.2f, %.2f]",
+            correlation_percent_kappa$parameter,
+            correlation_percent_kappa$estimate,
+            correlation_percent_kappa$p.value,
+            correlation_percent_kappa$conf.int[1],
+            correlation_percent_kappa$conf.int[2]))
+
+
+```
+
 
 
 
@@ -2606,34 +3200,31 @@ print(plot_pap)
 
 ## N zahlen
 ```{r}
-# Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pre
-pre_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pre, useNA = "ifany"))
+# Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pre 
+pre_counts <- as.data.frame(table(na.omit(data_gpt_olmo_numeric$uebereinstimmend_pre)))
 colnames(pre_counts) <- c("Kategorie", "Anzahl")
 pre_counts$Prozentsatz <- round(100 * pre_counts$Anzahl / sum(pre_counts$Anzahl), 2)
 
-# Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pap
-pap_counts <- as.data.frame(table(data_gpt_olmo_numeric$uebereinstimmend_pap, useNA = "ifany"))
+# Berechnung der absoluten Zahlen und Prozentsätze für übereinstimmend_pap 
+pap_counts <- as.data.frame(table(na.omit(data_gpt_olmo_numeric$uebereinstimmend_pap)))
 colnames(pap_counts) <- c("Kategorie", "Anzahl")
 pap_counts$Prozentsatz <- round(100 * pap_counts$Anzahl / sum(pap_counts$Anzahl), 2)
 
-# Zusammenführen der Kategorien
+# Zusammenführen der Kategorien 
 combined_counts <- merge(pre_counts, pap_counts, by = "Kategorie", all = TRUE, suffixes = c("_PRE", "_PAP"))
 
-# Falls NA-Werte vorhanden sind, diese durch 0 ersetzen
-combined_counts[is.na(combined_counts)] <- 0
-
-# Berechnung der Gesamtsummen
+# Berechnung der Gesamtsummen ohne 
 combined_counts$Anzahl_Gesamt <- combined_counts$Anzahl_PRE + combined_counts$Anzahl_PAP
 combined_counts$Prozentsatz_Gesamt <- round(100 * combined_counts$Anzahl_Gesamt / sum(combined_counts$Anzahl_Gesamt), 2)
 
-# Berechnung der durchschnittlichen Abweichung für abweichung_pre
+# Berechnung der durchschnittlichen Abweichung für abweichung_pre ohne 
 durchschnittliche_abweichung_pre <- mean(data_gpt_olmo_numeric$abweichung_pre, na.rm = TRUE)
 
-# Berechnung der durchschnittlichen Abweichung für abweichung_pap
+# Berechnung der durchschnittlichen Abweichung für abweichung_pap ohne 
 durchschnittliche_abweichung_pap <- mean(data_gpt_olmo_numeric$abweichung_pap, na.rm = TRUE)
 
 # Ausgabe der kombinierten Tabelle
-cat("Kombinierte Tabelle für übereinstimmend_pre und übereinstimmend_pap - Absolute Zahlen und Prozentsätze:\n")
+cat("Kombinierte Tabelle für übereinstimmend_pre und übereinstimmend_pap - Absolute Zahlen und Prozentsätze (ohne NAs):\n")
 print(combined_counts)
 
 # Ausgabe der durchschnittlichen Abweichung
@@ -2676,6 +3267,13 @@ print(summary_stats)
 ```
 
 
+
+
+# 
+```{r}
+
+
+```
 
 
 
