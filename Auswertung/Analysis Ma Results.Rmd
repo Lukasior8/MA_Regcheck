@@ -133,8 +133,7 @@ hier müsste ich evventuell noch zusätzlich die Anzahl vvon Olmo... als Verglei
 
 ```{r}
 
-# Angenommen, deine 2x11-Tabelle heißt "data_category_counts_total"
-# und enthält die Zählungen für jede Kategorie (z.B. Y, N, X).
+
 
 # Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
 actual_Y <- data_category_counts_total$Identical_YES[1]  # Zähle die Y-Zuordnungen
@@ -213,8 +212,7 @@ kable(confusion_matrix_with_sums, format = "html", caption = "Confusion Matrix w
 
 # confusionmatrix in percent
 ```{r}
-# Angenommen, deine 2x11-Tabelle heißt "data_category_counts_total"
-# und enthält die Prozentsätze für jede Kategorie (z.B. Y, N, X).
+
 
 # Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
 actual_Y_in_percent <- data_category_counts_total$Identical_YES[2]  # Prozentsatz der Y-Zuordnungen
@@ -319,7 +317,6 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 ## Sensitivität und Spezifität für jede Klasse (One-vs-Rest)
 
 
-hier könnte man noch sensitivität für jedes Item...!
 
 ```{r}
 # Funktion zur Berechnung des Wilson-Konfidenzintervalls
@@ -434,9 +431,10 @@ print(overall_results)
 
 
 # Kappa RETEST
-habe ich hier jeweils nur gpt genommen? oder auch olmo ausversehen?!
 
-## test, retest korrelation Cohens Kappa per category
+Here i work with the dataset comparison_data_processed does it maybe make a difference because i have way more categories?!(y,n fxy etc)?
+
+## test, retest korrelation Cohens Kappa per category v1
 
 ```{r}
 
@@ -474,7 +472,7 @@ print(retest_kappa_summary)
 # die drei antweoten mit NAin kappa_summary sind eigentlich perfekt übereinstimemnd, aber da immer nur die gleiche Antwort, dh de geliche Buchstaben eingesetzt wurde gibt es per Definition eine perfekte Übereinstimmung, da es keine Variabilität gibt.
 
 
-#write to disk forjamovi
+#write to disk for jamovi
 write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx")
 
 
@@ -486,7 +484,51 @@ write.xlsx(retest_merged_data, file = "../Data/processed/retest_merged_data.xlsx
 ```
 
 
-## versuch 2 mit zusätzlich z wert, agreement % , p wert
+
+
+
+## test, retest korrelation Cohens Kappa per category vX anderer Datensatz
+```{r}
+# Step 1: Filter the dataset into test and retest subsets
+test_data <- data_gpt_olmo_processed %>% filter(test_retest == "Test")
+retest_data <- data_gpt_olmo_processed %>% filter(test_retest == "RETEST")
+
+# Step 2: Match test and retest based on 'psp' (so this only contains the 30 test-retest Psp rows)
+retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+
+# Step 3: Get all columns ending with '_gpt'
+gpt_columns <- grep("_gpt$", names(data_gpt_olmo_processed), value = TRUE)
+
+# Step 4: Loop through each '_gpt' column and calculate Cohen's Kappa
+retest_kappa_results <- lapply(gpt_columns, function(col_name) {
+  # Cohen's Kappa requires the two sets of categorical data (Test and RETEST)
+  test_col <- retest_merged_data[[paste0(col_name, "_test")]]
+  retest_col <- retest_merged_data[[paste0(col_name, "_retest")]]
+  
+  # Calculate Cohen's Kappa for the current column
+  kappa <- cohen.kappa(cbind(test_col, retest_col))
+  
+  # Return the column name and the kappa value
+  data.frame(Column = col_name, Kappa = kappa$kappa)
+})
+
+# Combine the results into a single data frame
+retest_kappa_summary_vX <- do.call(rbind, retest_kappa_results)
+
+# Step 5: Display the results
+print(retest_kappa_summary_vX)
+
+
+
+
+#write to disk for jamovi
+write.xlsx(retest_kappa_summary_vX, file = "../Data/processed/retest_kappa_summary_vX.xlsx")
+
+```
+
+
+
+## test, retest korrelation Cohens Kappa per category v2 mit zusätzlich z wert, agreement % , p wert
 ```{r}
 
 
@@ -547,15 +589,96 @@ retest_kappa_results <- lapply(comp_columns, function(col_name) {
 })
 
 # Step 5: Combine the results into a single data frame
-retest_kappa_summary <- do.call(rbind, retest_kappa_results)
+retest_kappa_summary_v2 <- do.call(rbind, retest_kappa_results)
 
 # Step 6: Display the results
-print(retest_kappa_summary)
+print(retest_kappa_summary_v2)
 
 
 
 
 ```
+
+
+## test, retest korrelation Cohens Kappa per category v3
+```{r}
+# Step 1: Filter the dataset into test and retest subsets
+test_data <- comparison_data_processed %>% filter(test_retest == "Test")
+retest_data <- comparison_data_processed %>% filter(test_retest == "RETEST")
+
+# Step 2: Merge test and retest data based on 'psp' to only include the 30 test-retest psp rows
+retest_merged_data <- merge(test_data, retest_data, by = "psp", suffixes = c("_test", "_retest"))
+
+# Step 3: Get all columns ending with '_comp'
+comp_columns <- grep("_comp$", names(comparison_data_processed), value = TRUE)
+
+# Step 4: Create a new dataframe to store the results
+retest_kappa_summary_v3 <- data.frame(
+  Variable = comp_columns,
+  Kappa = NA,
+  P_Value = NA,
+  Z_Value = NA,
+  Percent_Agreement = NA
+)
+
+# Step 5: Loop through each '_comp' column and calculate Cohen's Kappa without adjustments for high percent agreement
+for (i in 1:length(comp_columns)) {
+  col_name <- comp_columns[i]
+  
+  # Extract the test and retest columns for the current '_comp' item
+  test_col <- retest_merged_data[[paste0(col_name, "_test")]]
+  retest_col <- retest_merged_data[[paste0(col_name, "_retest")]]
+  
+  # Check if there are non-NA data in both columns
+  if (!all(is.na(test_col)) && !all(is.na(retest_col))) {
+    # Remove rows with NA values for this comparison
+    valid_data <- retest_merged_data[!is.na(test_col) & !is.na(retest_col), ]
+    
+    # Calculate Cohen's Kappa using the 'irr' package without any special adjustments
+    kappa_result <- irr::kappa2(data.frame(valid_data[[paste0(col_name, "_test")]], 
+                                           valid_data[[paste0(col_name, "_retest")]]), "unweighted")
+    
+    # Extract kappa value and p-value
+    kappa_value <- kappa_result$value
+    p_value <- kappa_result$p.value
+    agreement_percentage <- mean(valid_data[[paste0(col_name, "_test")]] == 
+                                 valid_data[[paste0(col_name, "_retest")]]) * 100
+    
+    # Calculate expected agreement (p_e)
+    agreement_table <- table(valid_data[[paste0(col_name, "_test")]], valid_data[[paste0(col_name, "_retest")]])
+    n <- sum(agreement_table)  # Total number of pairs
+    p_e <- sum(rowSums(agreement_table) * colSums(agreement_table)) / (n^2)
+    
+    # Calculate observed agreement (p_0)
+    p_0 <- agreement_percentage / 100
+    
+    # Calculate standard error (SE) and z-value if p_e < 1
+    if (p_e < 1) {
+      se_kappa <- sqrt((p_0 * (1 - p_0)) / (n * (1 - p_e)^2))
+      z_value <- kappa_value / se_kappa
+    } else {
+      se_kappa <- NA
+      z_value <- NA
+    }
+    
+    # Store the results in the dataframe
+    retest_kappa_summary_v3[i, ] <- c(col_name, kappa_value, p_value, z_value, agreement_percentage)
+  }
+}
+
+# Step 6: Display the results
+print(retest_kappa_summary_v3)
+
+
+```
+
+
+
+
+
+
+
+
 ## average retest-kappa over items
 
 ```{r}
@@ -597,7 +720,7 @@ weighted macht heir absolut keinen sinn...
 
 ##test, retest korrelation gesamt kappa...v2 mit p wert etc..
 
-p wert noch leer:/
+
 
 ```{r}
 # Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen's Kappa
@@ -684,10 +807,10 @@ retest_kappa_extraction <- calculate_kappa_for_selected(extract_columns, "retest
 retest_kappa_comparison <- calculate_kappa_for_selected(comp_columns, "retest_comparison")
 
 # Zusammenfassung der Ergebnisse
-retest_kappa_summary <- rbind(retest_kappa_extraction, retest_kappa_comparison)
+retest_kappa_extraction_comparison <- rbind(retest_kappa_extraction, retest_kappa_comparison)
 
 # Ergebnisse anzeigen
-print(retest_kappa_summary)
+print(retest_kappa_extraction_comparison)
 
 
 ```
@@ -820,33 +943,9 @@ print(kappa_results)
 
 
 
-## test nach normalverteilung über items
-```{r}
-# Shapiro-Wilk-Test zur Überprüfung auf Normalverteilung der Kappa-Werte
-shapiro_test <- shapiro.test(kappa_results$Kappa)
-
-# Shapiro-Wilk-Test-Ergebnisse anzeigen
-cat("Shapiro-Wilk-Test für Kappa-Werte:\n")
-print(shapiro_test)
-
-# Normalverteilungsgrafik erstellen
-# Histogramm mit angepasster Normalverteilungskurve
-hist(kappa_results$Kappa, breaks = 40, prob = TRUE, 
-     main = "Histogramm der Kappa-Werte mit Normalverteilungskurve", 
-     xlab = "Kappa-Wert", ylab = "Dichte")
-curve(dnorm(x, mean = mean(kappa_results$Kappa), sd = sd(kappa_results$Kappa)), 
-      add = TRUE, col = "blue", lwd = 2)
-
-# Q-Q-Plot zur Überprüfung der Normalverteilung
-qqnorm(kappa_results$Kappa, main = "Q-Q-Plot der Kappa-Werte")
-qqline(kappa_results$Kappa, col = "blue", lwd = 2)
 
 
-```
-
-
-
-##Kappa interrater gpt zu olmo  per ITEM 2. ansatz
+##Kappa interrater gpt zu olmo  per ITEM/Category 2. ansatz
 
 ```{r}
 
@@ -891,6 +990,108 @@ print(kappa_results_v2)
 
 ```
 
+
+
+##Kappa interrater gpt zu olmo  per ITEM/Category 3. ansatz
+```{r}
+# Function to calculate Cohen's Kappa, z-value, and percentage agreement with detailed error handling
+calculate_kappa_detailed <- function(data, column_gpt, column_olmo) {
+  # Ensure both columns exist
+  if(column_gpt %in% colnames(data) & column_olmo %in% colnames(data)) {
+    # Extract columns
+    gpt_col <- data[[column_gpt]]
+    olmo_col <- data[[column_olmo]]
+    
+    # Check if all data in columns are NA
+    if (all(is.na(gpt_col)) || all(is.na(olmo_col))) {
+      return(c(NA, NA, NA, NA))
+    }
+    
+    # Remove rows with NA values
+    valid_data <- data[!is.na(gpt_col) & !is.na(olmo_col), ]
+    
+    # Calculate Cohen's Kappa using 'kappa2' from the 'irr' package
+    kappa_result <- irr::kappa2(data.frame(valid_data[[column_gpt]], valid_data[[column_olmo]]), "unweighted")
+    
+    # Extract kappa value and p-value
+    kappa_value <- kappa_result$value
+    p_value <- kappa_result$p.value
+    agreement_percentage <- mean(valid_data[[column_gpt]] == valid_data[[column_olmo]]) * 100
+    
+    # Calculate expected agreement (p_e)
+    agreement_table <- table(valid_data[[column_gpt]], valid_data[[column_olmo]])
+    n <- sum(agreement_table)  # Total number of pairs
+    p_e <- sum(rowSums(agreement_table) * colSums(agreement_table)) / (n^2)
+    
+    # Calculate observed agreement (p_0)
+    p_0 <- agreement_percentage / 100
+    
+    # Calculate standard error (SE) and z-value if p_e < 1
+    if (p_e == 1) {
+      se_kappa <- NA
+      z_value <- NA
+    } else {
+      se_kappa <- sqrt((p_0 * (1 - p_0)) / (n * (1 - p_e)^2))
+      z_value <- kappa_value / se_kappa
+    }
+    
+    return(c(kappa_value, p_value, z_value, agreement_percentage))
+  } else {
+    return(c(NA, NA, NA, NA))
+  }
+}
+
+# Get all columns with _gpt and _olmo suffixes
+gpt_columns_v3 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_v3 <- gsub("_gpt$", "_olmo", gpt_columns_v3)
+
+# Create a dataframe to store the results
+kappa_results_v3 <- data.frame(Variable = gpt_columns_v3, Kappa = NA, P_Value = NA, Z_Value = NA, Percent_Agreement = NA)
+
+# Loop over all _gpt and _olmo column pairs and calculate statistics
+for(i in 1:length(gpt_columns_v3)) {
+  kappa_stats <- calculate_kappa_detailed(data_gpt_olmo_processed, gpt_columns_v3[i], olmo_columns_v3[i])
+  kappa_results_v3[i, 2:5] <- kappa_stats
+}
+
+# Display the results
+print(kappa_results_v3)
+
+
+```
+
+
+
+
+## test nach normalverteilung über items
+```{r}
+# Shapiro-Wilk-Test zur Überprüfung auf Normalverteilung der Kappa-Werte
+shapiro_test <- shapiro.test(kappa_results$Kappa)
+
+# Shapiro-Wilk-Test-Ergebnisse anzeigen
+cat("Shapiro-Wilk-Test für Kappa-Werte:\n")
+print(shapiro_test)
+
+# Normalverteilungsgrafik erstellen
+# Histogramm mit angepasster Normalverteilungskurve
+hist(kappa_results$Kappa, breaks = 40, prob = TRUE, 
+     main = "Histogramm der Kappa-Werte mit Normalverteilungskurve", 
+     xlab = "Kappa-Wert", ylab = "Dichte")
+curve(dnorm(x, mean = mean(kappa_results$Kappa), sd = sd(kappa_results$Kappa)), 
+      add = TRUE, col = "blue", lwd = 2)
+
+# Q-Q-Plot zur Überprüfung der Normalverteilung
+qqnorm(kappa_results$Kappa, main = "Q-Q-Plot der Kappa-Werte")
+qqline(kappa_results$Kappa, col = "blue", lwd = 2)
+
+
+```
+
+# 
+```{r}
+
+
+```
 
 
 
@@ -952,28 +1153,28 @@ if("Percent_Agreement" %in% colnames(kappa_results)) {
 
 
 
-## Kappa interrater gpt zu olmo  per category 3. ansatz inkl sensitivity,specifity precision per item
+## Kappa interrater gpt zu olmo  per category 4. ansatz inkl sensitivity,specifity precision per item
 ```{r}
 # Spalten mit _gpt und _olmo suffix finden
-gpt_columns_per_item_v3 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
-olmo_columns_per_item_v3 <- gsub("_gpt$", "_olmo", gpt_columns_per_item_v3)
+gpt_columns_per_item_v4 <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
+olmo_columns_per_item_v4 <- gsub("_gpt$", "_olmo", gpt_columns_per_item_v4)
 
 # Überprüfen, ob die entsprechenden _olmo-Spalten existieren
-valid_gpt_columns_per_item_v3 <- gpt_columns_per_item_v3[olmo_columns_per_item_v3 %in% colnames(data_gpt_olmo_processed)]
-valid_olmo_columns_per_item_v3 <- olmo_columns_per_item_v3[olmo_columns_per_item_v3 %in% colnames(data_gpt_olmo_processed)]
+valid_gpt_columns_per_item_v4 <- gpt_columns_per_item_v4[olmo_columns_per_item_v4 %in% colnames(data_gpt_olmo_processed)]
+valid_olmo_columns_per_item_v4 <- olmo_columns_per_item_v4[olmo_columns_per_item_v4 %in% colnames(data_gpt_olmo_processed)]
 
 # Entfernen der Variablen pre_dcp_1_text_gpt und pap_dcp_1_text_gpt, da diese nummerisch sind...
 excluded_items <- c("pre_dcp_1_text_gpt", "pap_dcp_1_text_gpt")
-valid_gpt_columns_per_item_v3 <- valid_gpt_columns_per_item_v3[!valid_gpt_columns_per_item_v3 %in% excluded_items]
-valid_olmo_columns_per_item_v3 <- valid_olmo_columns_per_item_v3[!valid_olmo_columns_per_item_v3 %in% gsub("_gpt$", "_olmo", excluded_items)]
+valid_gpt_columns_per_item_v4 <- valid_gpt_columns_per_item_v4[!valid_gpt_columns_per_item_v4 %in% excluded_items]
+valid_olmo_columns_per_item_v4 <- valid_olmo_columns_per_item_v4[!valid_olmo_columns_per_item_v4 %in% gsub("_gpt$", "_olmo", excluded_items)]
 
 # Sicherstellen, dass nur gültige Paare verwendet werden
-if(length(valid_gpt_columns_per_item_v3) == 0) {
+if(length(valid_gpt_columns_per_item_v4) == 0) {
   stop("Keine gültigen Paare von GPT- und OLMO-Spalten gefunden!")
 }
 
 # Erstelle einen DataFrame, um die Ergebnisse für jede Spalte zu speichern
-kappa_results_per_item_v3 <- data.frame(Item = character(),
+kappa_results_per_item_v4 <- data.frame(Item = character(),
                                         Kappa = numeric(),
                                         P_Value = numeric(),
                                         Z_Value = numeric(),
@@ -984,25 +1185,25 @@ kappa_results_per_item_v3 <- data.frame(Item = character(),
                                         stringsAsFactors = FALSE)
 
 # Berechnung für jede Spalte einzeln
-for(i in 1:length(valid_gpt_columns_per_item_v3)) {
-  gpt_column_per_item_v3 <- data_gpt_olmo_processed[[valid_gpt_columns_per_item_v3[i]]]
-  olmo_column_per_item_v3 <- data_gpt_olmo_processed[[valid_olmo_columns_per_item_v3[i]]]
+for(i in 1:length(valid_gpt_columns_per_item_v4)) {
+  gpt_column_per_item_v4 <- data_gpt_olmo_processed[[valid_gpt_columns_per_item_v4[i]]]
+  olmo_column_per_item_v4 <- data_gpt_olmo_processed[[valid_olmo_columns_per_item_v4[i]]]
   
   # Kombiniere GPT und OLMO Spalten für den Vergleich
-  combined_data_per_item_v3 <- data.frame(GPT = gpt_column_per_item_v3,
-                                          OLMO = olmo_column_per_item_v3)
+  combined_data_per_item_v4 <- data.frame(GPT = gpt_column_per_item_v4,
+                                          OLMO = olmo_column_per_item_v4)
 
   # Entferne NA-Werte
-  combined_data_per_item_v3 <- na.omit(combined_data_per_item_v3)
+  combined_data_per_item_v4 <- na.omit(combined_data_per_item_v4)
   
   # Berechne Cohen's Kappa
-  kappa_result_per_item_v3 <- irr::kappa2(combined_data_per_item_v3, "unweighted")
+  kappa_result_per_item_v4 <- irr::kappa2(combined_data_per_item_v4, "unweighted")
   
   # Berechne den Prozentsatz der Übereinstimmung
-  percent_agreement_per_item_v3 <- sum(combined_data_per_item_v3$GPT == combined_data_per_item_v3$OLMO) / nrow(combined_data_per_item_v3) * 100
+  percent_agreement_per_item_v4 <- sum(combined_data_per_item_v4$GPT == combined_data_per_item_v4$OLMO) / nrow(combined_data_per_item_v4) * 100
   
   # Berechnung der Confusion Matrix (y, n, x Kategorien)
-  confusion_matrix <- table(combined_data_per_item_v3$GPT, combined_data_per_item_v3$OLMO)
+  confusion_matrix <- table(combined_data_per_item_v4$GPT, combined_data_per_item_v4$OLMO)
   
   # Sicherstellen, dass "n" in der Matrix vorhanden ist
   if("n" %in% rownames(confusion_matrix) && "n" %in% colnames(confusion_matrix)) {
@@ -1024,11 +1225,11 @@ for(i in 1:length(valid_gpt_columns_per_item_v3)) {
   precision_n <- if((TP + FN) > 0) TP / (TP + FN) else NA
   
   # Ergebnisse in den DataFrame hinzufügen
-  kappa_results_per_item_v3 <- rbind(kappa_results_per_item_v3, data.frame(Item = valid_gpt_columns_per_item_v3[i],
-                                                                           Kappa = kappa_result_per_item_v3$value,
-                                                                           P_Value = kappa_result_per_item_v3$p.value,
-                                                                           Z_Value = kappa_result_per_item_v3$statistic,
-                                                                           Percent_Agreement = percent_agreement_per_item_v3,
+  kappa_results_per_item_v4 <- rbind(kappa_results_per_item_v4, data.frame(Item = valid_gpt_columns_per_item_v4[i],
+                                                                           Kappa = kappa_result_per_item_v4$value,
+                                                                           P_Value = kappa_result_per_item_v4$p.value,
+                                                                           Z_Value = kappa_result_per_item_v4$statistic,
+                                                                           Percent_Agreement = percent_agreement_per_item_v4,
                                                                            Sensitivity_n = sensitivity_n,
                                                                            Specificity_n = specificity_n,
                                                                            Precision_n = precision_n))
@@ -1037,11 +1238,11 @@ for(i in 1:length(valid_gpt_columns_per_item_v3)) {
 
 
 # Ergebnisse anzeigen
-print(kappa_results_per_item_v3)
+print(kappa_results_per_item_v4)
 
 
 
-write.xlsx(kappa_results_per_item_v3, "../Data/processed/kappa_results_per_item_v3.xlsx")
+write.xlsx(kappa_results_per_item_v4, "../Data/processed/kappa_results_per_item_v4.xlsx")
 
 ```
 
@@ -2133,7 +2334,7 @@ print(results_ve_total)
 
 
 
-## confusion matrix VE V1
+  ## confusion matrix VE V1
 ```{r}
 
 
@@ -3001,21 +3202,21 @@ head(data_prototype)
 ```
 
 
-# mergen von data_protoype und retest_kappa summary
+# mergen von data_protoype und retest_kappa summaryv2
 ```{r}
 
-# Anzeigen der einzigartigen Werte von 'Column' in retest_kappa_summary
-unique(retest_kappa_summary$Column)
+# Anzeigen der einzigartigen Werte von 'Column' in retest_kappa_summary_v2
+unique(retest_kappa_summary_v2$Column)
 
 # Anzeigen der einzigartigen Werte von 'Variable_clean' in data_prototype (nach Bearbeitung)
 data_prototype$Variable_clean <- gsub("_gpt$", "_comp", data_prototype$Variable)
 unique(data_prototype$Variable_clean)
 
 # Optional: Zeige Zeilen, die keine Übereinstimmung haben
-anti_join(data_prototype, retest_kappa_summary, by = c("Variable_clean" = "Column"))
+anti_join(data_prototype, retest_kappa_summary_v2, by = c("Variable_clean" = "Column"))
 
 # Durchführung des Merges nach Überprüfung
-data_retest_prototype <- retest_kappa_summary %>%
+data_retest_prototype <- retest_kappa_summary_v2 %>%
   inner_join(data_prototype, by = c("Column" = "Variable_clean"))
 
 # Ergebnis anzeigen
