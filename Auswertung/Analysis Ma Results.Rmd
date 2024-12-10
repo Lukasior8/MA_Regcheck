@@ -319,6 +319,34 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 
 
 ```{r}
+print(confusion_matrix)
+n_total <- sum(confusion_matrix)
+# Berechnung der Sensitivität, Spezifität und Präzision für jede Klasse
+# Y-Klasse
+TP_Y <- confusion_matrix['Actual_Y', 'Predicted_Y']
+FN_Y <- sum(confusion_matrix['Actual_Y', ]) - TP_Y
+FP_Y <- sum(confusion_matrix[, 'Predicted_Y']) - TP_Y
+TN_Y <- sum(confusion_matrix) - (TP_Y + FN_Y + FP_Y)
+sensitivity_Y <- TP_Y / (TP_Y + FN_Y)
+specificity_Y <- TN_Y / (TN_Y + FP_Y)
+precision_Y <- TP_Y / (TP_Y + FP_Y)
+# N-Klasse
+TP_N <- confusion_matrix['Actual_N', 'Predicted_N']
+FN_N <- sum(confusion_matrix['Actual_N', ]) - TP_N
+FP_N <- sum(confusion_matrix[, 'Predicted_N']) - TP_N
+TN_N <- sum(confusion_matrix) - (TP_N + FN_N + FP_N)
+sensitivity_N <- TP_N / (TP_N + FN_N)
+specificity_N <- TN_N / (TN_N + FP_N)
+precision_N <- TP_N / (TP_N + FP_N)
+# X-Klasse
+TP_X <- confusion_matrix['Actual_X', 'Predicted_X']
+FN_X <- sum(confusion_matrix['Actual_X', ]) - TP_X
+FP_X <- sum(confusion_matrix[, 'Predicted_X']) - TP_X
+TN_X <- sum(confusion_matrix) - (TP_X + FN_X + FP_X)
+sensitivity_X <- TP_X / (TP_X + FN_X)
+specificity_X <- TN_X / (TN_X + FP_X)
+precision_X <- TP_X / (TP_X + FP_X)
+
 # Funktion zur Berechnung des Wilson-Konfidenzintervalls
 wilson_ci <- function(successes, total, conf_level = 0.95) {
   z <- qnorm(1 - (1 - conf_level) / 2)
@@ -2388,7 +2416,31 @@ print(confusion_summary_ve)
 
 
 
+#confusion matrix mit unterschiedlicher Reiehnfolge und unterschiedlichem positive Class....
 
+
+
+# 
+```{r}
+# Ändere die Reihenfolge der Levels
+combined_data_ve_total$Olmo_Rating_ve_total <- factor(combined_data_ve_total$Olmo_Rating_ve_total, levels = c("y", "n"))
+combined_data_ve_total$GPT_Rating_ve_total <- factor(combined_data_ve_total$GPT_Rating_ve_total, levels = c("y", "n"))
+
+# Erstellen der Confusion Matrix mit neuer Reihenfolge
+conf_matrix_ve <- table(combined_data_ve_total$Olmo_Rating_ve_total, combined_data_ve_total$GPT_Rating_ve_total)
+
+# Berechnung der Metriken mit spezifischer positiver Klasse
+confusion_summary_ve <- confusionMatrix(conf_matrix_ve, positive = "y")
+
+# Ausgabe
+print("Confusion Matrix (ve):")
+print(conf_matrix_ve)
+
+print("Detailed Confusion Matrix Metrics (ve):")
+print(confusion_summary_ve)
+
+
+```
 
 
 
