@@ -360,15 +360,20 @@ display: none;
 <div id="datacleaning-to-dos" class="section level1">
 <h1>Datacleaning to dos:</h1>
 <p>resultate - wenn preregvorhanden oder paper vorhandene keine Zahl
-(sondern leer oder not available) dann die ganze zeile löschen -
+(sondern leer oder not available) dann die ganze zeile löschen - sanity
 kontrollieren dass überall nur x,y, n,m, leer oder zahl ist. - Prompt
 versionen renamen - PreDCP_1_TEXT komische Zahlen verändern</p>
-<p>Olmos datensatz…</p>
+<ul>
+<li>wieder mergen</li>
+<li>safe to disc</li>
+<li>version control</li>
+</ul>
 </div>
-<div id="dependancies" class="section level1">
-<h1>Dependancies</h1>
+<div id="dependencies" class="section level1">
+<h1>Dependencies</h1>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## Warning: Paket &#39;ggplot2&#39; wurde unter R Version 4.3.2 erstellt</code></pre>
+<pre><code>## Warning: Paket &#39;ggplot2&#39; wurde unter R Version 4.3.3 erstellt</code></pre>
+<pre><code>## Warning: Paket &#39;tidyr&#39; wurde unter R Version 4.3.3 erstellt</code></pre>
 <pre><code>## Warning: Paket &#39;readr&#39; wurde unter R Version 4.3.2 erstellt</code></pre>
 <pre><code>## Warning: Paket &#39;purrr&#39; wurde unter R Version 4.3.2 erstellt</code></pre>
 <pre><code>## Warning: Paket &#39;dplyr&#39; wurde unter R Version 4.3.2 erstellt</code></pre>
@@ -377,8 +382,8 @@ versionen renamen - PreDCP_1_TEXT komische Zahlen verändern</p>
 <pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
 ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
-## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
-## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
 ## ✔ purrr     1.0.2     
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
@@ -395,13 +400,13 @@ versionen renamen - PreDCP_1_TEXT komische Zahlen verändern</p>
 ##     chisq.test, fisher.test</code></pre>
 <pre class="r"><code>library(stringr)
 library(openxlsx)</code></pre>
-<pre><code>## Warning: Paket &#39;openxlsx&#39; wurde unter R Version 4.3.2 erstellt</code></pre>
+<pre><code>## Warning: Paket &#39;openxlsx&#39; wurde unter R Version 4.3.3 erstellt</code></pre>
 </div>
-<div id="clean-data_results" class="section level1">
-<h1>clean data_results</h1>
-<div id="read-data" class="section level2">
-<h2>Read data</h2>
-<pre class="r"><code>data_results_raw &lt;- read_excel(&quot;../data/DATA_Resultate_raw.xlsx&quot;) |&gt;
+<div id="clean-gpt-data_gpt-and-new-gpt-data" class="section level1">
+<h1>clean GPT data_gpt and new gpt data</h1>
+<div id="read-gpt-data" class="section level2">
+<h2>Read GPT data</h2>
+<pre class="r"><code>data_gpt_raw &lt;- read_excel(&quot;../Data/raw/DATA_Resultate_raw.xlsx&quot;) |&gt;
   janitor::clean_names()</code></pre>
 <pre><code>## New names:
 ## • `` -&gt; `...31`
@@ -431,8 +436,65 @@ library(openxlsx)</code></pre>
 ## • `` -&gt; `...174`
 ## • `` -&gt; `...178`
 ## • `` -&gt; `...182`</code></pre>
+<pre class="r"><code>data_gpt_new &lt;- read_excel(&quot;../Data/raw/DATA_Resultate_neu.xlsx&quot;) |&gt;
+  janitor::clean_names()</code></pre>
+<pre><code>## New names:
+## • `` -&gt; `...31`
+## • `` -&gt; `...38`
+## • `` -&gt; `...45`
+## • `` -&gt; `...50`
+## • `` -&gt; `...57`
+## • `` -&gt; `...60`
+## • `` -&gt; `...66`
+## • `` -&gt; `...70`
+## • `` -&gt; `...74`
+## • `` -&gt; `...82`
+## • `` -&gt; `...89`
+## • `` -&gt; `...96`
+## • `` -&gt; `...101`
+## • `` -&gt; `...108`
+## • `` -&gt; `...111`
+## • `` -&gt; `...117`
+## • `` -&gt; `...121`
+## • `` -&gt; `...125`
+## • `` -&gt; `...144`
+## • `` -&gt; `...150`
+## • `` -&gt; `...156`
+## • `` -&gt; `...161`
+## • `` -&gt; `...167`
+## • `` -&gt; `...170`
+## • `` -&gt; `...174`
+## • `` -&gt; `...178`
+## • `` -&gt; `...182`
+## • `` -&gt; `...190`
+## • `` -&gt; `...191`
+## • `` -&gt; `...192`
+## • `` -&gt; `...193`
+## • `` -&gt; `...194`
+## • `` -&gt; `...195`</code></pre>
 <p>##select and remove unwanted columns</p>
-<pre class="r"><code>data_results_filtered &lt;- data_results_raw %&gt;%
+<pre class="r"><code>data_gpt_filtered &lt;- data_gpt_raw %&gt;%
+  select(   
+    -prereg_vorhanden,
+    -paper_vorhanden,
+    -gpt_link_extraction,
+    -gpt_link_comparison,
+    -notes_extraction,
+    -notes_comparison,
+    -hyp_pre,
+    -hyp_pap,
+    -type,
+    -iv1,
+    -iv2,
+    -tv,
+    -dv,
+    -fcv,
+    -ocv,
+    -starts_with(&quot;x&quot;)
+    )
+
+
+data_gpt_new_filtered &lt;- data_gpt_new %&gt;%
   select(   
     -prereg_vorhanden,
     -paper_vorhanden,
@@ -454,7 +516,7 @@ library(openxlsx)</code></pre>
 </div>
 <div id="kategorien-alphabetic-säubern" class="section level2">
 <h2>kategorien alphabetic säubern</h2>
-<pre class="r"><code>categories_alphabetic &lt;- c(&quot;pre_pre_mi1&quot;, &quot;pre_mi1&quot;, &quot;pre_iv1&quot;, &quot;c_pre_iv1&quot;, &quot;pre_niv1_1&quot;, &quot;pre_niv1_2&quot;, 
+<pre class="r"><code>gpt_categories_alphabetic &lt;- c(&quot;pre_pre_mi1&quot;, &quot;pre_mi1&quot;, &quot;pre_iv1&quot;, &quot;c_pre_iv1&quot;, &quot;pre_niv1_1&quot;, &quot;pre_niv1_2&quot;, 
                             &quot;pre_pre_mi2&quot;, &quot;pre_mi2&quot;, &quot;pre_iv2&quot;, &quot;c_pre_iv2&quot;, &quot;pre_niv2_1&quot;, &quot;pre_niv2_2&quot;, 
                             &quot;pre_pre_mt&quot;, &quot;pre_mt&quot;, &quot;pre_tv&quot;, &quot;c_pre_tv&quot;, &quot;pre_ntv_1&quot;, &quot;pre_ntv_2&quot;, 
                             &quot;pre_dv&quot;, &quot;c_pre_dv&quot;, &quot;pre_ndv_1&quot;, &quot;pre_ndv_2&quot;, 
@@ -477,8 +539,11 @@ library(openxlsx)</code></pre>
                             &quot;match_imd_2&quot;,  &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;, &quot;match_vsa_1&quot;, 
                             &quot;match_vsa_2&quot;, &quot;match_vsa_3&quot;, &quot;match_ic&quot;)
 
+#for gpt
+gpt_frequencies_categories &lt;- lapply(data_gpt_filtered[gpt_categories_alphabetic], table)
 
-frequencies_categories &lt;- lapply(data_results_filtered[categories_alphabetic], table)
+#for new vE
+gpt_new_frequencies_categories &lt;- lapply(data_gpt_new_filtered[gpt_categories_alphabetic], table)
 
 
 #frequencies_categories
@@ -493,15 +558,22 @@ clean_value &lt;- function(x) {
   return(cleaned)
 }
 
+#for raw
+data_gpt_filtered_clean &lt;- data_gpt_filtered %&gt;%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), clean_value)
 
-data_results_filtered_clean &lt;- data_results_filtered %&gt;%
-  mutate_at(vars(one_of(categories_alphabetic)), clean_value)
+gpt_frequencies_categories_cleaned &lt;- lapply(data_gpt_filtered_clean[gpt_categories_alphabetic], table)
 
-frequencies_categories_cleaned &lt;- lapply(data_results_filtered_clean[categories_alphabetic], table)
+#for new
 
+data_gpt_new_filtered_clean &lt;- data_gpt_new_filtered %&gt;%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), clean_value)
 
-#frequencies_categories_cleaned
+gpt_new_frequencies_categories_cleaned &lt;- lapply(data_gpt_new_filtered_clean[gpt_categories_alphabetic], table)
 
+#gpt_frequencies_categories_cleaned
+
+#gpt_new_frequencies_categories_cleaned
 
 
 
@@ -509,27 +581,38 @@ replace_with_exclude &lt;- function(x) {
   ifelse(x %in% c(&quot;x&quot;, &quot;y&quot;, &quot;n&quot;), x, &quot;exclude&quot;)
 }
 
+#gpt
+data_gpt_filtered_clean_exclude &lt;- data_gpt_filtered_clean %&gt;%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), replace_with_exclude)
 
-data_results_filtered_clean_exclude &lt;- data_results_filtered_clean %&gt;%
-  mutate_at(vars(one_of(categories_alphabetic)), replace_with_exclude)
+#new
+data_gpt_new_filtered_clean_exclude &lt;- data_gpt_new_filtered_clean %&gt;%
+  mutate_at(vars(one_of(gpt_categories_alphabetic)), replace_with_exclude)
 
-# Check frequencies after cleaning
-frequencies_categories_cleaned_exclude &lt;- lapply(data_results_filtered_clean_exclude[categories_alphabetic], table)
 
-#frequencies_categories_cleaned_exclude</code></pre>
+# Check gpt frequencies after cleaning
+gpt_frequencies_categories_cleaned_exclude &lt;- lapply(data_gpt_filtered_clean_exclude[gpt_categories_alphabetic], table)
+
+# Check new frequencies after cleaning
+gpt_new_frequencies_categories_cleaned_exclude &lt;- lapply(data_gpt_new_filtered_clean_exclude[gpt_categories_alphabetic], table)
+
+
+#gpt_frequencies_categories_cleaned_exclude
+
+#gpt_new_frequencies_categories_cleaned_exclude</code></pre>
 </div>
 <div id="kategorien-numeric-säubern" class="section level2">
 <h2>kategorien numeric säubern</h2>
 <pre class="r"><code># List of column names that need to be converted to numeric
-categories_numeric &lt;- c(&quot;pre_dcp_1_text&quot;, &quot;pap_dcp_1_text&quot;, &quot;s_pre_iv&quot;, &quot;s_pre_dv&quot;, 
+gpt_categories_numeric &lt;- c(&quot;pre_dcp_1_text&quot;, &quot;pap_dcp_1_text&quot;, &quot;s_pre_iv&quot;, &quot;s_pre_dv&quot;, 
                         &quot;s_pre_dcp&quot;, &quot;s_pre_smu&quot;, &quot;s_pre_sic&quot;, &quot;s_pap_iv&quot;, &quot;s_pap_dv&quot;, 
                         &quot;s_pap_dcp&quot;, &quot;s_pap_smu&quot;, &quot;s_pap_sic&quot;, &quot;prompt_version_a_strictness_prereg&quot;, 
                         &quot;prompt_version_a_strictness_pubstud&quot;, &quot;con_iv&quot;, &quot;con_dv&quot;, 
                         &quot;con_dcp&quot;, &quot;con_smu&quot;, &quot;con_sic&quot;, &quot;global_consistency_esimate&quot;)
 
-# Convert to numeric and replace non-numeric with &#39;exclude&#39;
-data_results_filtered_clean_exclude_numeric &lt;- data_results_filtered_clean_exclude %&gt;%
-  mutate_at(vars(one_of(categories_numeric)), 
+# Convert gpt to numeric and replace non-numeric with &#39;exclude&#39;
+data_gpt_filtered_clean_exclude_numeric &lt;- data_gpt_filtered_clean_exclude %&gt;%
+  mutate_at(vars(one_of(gpt_categories_numeric)), 
             ~ifelse(is.na(as.numeric(.)), &quot;exclude&quot;, as.numeric(.)))</code></pre>
 <pre><code>## Warning: There were 12 warnings in `mutate()`.
 ## The first warning was:
@@ -538,45 +621,110 @@ data_results_filtered_clean_exclude_numeric &lt;- data_results_filtered_clean_ex
 ## Caused by warning in `ifelse()`:
 ## ! NAs durch Umwandlung erzeugt
 ## ℹ Run `dplyr::last_dplyr_warnings()` to see the 11 remaining warnings.</code></pre>
-<pre class="r"><code># Check frequencies after cleaning
-frequencies_categories_cleaned_exclude_numeric &lt;- lapply(data_results_filtered_clean_exclude_numeric[categories_numeric], table)
+<pre class="r"><code># Convert new to numeric and replace non-numeric with &#39;exclude&#39;
+data_gpt_new_filtered_clean_exclude_numeric &lt;- data_gpt_new_filtered_clean_exclude %&gt;%
+  mutate_at(vars(one_of(gpt_categories_numeric)), 
+            ~ifelse(is.na(as.numeric(.)), &quot;exclude&quot;, as.numeric(.)))</code></pre>
+<pre><code>## Warning: There were 12 warnings in `mutate()`.
+## The first warning was:
+## ℹ In argument: `pre_dcp_1_text = (structure(function (..., .x = ..1, .y = ..2,
+##   . = ..1) ...`.
+## Caused by warning in `ifelse()`:
+## ! NAs durch Umwandlung erzeugt
+## ℹ Run `dplyr::last_dplyr_warnings()` to see the 11 remaining warnings.</code></pre>
+<pre class="r"><code>#gpt
+# Check frequencies after cleaning
+gpt_frequencies_categories_cleaned_exclude_numeric &lt;- lapply(data_gpt_filtered_clean_exclude_numeric[gpt_categories_numeric], table)
 
-#frequencies_categories_cleaned_exclude_numeric</code></pre>
+#gpt_frequencies_categories_cleaned_exclude_numeric
+
+#new
+# Check new frequencies after cleaning
+gpt_new_frequencies_categories_cleaned_exclude_numeric &lt;- lapply(data_gpt_new_filtered_clean_exclude_numeric[gpt_categories_numeric], table)
+
+#gpt_new_frequencies_categories_cleaned_exclude_numeric</code></pre>
 </div>
-<div id="finish-data_results_finito" class="section level2">
-<h2>finish data_results_finito</h2>
-<pre class="r"><code># Ändere die Werte &quot;v4&quot; und &quot;V4&quot; in der Spalte prompt_version zu &quot;D&quot;
-data_results_finito &lt;- data_results_filtered_clean_exclude_numeric %&gt;%
+<div id="finish-data_gpt_finito" class="section level2">
+<h2>finish data_gpt_finito</h2>
+<pre class="r"><code>#for gpt
+
+# Ändere die Werte &quot;v4&quot; und &quot;V4&quot; in der Spalte prompt_version zu &quot;D&quot;
+data_gpt_finito &lt;- data_gpt_filtered_clean_exclude_numeric %&gt;%
   mutate(prompt_version = ifelse(prompt_version %in% c(&quot;v4&quot;, &quot;V4&quot;), &quot;D&quot;, prompt_version))
 
 # Neue Spalte master_exclude hinzufügen und standardmäßig auf &quot;include&quot; setzen
-data_results_finito &lt;- data_results_finito %&gt;%
-  mutate(master_exclude = ifelse(is.na(date_gpt), &quot;exclude&quot;, &quot;include&quot;))</code></pre>
+data_gpt_finito &lt;- data_gpt_finito %&gt;%
+  mutate(master_exclude = ifelse(is.na(date_gpt), &quot;exclude&quot;, &quot;include&quot;))
+
+#for new
+# Ändere die Werte &quot;v4&quot; und &quot;V4&quot; in der Spalte prompt_version zu &quot;D&quot;
+data_gpt_new_finito &lt;- data_gpt_new_filtered_clean_exclude_numeric %&gt;%
+  mutate(prompt_version = ifelse(prompt_version %in% c(&quot;v4&quot;, &quot;V4&quot;), &quot;D&quot;, prompt_version))
+
+# Neue Spalte master_exclude hinzufügen und standardmäßig auf &quot;include&quot; setzen
+data_gpt_new_finito &lt;- data_gpt_new_finito %&gt;%
+  mutate(master_exclude = ifelse(is.na(date_gpt), &quot;exclude&quot;, &quot;include&quot;))
+
+
+# Erstellen des neuen Datensatzes
+data_gpt_ve &lt;- data_gpt_new_finito %&gt;%
+  # Filtern nach Zeilen, bei denen die Spalte &#39;prompt_version&#39; den Wert &#39;E&#39; hat
+  filter(prompt_version == &quot;E&quot;) %&gt;%
+  # Auswahl der gewünschten Spalten
+  select(psp, title_pap, study_pap, date_gpt, prompt_version, test_retest,
+         deviation_text_new, master_exclude, match_dv_0, match_dv_1,
+         match_dv_2, match_dv_3, match_dcp_1, match_dcp_2,
+         match_sm_1, match_sm_2, match_sm_3)
+
+# Optional: Überprüfung der ersten Zeilen des neuen Datensatzes
+head(data_gpt_ve)</code></pre>
+<pre><code>## # A tibble: 6 × 17
+##     psp title_pap       study_pap date_gpt            prompt_version test_retest
+##   &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+## 1   411 The power of m… Study 2   2024-09-30 00:00:00 E              Test       
+## 2   412 The Primacy Ef… Experime… 2024-09-30 00:00:00 E              Test       
+## 3   413 The Primacy Ef… Experime… 2024-09-30 00:00:00 E              Test       
+## 4   417 The relative c… NA        2024-09-30 00:00:00 E              Test       
+## 5   418 The role of em… Study 2   2024-09-30 00:00:00 E              Test       
+## 6   419 The Role of Ex… Experime… 2024-09-30 00:00:00 E              Test       
+## # ℹ 11 more variables: deviation_text_new &lt;chr&gt;, master_exclude &lt;chr&gt;,
+## #   match_dv_0 &lt;chr&gt;, match_dv_1 &lt;chr&gt;, match_dv_2 &lt;chr&gt;, match_dv_3 &lt;chr&gt;,
+## #   match_dcp_1 &lt;chr&gt;, match_dcp_2 &lt;chr&gt;, match_sm_1 &lt;chr&gt;, match_sm_2 &lt;chr&gt;,
+## #   match_sm_3 &lt;chr&gt;</code></pre>
 </div>
 </div>
 <div id="clean-olmos-data" class="section level1">
 <h1>clean olmos data</h1>
 <div id="read-olmos-data" class="section level2">
 <h2>read olmos data</h2>
-<pre class="r"><code>DATA_olmo_raw &lt;- read_excel(&quot;../data/Data Preregistration Effectiveness.xlsx&quot;) |&gt;
+<pre class="r"><code>DATA_olmo_raw &lt;- read_excel(&quot;../data/raw/Data Preregistration Effectiveness.xlsx&quot;) |&gt;
   janitor::clean_names()</code></pre>
 <pre><code>## New names:
 ## • `` -&gt; `...310`
 ## • `` -&gt; `...311`
 ## • `` -&gt; `...312`
 ## • `` -&gt; `...313`</code></pre>
-<pre class="r"><code>data_olmo_raw &lt;- DATA_olmo_raw[seq(3, nrow(DATA_olmo_raw), 3), ] # select only reconciled data</code></pre>
+<pre class="r"><code>data_olmo_raw &lt;- DATA_olmo_raw[seq(3, nrow(DATA_olmo_raw), 3), ] # select only reconciled data
+
+
+#rename  so that &quot;pre_iec&quot;, &quot;pap_iec and &quot;match_iec&quot; colum in olmo are also called pre_iec_1`, `pap_iec_1`, and `match_iec_1` like gpt
+data_olmo_raw &lt;- data_olmo_raw %&gt;%
+  rename(
+    pre_iec_1 = pre_iec,
+    pap_iec_1 = pap_iec,
+    match_iec_1 = match_iec
+  )</code></pre>
 </div>
 <div id="select-only-wanted-colums" class="section level2">
 <h2>select only wanted colums</h2>
 <pre class="r"><code>olmo_selected_columns &lt;- c(
-  &quot;psp&quot;, &quot;coder&quot;, &quot;pre_pre_mi1&quot;, &quot;pre_mi1&quot;, &quot;pre_iv1&quot;, &quot;c_pre_iv1&quot;, &quot;pre_niv1_1&quot;, 
+  &quot;psp&quot;,  &quot;coder&quot;, &quot;type&quot; ,&quot;pre_pre_mi1&quot;, &quot;pre_mi1&quot;, &quot;pre_iv1&quot;, &quot;c_pre_iv1&quot;, &quot;pre_niv1_1&quot;, 
   &quot;pre_niv1_2&quot;, &quot;pre_niv1_3&quot;, &quot;pre_pre_mi2&quot;, &quot;pre_mi2&quot;, &quot;pre_iv2&quot;, &quot;c_pre_iv2&quot;, 
   &quot;pre_niv2_1&quot;, &quot;pre_niv2_2&quot;, &quot;pre_niv2_3&quot;, &quot;pre_pre_mt&quot;, &quot;pre_mt&quot;, &quot;pre_tv&quot;, 
   &quot;c_pre_tv&quot;, &quot;pre_ntv_1&quot;, &quot;pre_ntv_2&quot;, &quot;pre_ntv_3&quot;, &quot;pre_dv&quot;, &quot;c_pre_dv&quot;, 
   &quot;pre_ndv_1&quot;, &quot;pre_ndv_2&quot;, &quot;pre_ndv_3&quot;, &quot;pre_pre_mc&quot;, &quot;pre_mc&quot;, &quot;pre_cv&quot;, 
   &quot;c_pre_cv&quot;, &quot;pre_ncv_1&quot;, &quot;pre_ncv_2&quot;, &quot;pre_ncv_3&quot;, &quot;pre_dcp_1&quot;, &quot;pre_dcp_2&quot;, 
-  &quot;pre_dcp_3&quot;, &quot;pre_dcp_1_text&quot;, &quot;pre_pa&quot;, &quot;pre_iec&quot;, 
+  &quot;pre_dcp_3&quot;, &quot;pre_dcp_1_text&quot;, &quot;pre_pa&quot;, &quot;pre_iec_1&quot;, 
   &quot;pre_imd_1&quot;, &quot;pre_imd_2&quot;, &quot;pre_imd_3&quot;,
   &quot;pre_sm_1&quot;, &quot;pre_sm_2&quot;, &quot;pre_sm_3&quot;, &quot;pre_sm_4&quot;, &quot;pre_vsa_1&quot;, &quot;pre_vsa_2&quot;, 
   &quot;pre_vsa_3&quot;, &quot;pre_vsa_4&quot;, &quot;pre_ic&quot;, &quot;pap_pap_mi1&quot;, &quot;pap_mi1&quot;, &quot;pap_iv1&quot;, &quot;c_pap_iv1&quot;, 
@@ -585,7 +733,7 @@ data_results_finito &lt;- data_results_finito %&gt;%
   &quot;pap_tv&quot;, &quot;c_pap_tv&quot;, &quot;pap_ntv_1&quot;, &quot;pap_ntv_2&quot;, &quot;pap_ntv_3&quot;, &quot;pap_dv&quot;, &quot;c_pap_dv&quot;, 
   &quot;pap_ndv_1&quot;, &quot;pap_ndv_2&quot;, &quot;pap_ndv_3&quot;, &quot;pap_pap_mc&quot;, &quot;pap_mc&quot;, &quot;pap_cv&quot;, &quot;c_pap_cv&quot;, 
   &quot;pap_ncv_1&quot;, &quot;pap_ncv_2&quot;, &quot;pap_ncv_3&quot;, &quot;pap_dcp_1&quot;, &quot;pap_dcp_2&quot;, &quot;pap_dcp_3&quot;, 
-  &quot;pap_dcp_1_text&quot;, &quot;pap_pa&quot;, &quot;pap_iec&quot;,
+  &quot;pap_dcp_1_text&quot;, &quot;pap_pa&quot;, &quot;pap_iec_1&quot;,
   &quot;pap_imd_1&quot;, &quot;pap_imd_2&quot;, &quot;pap_imd_3&quot;, &quot;pap_sm_1&quot;, 
   &quot;pap_sm_2&quot;, &quot;pap_sm_3&quot;, &quot;pap_sm_4&quot;, &quot;pap_vsa_1&quot;, &quot;pap_vsa_2&quot;, &quot;pap_vsa_3&quot;, 
   &quot;pap_vsa_4&quot;, &quot;pap_ic&quot;, &quot;match_mi1&quot;, &quot;match_iv1_0&quot;, &quot;match_iv1_1&quot;, &quot;match_iv1_2&quot;, 
@@ -594,7 +742,7 @@ data_results_finito &lt;- data_results_finito %&gt;%
   &quot;match_tv_1&quot;, &quot;match_tv_2&quot;, &quot;match_tv_3&quot;, &quot;match_tv_4&quot;, &quot;match_dv_0&quot;, &quot;match_dv_1&quot;, 
   &quot;match_dv_2&quot;, &quot;match_dv_3&quot;, &quot;match_dv_4&quot;, &quot;match_mc&quot;, &quot;match_cv_0&quot;, &quot;match_cv_1&quot;, 
   &quot;match_cv_2&quot;, &quot;match_cv_3&quot;, &quot;match_cv_4&quot;, &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, 
-  &quot;match_dcp_3&quot;, &quot;match_iec&quot;, 
+  &quot;match_dcp_3&quot;, &quot;match_iec_1&quot;, 
   &quot;match_imd_1&quot;, &quot;match_imd_2&quot;, &quot;match_imd_3&quot;,&quot;match_sm_1&quot;, 
   &quot;match_sm_2&quot;, &quot;match_sm_3&quot;, &quot;match_sm_4&quot;, &quot;match_vsa_1&quot;, &quot;match_vsa_2&quot;, 
   &quot;match_vsa_3&quot;, &quot;match_vsa_4&quot;, &quot;match_ic&quot;
@@ -602,83 +750,81 @@ data_results_finito &lt;- data_results_finito %&gt;%
 
 
 data_olmo_raw_selected &lt;- data_olmo_raw %&gt;%
-  select(all_of(olmo_selected_columns)) 
-
-
-#✖ Columns `pre_iec_1`, `pap_iec_1`, and `match_iec_1` don&#39;t exist.!!!!</code></pre>
+  select(all_of(olmo_selected_columns)) </code></pre>
 </div>
-<div id="mutate-answers" class="section level2">
-<h2>mutate answers</h2>
+<div id="mutate-olmo-answers" class="section level2">
+<h2>mutate olmo answers</h2>
 <div id="renaming" class="section level3">
 <h3>renaming</h3>
 <pre class="r"><code># Liste der Datentypen aller Variablen
 sapply(data_olmo_raw_selected, class)</code></pre>
-<pre><code>##            psp          coder    pre_pre_mi1        pre_mi1        pre_iv1 
+<pre><code>##            psp          coder           type    pre_pre_mi1        pre_mi1 
 ##      &quot;numeric&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      c_pre_iv1     pre_niv1_1     pre_niv1_2     pre_niv1_3    pre_pre_mi2 
+##        pre_iv1      c_pre_iv1     pre_niv1_1     pre_niv1_2     pre_niv1_3 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##        pre_mi2        pre_iv2      c_pre_iv2     pre_niv2_1     pre_niv2_2 
+##    pre_pre_mi2        pre_mi2        pre_iv2      c_pre_iv2     pre_niv2_1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##     pre_niv2_3     pre_pre_mt         pre_mt         pre_tv       c_pre_tv 
+##     pre_niv2_2     pre_niv2_3     pre_pre_mt         pre_mt         pre_tv 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      pre_ntv_1      pre_ntv_2      pre_ntv_3         pre_dv       c_pre_dv 
+##       c_pre_tv      pre_ntv_1      pre_ntv_2      pre_ntv_3         pre_dv 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      pre_ndv_1      pre_ndv_2      pre_ndv_3     pre_pre_mc         pre_mc 
+##       c_pre_dv      pre_ndv_1      pre_ndv_2      pre_ndv_3     pre_pre_mc 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##         pre_cv       c_pre_cv      pre_ncv_1      pre_ncv_2      pre_ncv_3 
+##         pre_mc         pre_cv       c_pre_cv      pre_ncv_1      pre_ncv_2 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      pre_dcp_1      pre_dcp_2      pre_dcp_3 pre_dcp_1_text         pre_pa 
+##      pre_ncv_3      pre_dcp_1      pre_dcp_2      pre_dcp_3 pre_dcp_1_text 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##        pre_iec      pre_imd_1      pre_imd_2      pre_imd_3       pre_sm_1 
+##         pre_pa      pre_iec_1      pre_imd_1      pre_imd_2      pre_imd_3 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##       pre_sm_2       pre_sm_3       pre_sm_4      pre_vsa_1      pre_vsa_2 
+##       pre_sm_1       pre_sm_2       pre_sm_3       pre_sm_4      pre_vsa_1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      pre_vsa_3      pre_vsa_4         pre_ic    pap_pap_mi1        pap_mi1 
+##      pre_vsa_2      pre_vsa_3      pre_vsa_4         pre_ic    pap_pap_mi1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##        pap_iv1      c_pap_iv1     pap_niv1_1     pap_niv1_2     pap_niv1_3 
+##        pap_mi1        pap_iv1      c_pap_iv1     pap_niv1_1     pap_niv1_2 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##    pap_pap_mi2        pap_mi2        pap_iv2      c_pap_iv2     pap_niv2_1 
+##     pap_niv1_3    pap_pap_mi2        pap_mi2        pap_iv2      c_pap_iv2 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##     pap_niv2_2     pap_niv2_3     pap_pap_mt         pap_mt         pap_tv 
+##     pap_niv2_1     pap_niv2_2     pap_niv2_3     pap_pap_mt         pap_mt 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##       c_pap_tv      pap_ntv_1      pap_ntv_2      pap_ntv_3         pap_dv 
-##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;      &quot;logical&quot;    &quot;character&quot; 
-##       c_pap_dv      pap_ndv_1      pap_ndv_2      pap_ndv_3     pap_pap_mc 
+##         pap_tv       c_pap_tv      pap_ntv_1      pap_ntv_2      pap_ntv_3 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;      &quot;logical&quot; 
+##         pap_dv       c_pap_dv      pap_ndv_1      pap_ndv_2      pap_ndv_3 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##         pap_mc         pap_cv       c_pap_cv      pap_ncv_1      pap_ncv_2 
+##     pap_pap_mc         pap_mc         pap_cv       c_pap_cv      pap_ncv_1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      pap_ncv_3      pap_dcp_1      pap_dcp_2      pap_dcp_3 pap_dcp_1_text 
+##      pap_ncv_2      pap_ncv_3      pap_dcp_1      pap_dcp_2      pap_dcp_3 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##         pap_pa        pap_iec      pap_imd_1      pap_imd_2      pap_imd_3 
+## pap_dcp_1_text         pap_pa      pap_iec_1      pap_imd_1      pap_imd_2 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##       pap_sm_1       pap_sm_2       pap_sm_3       pap_sm_4      pap_vsa_1 
+##      pap_imd_3       pap_sm_1       pap_sm_2       pap_sm_3       pap_sm_4 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      pap_vsa_2      pap_vsa_3      pap_vsa_4         pap_ic      match_mi1 
+##      pap_vsa_1      pap_vsa_2      pap_vsa_3      pap_vsa_4         pap_ic 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##    match_iv1_0    match_iv1_1    match_iv1_2    match_iv1_3    match_iv1_4 
+##      match_mi1    match_iv1_0    match_iv1_1    match_iv1_2    match_iv1_3 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##      match_mi2    match_iv2_0    match_iv2_1    match_iv2_2    match_iv2_3 
+##    match_iv1_4      match_mi2    match_iv2_0    match_iv2_1    match_iv2_2 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##    match_iv2_4       match_mt     match_tv_0     match_tv_1     match_tv_2 
+##    match_iv2_3    match_iv2_4       match_mt     match_tv_0     match_tv_1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##     match_tv_3     match_tv_4     match_dv_0     match_dv_1     match_dv_2 
+##     match_tv_2     match_tv_3     match_tv_4     match_dv_0     match_dv_1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##     match_dv_3     match_dv_4       match_mc     match_cv_0     match_cv_1 
+##     match_dv_2     match_dv_3     match_dv_4       match_mc     match_cv_0 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##     match_cv_2     match_cv_3     match_cv_4    match_dcp_1    match_dcp_2 
+##     match_cv_1     match_cv_2     match_cv_3     match_cv_4    match_dcp_1 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##    match_dcp_3      match_iec    match_imd_1    match_imd_2    match_imd_3 
+##    match_dcp_2    match_dcp_3    match_iec_1    match_imd_1    match_imd_2 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##     match_sm_1     match_sm_2     match_sm_3     match_sm_4    match_vsa_1 
+##    match_imd_3     match_sm_1     match_sm_2     match_sm_3     match_sm_4 
 ##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;    &quot;character&quot; 
-##    match_vsa_2    match_vsa_3    match_vsa_4       match_ic 
-##    &quot;character&quot;    &quot;character&quot;      &quot;logical&quot;    &quot;character&quot;</code></pre>
+##    match_vsa_1    match_vsa_2    match_vsa_3    match_vsa_4       match_ic 
+##    &quot;character&quot;    &quot;character&quot;    &quot;character&quot;      &quot;logical&quot;    &quot;character&quot;</code></pre>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_raw_selected %&gt;%
   mutate_if(is.character, ~ case_when(
     . == &quot;No&quot; ~ &quot;n&quot;,
     . == &quot;Yes&quot; ~ &quot;y&quot;,
     . == &quot;Composite&quot; ~ &quot;y&quot;,
     . == &quot;Non-composite&quot; ~ &quot;n&quot;,
+    . == &quot;Non-Composite&quot; ~ &quot;n&quot;,
     . == &quot;Yes, procedure&quot; ~ &quot;y&quot;,
     . == &quot;Yes, values&quot; ~ &quot;y&quot;,
     . == &quot;Yes, sample size&quot; ~ &quot;y&quot;,
@@ -756,9 +902,8 @@ n</li>
     # pre_niv1_3 = ifelse(is.na(pre_niv1_3), &quot;x&quot;, pre_niv1_3)
 )</code></pre>
 </div>
-</div>
-<div id="iv-2" class="section level2">
-<h2>IV 2</h2>
+<div id="iv-2" class="section level3">
+<h3>IV 2</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_niv2_1 = case_when(
@@ -782,8 +927,8 @@ n</li>
     # pre_niv2_3 = ifelse(is.na(pre_niv2_3), &quot;x&quot;, pre_niv2_3)
 )</code></pre>
 </div>
-<div id="tv" class="section level2">
-<h2>TV</h2>
+<div id="tv" class="section level3">
+<h3>TV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_ntv_1 = case_when(
@@ -807,8 +952,8 @@ n</li>
     # pre_ntv_3 = ifelse(is.na(pre_ntv_3), &quot;x&quot;, pre_ntv_3)
 )</code></pre>
 </div>
-<div id="dv" class="section level2">
-<h2>DV</h2>
+<div id="dv" class="section level3">
+<h3>DV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_ndv_1 = case_when(
@@ -830,8 +975,8 @@ n</li>
     # pre_ndv_3 = ifelse(is.na(pre_ndv_3), &quot;x&quot;, pre_ndv_3)
 )</code></pre>
 </div>
-<div id="cv" class="section level2">
-<h2>CV</h2>
+<div id="cv" class="section level3">
+<h3>CV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_ncv_1 = case_when(
@@ -855,8 +1000,8 @@ n</li>
     # pre_ncv_3 = ifelse(is.na(pre_ncv_3), &quot;x&quot;, pre_ncv_3)
 )</code></pre>
 </div>
-<div id="dcp" class="section level2">
-<h2>DCP</h2>
+<div id="dcp" class="section level3">
+<h3>DCP</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_dcp_1 = case_when(
@@ -876,8 +1021,8 @@ n</li>
     # pre_dcp_3 = ifelse(is.na(pre_dcp_3), &quot;x&quot;, pre_dcp_3)
 )</code></pre>
 </div>
-<div id="paiecimd" class="section level2">
-<h2>PA/IEC/IMD</h2>
+<div id="paiecimd" class="section level3">
+<h3>PA/IEC/IMD</h3>
 <p>achtung pre_iec (pre_iec_1) hatte eine andere Beschriftung im
 variabel-lexikon von olmo, und nur yes, deshalb eventuell später
 droppen</p>
@@ -896,14 +1041,14 @@ droppen</p>
     ),
     
     pre_pa = ifelse(is.na(pre_pa), &quot;x&quot;, pre_pa),
-    pre_iec = ifelse(is.na(pre_iec), &quot;x&quot;, pre_iec),
+    pre_iec_1 = ifelse(is.na(pre_iec_1), &quot;x&quot;, pre_iec_1),
     pre_imd_1 = ifelse(is.na(pre_imd_1), &quot;x&quot;, pre_imd_1),
     pre_imd_2 = ifelse(is.na(pre_imd_2), &quot;x&quot;, pre_imd_2)
     # pre_imd_3 = ifelse(is.na(pre_imd_3), &quot;x&quot;, pre_imd_3)
 )</code></pre>
 </div>
-<div id="sm" class="section level2">
-<h2>SM</h2>
+<div id="sm" class="section level3">
+<h3>SM</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_sm_1 = case_when(
@@ -930,8 +1075,8 @@ droppen</p>
     # pre_sm_4 = ifelse(is.na(pre_sm_4), &quot;x&quot;, pre_sm_4)
 )</code></pre>
 </div>
-<div id="ic-vsa" class="section level2">
-<h2>ic /vsa</h2>
+<div id="ic-vsa" class="section level3">
+<h3>ic /vsa</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_vsa_1 = case_when(
@@ -960,10 +1105,10 @@ droppen</p>
 )</code></pre>
 </div>
 </div>
-<div id="pap-mutation" class="section level1">
-<h1>PAP mutation</h1>
-<div id="iv-1-1" class="section level2">
-<h2>IV 1</h2>
+<div id="pap-mutation" class="section level2">
+<h2>PAP mutation</h2>
+<div id="iv-1-1" class="section level3">
+<h3>IV 1</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_niv1_1 = case_when(
@@ -987,8 +1132,8 @@ droppen</p>
     # pap_niv1_3 = ifelse(is.na(pap_niv1_3), &quot;x&quot;, pap_niv1_3)
 )</code></pre>
 </div>
-<div id="iv-2-1" class="section level2">
-<h2>IV 2</h2>
+<div id="iv-2-1" class="section level3">
+<h3>IV 2</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_niv2_1 = case_when(
@@ -1012,8 +1157,8 @@ droppen</p>
     # pap_niv2_3 = ifelse(is.na(pap_niv2_3), &quot;x&quot;, pap_niv2_3)
 )</code></pre>
 </div>
-<div id="tv-1" class="section level2">
-<h2>TV</h2>
+<div id="tv-1" class="section level3">
+<h3>TV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_ntv_1 = case_when(
@@ -1037,8 +1182,8 @@ droppen</p>
     # pap_ntv_3 = ifelse(is.na(pap_ntv_3), &quot;x&quot;, pap_ntv_3)
 )</code></pre>
 </div>
-<div id="dv-1" class="section level2">
-<h2>dv</h2>
+<div id="dv-1" class="section level3">
+<h3>dv</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_ndv_1 = case_when(
@@ -1060,8 +1205,8 @@ droppen</p>
     # pap_ndv_3 = ifelse(is.na(pap_ndv_3), &quot;x&quot;, pap_ndv_3)
 )</code></pre>
 </div>
-<div id="cv-1" class="section level2">
-<h2>CV</h2>
+<div id="cv-1" class="section level3">
+<h3>CV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_ncv_1 = case_when(
@@ -1085,8 +1230,8 @@ droppen</p>
     # pap_ncv_3 = ifelse(is.na(pap_ncv_3), &quot;x&quot;, pap_ncv_3)
 )</code></pre>
 </div>
-<div id="dcp-1" class="section level2">
-<h2>DCP</h2>
+<div id="dcp-1" class="section level3">
+<h3>DCP</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_dcp_1 = case_when(
@@ -1106,8 +1251,8 @@ droppen</p>
     # pap_dcp_3 = ifelse(is.na(pap_dcp_3), &quot;x&quot;, pap_dcp_3)
 )</code></pre>
 </div>
-<div id="paiecimd-1" class="section level2">
-<h2>PA/IEC/IMD</h2>
+<div id="paiecimd-1" class="section level3">
+<h3>PA/IEC/IMD</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_imd_1 = case_when(
@@ -1123,14 +1268,14 @@ droppen</p>
     ),
     
     pap_pa = ifelse(is.na(pap_pa), &quot;x&quot;, pap_pa),
-    pap_iec = ifelse(is.na(pap_iec), &quot;x&quot;, pap_iec),
+    pap_iec_1 = ifelse(is.na(pap_iec_1), &quot;x&quot;, pap_iec_1),
     pap_imd_1 = ifelse(is.na(pap_imd_1), &quot;x&quot;, pap_imd_1),
     pap_imd_2 = ifelse(is.na(pap_imd_2), &quot;x&quot;, pap_imd_2),
     #pap_imd_3 = ifelse(is.na(pap_imd_3), &quot;x&quot;, pap_imd_3)
 )</code></pre>
 </div>
-<div id="sm-1" class="section level2">
-<h2>SM</h2>
+<div id="sm-1" class="section level3">
+<h3>SM</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_sm_1 = case_when(
@@ -1157,8 +1302,8 @@ droppen</p>
     # pap_sm_4 = ifelse(is.na(pap_sm_4), &quot;x&quot;, pap_sm_4)
 )</code></pre>
 </div>
-<div id="icvsa" class="section level2">
-<h2>Ic/vsa</h2>
+<div id="icvsa" class="section level3">
+<h3>Ic/vsa</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pap_vsa_1 = case_when(
@@ -1187,10 +1332,10 @@ droppen</p>
 )</code></pre>
 </div>
 </div>
-<div id="match-mutate" class="section level1">
-<h1>MATch Mutate</h1>
-<div id="iv-1-2" class="section level2">
-<h2>Iv 1</h2>
+<div id="match-mutate" class="section level2">
+<h2>MATch Mutate</h2>
+<div id="iv-1-2" class="section level3">
+<h3>Iv 1</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_iv1_0 = case_when(
@@ -1225,8 +1370,8 @@ droppen</p>
     # match_iv1_4 = ifelse(is.na(match_iv1_4), &quot;x&quot;, match_iv1_4)
 )</code></pre>
 </div>
-<div id="iv-2-2" class="section level2">
-<h2>IV 2</h2>
+<div id="iv-2-2" class="section level3">
+<h3>IV 2</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_iv2_0 = case_when(
@@ -1261,8 +1406,8 @@ droppen</p>
     # match_iv2_4 = ifelse(is.na(match_iv2_4), &quot;x&quot;, match_iv2_4)
 )</code></pre>
 </div>
-<div id="tv-2" class="section level2">
-<h2>TV</h2>
+<div id="tv-2" class="section level3">
+<h3>TV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_tv_0 = case_when(
@@ -1297,8 +1442,8 @@ droppen</p>
     # match_tv_4 = ifelse(is.na(match_tv_4), &quot;x&quot;, match_tv_4)
 )</code></pre>
 </div>
-<div id="dv-2" class="section level2">
-<h2>DV</h2>
+<div id="dv-2" class="section level3">
+<h3>DV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_dv_0 = case_when(
@@ -1332,8 +1477,8 @@ droppen</p>
     # match_dv_4 = ifelse(is.na(match_dv_4), &quot;x&quot;, match_dv_4)
 )</code></pre>
 </div>
-<div id="cv-2" class="section level2">
-<h2>CV</h2>
+<div id="cv-2" class="section level3">
+<h3>CV</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_cv_0 = case_when(
@@ -1367,9 +1512,8 @@ droppen</p>
     match_cv_3 = ifelse(is.na(match_cv_3), &quot;x&quot;, match_cv_3)
     # match_cv_4 = ifelse(is.na(match_cv_4), &quot;x&quot;, match_cv_4)
 )</code></pre>
-</div>
-<div id="dcpiec" class="section level2">
-<h2>dcp/iec</h2>
+<p>#achtung bei iec repesktive iec 1 bedeutet eine leer gelassene zeile
+eventuell n ?!!! ### dcp/iec</p>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_dcp_1 = case_when(
@@ -1386,14 +1530,14 @@ droppen</p>
     
   
 
-    match_iec = ifelse(is.na(match_iec), &quot;x&quot;, match_iec),
+    match_iec_1 = ifelse(is.na(match_iec_1), &quot;x&quot;, match_iec_1),
     match_dcp_1 = ifelse(is.na(match_dcp_1), &quot;x&quot;, match_dcp_1),
     match_dcp_2 = ifelse(is.na(match_dcp_2), &quot;x&quot;, match_dcp_2),
     #match_dcp_3 = ifelse(is.na(match_dcp_3), &quot;x&quot;, match_dcp_3)
 )</code></pre>
 </div>
-<div id="imd-sm" class="section level2">
-<h2>IMD &amp; SM</h2>
+<div id="imd-sm" class="section level3">
+<h3>IMD &amp; SM</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_imd_1 = case_when(
@@ -1437,8 +1581,8 @@ droppen</p>
     # match_sm_4 = ifelse(is.na(match_sm_4), &quot;x&quot;, match_sm_4)
 )</code></pre>
 </div>
-<div id="vsa-ic" class="section level2">
-<h2>VSA &amp; IC</h2>
+<div id="vsa-ic" class="section level3">
+<h3>VSA &amp; IC</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_vsa_1 = case_when(
@@ -1466,11 +1610,911 @@ droppen</p>
     # match_vsa_4 = ifelse(is.na(match_vsa_4), &quot;x&quot;, match_vsa_4)
 )</code></pre>
 </div>
+<div id="rename" class="section level3">
+<h3>rename</h3>
+<p>kurze erklärungen: - data_gpt_finito hat 330 Einträge, dh 30 mehr als
+olmo, was auf die 30 retest zurückzuführen ist - auch wenn die beiden
+Datensätze eine sehr ähnliche Anzahl von Columns haben (149 und 148) ist
+die zusammensetzung anders. die gpt categories(118) sind bei beiden
+enthalten, aber sie haben beide jeweils zusätzliche Kategorien…</p>
+<pre class="r"><code>data_olmo_finito &lt;- data_olmo_selected_mutated 
+
+data_gpt_finito</code></pre>
+<pre><code>## # A tibble: 330 × 148
+##      psp title_pap      study_pap date_gpt            prompt_version test_retest
+##    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+##  1    16 A Review of B… NA        2024-06-25 00:00:00 A              Test       
+##  2    17 Accuracy and … Study 2   2024-06-26 00:00:00 A              Test       
+##  3    18 Action Fluenc… Experime… 2024-06-26 00:00:00 A              Test       
+##  4    23 Are tearful i… Study 1   2024-06-26 00:00:00 A              Test       
+##  5    24 Are tearful i… Study 2   2024-06-26 00:00:00 A              Test       
+##  6    27 Better calibr… Experime… 2024-06-26 00:00:00 A              Test       
+##  7    33 Blurring the … Study 4   2024-06-26 00:00:00 A              Test       
+##  8    34 Cascade and n… NA        2024-06-26 00:00:00 A              Test       
+##  9    36 Cell phone-in… Experime… 2024-06-26 00:00:00 A              Test       
+## 10    37 CEOs imbue or… Experime… 2024-06-26 00:00:00 A              Test       
+## # ℹ 320 more rows
+## # ℹ 142 more variables: chat_gpt_version &lt;chr&gt;, time_extraction &lt;dbl&gt;,
+## #   time_comparison &lt;dbl&gt;, pre_pre_mi1 &lt;chr&gt;, pre_mi1 &lt;chr&gt;, pre_iv1 &lt;chr&gt;,
+## #   c_pre_iv1 &lt;chr&gt;, pre_niv1_1 &lt;chr&gt;, pre_niv1_2 &lt;chr&gt;, pre_pre_mi2 &lt;chr&gt;,
+## #   pre_mi2 &lt;chr&gt;, pre_iv2 &lt;chr&gt;, c_pre_iv2 &lt;chr&gt;, pre_niv2_1 &lt;chr&gt;,
+## #   pre_niv2_2 &lt;chr&gt;, pre_pre_mt &lt;chr&gt;, pre_mt &lt;chr&gt;, pre_tv &lt;chr&gt;,
+## #   c_pre_tv &lt;chr&gt;, pre_ntv_1 &lt;chr&gt;, pre_ntv_2 &lt;chr&gt;, pre_dv &lt;chr&gt;, …</code></pre>
+<pre class="r"><code>data_olmo_finito</code></pre>
+<pre><code>## # A tibble: 300 × 150
+##      psp coder type  pre_pre_mi1 pre_mi1 pre_iv1 c_pre_iv1 pre_niv1_1 pre_niv1_2
+##    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;     
+##  1    16 SSGN  Asso… n           x       y       y         x          x         
+##  2    17 SSGN  Inte… n           x       y       n         y          y         
+##  3    18 SSGN  Effe… y           n       x       x         x          x         
+##  4    23 SSGN  Effe… y           y       x       x         x          x         
+##  5    24 SSBJB Effe… y           y       x       x         x          x         
+##  6    27 SSBJB Effe… y           n       x       x         x          x         
+##  7    33 SSBJB Asso… n           x       y       y         x          x         
+##  8    34 SSBJB Effe… y           y       x       x         x          x         
+##  9    36 SSBJB Inte… y           y       x       x         x          x         
+## 10    37 SSBJB Medi… y           y       x       x         x          x         
+## # ℹ 290 more rows
+## # ℹ 141 more variables: pre_niv1_3 &lt;chr&gt;, pre_pre_mi2 &lt;chr&gt;, pre_mi2 &lt;chr&gt;,
+## #   pre_iv2 &lt;chr&gt;, c_pre_iv2 &lt;chr&gt;, pre_niv2_1 &lt;chr&gt;, pre_niv2_2 &lt;chr&gt;,
+## #   pre_niv2_3 &lt;chr&gt;, pre_pre_mt &lt;chr&gt;, pre_mt &lt;chr&gt;, pre_tv &lt;chr&gt;,
+## #   c_pre_tv &lt;chr&gt;, pre_ntv_1 &lt;chr&gt;, pre_ntv_2 &lt;chr&gt;, pre_ntv_3 &lt;chr&gt;,
+## #   pre_dv &lt;chr&gt;, c_pre_dv &lt;chr&gt;, pre_ndv_1 &lt;chr&gt;, pre_ndv_2 &lt;chr&gt;,
+## #   pre_ndv_3 &lt;chr&gt;, pre_pre_mc &lt;chr&gt;, pre_mc &lt;chr&gt;, pre_cv &lt;chr&gt;, …</code></pre>
+<pre class="r"><code>data_gpt_finito$psp</code></pre>
+<pre><code>##   [1]  16  17  18  23  24  27  33  34  36  37  42  43  44  48  49  50  51  52
+##  [19]  53  54  55  56  57  58  59  60  61  62  65  66  72  77  78  79  80  82
+##  [37]  83  85  86  87  88  89  92  97  99 100 104 105 106 114 115 116 117 118
+##  [55] 119 120 121 122 123 127 133 134 141 145 149 150 152 153 154 155 156 157
+##  [73] 159 160 162 163 164 165 166 169 172 173 174 175 177 178 179 183 186 191
+##  [91] 192 193 194 196 198 206 207 209 210 211 212 215 221 222 225 226 227 228
+## [109] 229 230 235 236 237 238 241 245 246 247 250 254 255 256 257 260 262 263
+## [127] 264 265 266 268 269 270 271 272 273 276 280 282 288 289 294 295 297 298
+## [145] 299 300 302 303 304 306 307 308 312 316 319 321 322 323 324 325 326 327
+## [163] 328 329 330 331 332 333 334 335 336 337 338 339 340 341 342 343 345 346
+## [181] 347 348 349 352 353 354 355 356 357 358 359 360 361 362 363 367 369 370
+## [199] 373 374 375 376 377 378 379 380 381 382 383 384 385 388 389 390 391 392
+## [217] 393 395 396 397 398 399 400 401 402 403 404 406 408 409 410 411 412 413
+## [235] 414 415 416 417 418 419 420 421 422 423 424 425 426 427 428 429 432 433
+## [253] 434 437 438 439 440 441 442 443 444 445 446 448 449 450 451 452 453 454
+## [271] 455 456 457 458 459 460 461 462 463 464 465 466 467 468 469 470 471 472
+## [289] 473 474 475 476 477 478 479 480 481 482 483 484 255 256 257 260 262 289
+## [307] 294 295 297 298 321 322 323 324 325 360 361 362 363 367 416 417 418 419
+## [325] 420 451 452 453 454 455</code></pre>
+</div>
+</div>
+</div>
+<div id="data-olmo-gpt-mergen" class="section level1">
+<h1>Data olmo &amp; gpt mergen</h1>
 <div id="section" class="section level2">
 <h2></h2>
 </div>
 <div id="section-1" class="section level2">
 <h2></h2>
+<pre class="r"><code>#gpt
+data_gpt_olmo_merged &lt;- left_join(data_gpt_finito, data_olmo_finito, by = &quot;psp&quot;, suffix = c(&quot;_gpt&quot;, &quot;_olmo&quot;))
+
+#new
+
+
+# Auswahl der gewünschten Spalten aus dem Olmo-Datensatz
+data_olmo_new_filtered &lt;- data_olmo_finito %&gt;%
+  select(psp, match_dv_0, match_dv_1, match_dv_2, match_dv_3,
+         match_dcp_1, match_dcp_2, match_sm_1, match_sm_2, match_sm_3)
+
+# Merging von `data_gpt_ve` und `data_olmo_filtered` basierend auf der Spalte &quot;psp&quot;
+data_gpt_ve_merged &lt;- left_join(data_gpt_ve, data_olmo_new_filtered, by = &quot;psp&quot;, suffix = c(&quot;_gpt&quot;, &quot;_olmo&quot;))
+
+# Anpassen der Spalte &#39;master_exclude&#39; basierend auf den Bedingungen für die &quot;olmo&quot;-Spalten
+data_gpt_ve_merged &lt;- data_gpt_ve_merged %&gt;%
+  mutate(master_exclude = if_else(rowSums(across(ends_with(&quot;_olmo&quot;), ~ . == &quot;x&quot;)) &gt; 0, &quot;exclude&quot;, &quot;include&quot;))
+
+# Optional: Überprüfung der ersten Zeilen des neuen Datensatzes
+head(data_gpt_ve_merged)</code></pre>
+<pre><code>## # A tibble: 6 × 26
+##     psp title_pap       study_pap date_gpt            prompt_version test_retest
+##   &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+## 1   411 The power of m… Study 2   2024-09-30 00:00:00 E              Test       
+## 2   412 The Primacy Ef… Experime… 2024-09-30 00:00:00 E              Test       
+## 3   413 The Primacy Ef… Experime… 2024-09-30 00:00:00 E              Test       
+## 4   417 The relative c… NA        2024-09-30 00:00:00 E              Test       
+## 5   418 The role of em… Study 2   2024-09-30 00:00:00 E              Test       
+## 6   419 The Role of Ex… Experime… 2024-09-30 00:00:00 E              Test       
+## # ℹ 20 more variables: deviation_text_new &lt;chr&gt;, master_exclude &lt;chr&gt;,
+## #   match_dv_0_gpt &lt;chr&gt;, match_dv_1_gpt &lt;chr&gt;, match_dv_2_gpt &lt;chr&gt;,
+## #   match_dv_3_gpt &lt;chr&gt;, match_dcp_1_gpt &lt;chr&gt;, match_dcp_2_gpt &lt;chr&gt;,
+## #   match_sm_1_gpt &lt;chr&gt;, match_sm_2_gpt &lt;chr&gt;, match_sm_3_gpt &lt;chr&gt;,
+## #   match_dv_0_olmo &lt;chr&gt;, match_dv_1_olmo &lt;chr&gt;, match_dv_2_olmo &lt;chr&gt;,
+## #   match_dv_3_olmo &lt;chr&gt;, match_dcp_1_olmo &lt;chr&gt;, match_dcp_2_olmo &lt;chr&gt;,
+## #   match_sm_1_olmo &lt;chr&gt;, match_sm_2_olmo &lt;chr&gt;, match_sm_3_olmo &lt;chr&gt;</code></pre>
+</div>
+</div>
+<div id="compare-datasets" class="section level1">
+<h1>compare datasets</h1>
+<div id="alphabtic-comparison" class="section level2">
+<h2>alphabtic comparison</h2>
+<pre class="r"><code># Bereinigen der Spaltenwerte (entfernt Leerzeichen und sorgt für Großbuchstaben)
+clean_column &lt;- function(column) {
+  return(toupper(trimws(as.character(column))))
+}
+
+# Vergleichsfunktion anpassen
+compare_columns &lt;- function(gpt_val, olmo_val) {
+  gpt_val &lt;- clean_column(gpt_val)
+  olmo_val &lt;- clean_column(olmo_val)
+  
+  if (is.na(gpt_val) || is.na(olmo_val)) {
+    return(&quot;X&quot;)
+  }
+  
+  if (gpt_val == olmo_val) {
+    if (gpt_val == &quot;Y&quot;) {
+      return(&quot;Y&quot;)
+    } else if (gpt_val == &quot;N&quot;) {
+      return(&quot;N&quot;)
+    } else {
+      return(&quot;X&quot;)
+    }
+  } else {
+    if (gpt_val == &quot;Y&quot; &amp;&amp; olmo_val == &quot;N&quot;) {
+      return(&quot;P&quot;)
+    } else if (gpt_val == &quot;N&quot; &amp;&amp; olmo_val == &quot;Y&quot;) {
+      return(&quot;Q&quot;)
+    } else if (gpt_val == &quot;Y&quot; &amp;&amp; olmo_val == &quot;X&quot;) {
+      return(&quot;FY&quot;)
+    } else if (gpt_val == &quot;N&quot; &amp;&amp; olmo_val == &quot;X&quot;) {
+      return(&quot;FN&quot;)
+    } else if (gpt_val == &quot;X&quot; &amp;&amp; olmo_val == &quot;N&quot;) {
+      return(&quot;FXN&quot;)
+    } else if (gpt_val == &quot;X&quot; &amp;&amp; olmo_val == &quot;Y&quot;) {
+      return(&quot;FXY&quot;)
+    }
+  }
+}
+
+# Initialisiere den neuen DataFrame mit der psp-Spalte
+data_alphabetic_comparison &lt;- data.frame(psp = data_gpt_olmo_merged$psp)
+
+
+# Füge die test_retest-Spalte aus dem gpt-Datensatz in den neuen DataFrame ein
+data_alphabetic_comparison$test_retest &lt;- data_gpt_olmo_merged$test_retest
+
+
+# Vergleich und Erstellen der neuen Spalten mit der Endung _comp
+for (category in gpt_categories_alphabetic) {
+  # GPT- und Olmo-Spalten auswählen
+  gpt_column &lt;- clean_column(data_gpt_olmo_merged[[paste0(category, &quot;_gpt&quot;)]])
+  olmo_column &lt;- clean_column(data_gpt_olmo_merged[[paste0(category, &quot;_olmo&quot;)]])
+  
+  # Überprüfen, ob beide Spalten existieren und die gleiche Länge haben
+  if (!is.null(gpt_column) &amp;&amp; !is.null(olmo_column) &amp;&amp; length(gpt_column) == length(olmo_column)) {
+    # Neue Vergleichsspalte erstellen
+    data_alphabetic_comparison[[paste0(category, &quot;_comp&quot;)]] &lt;- mapply(compare_columns, gpt_column, olmo_column)
+  } else {
+    # Wenn die Spalten nicht übereinstimmen, fülle die Vergleichsspalte mit NA
+    data_alphabetic_comparison[[paste0(category, &quot;_comp&quot;)]] &lt;- rep(NA, nrow(data_gpt_olmo_merged))
+    warning(paste(&quot;Spalten&quot;, category, &quot;haben unterschiedliche Längen oder fehlen.&quot;))
+  }
+}
+
+# Ergebnis anzeigen
+head(data_alphabetic_comparison)</code></pre>
+<pre><code>##   psp test_retest pre_pre_mi1_comp pre_mi1_comp pre_iv1_comp c_pre_iv1_comp
+## 1  16        Test                P           FY            Y              Q
+## 2  17        Test                N            X            Y              N
+## 3  18        Test                Y            P           FY             FN
+## 4  23        Test                Y            Y           FY             FN
+## 5  24        Test                Y            Y           FY             FN
+## 6  27        Test                Y            P           FY             FN
+##   pre_niv1_1_comp pre_niv1_2_comp pre_pre_mi2_comp pre_mi2_comp pre_iv2_comp
+## 1              FY              FY                P           FY            P
+## 2               Y               Y                N            X            P
+## 3              FY              FY               FY           FY           FY
+## 4              FY              FY               FY           FY           FY
+## 5              FY              FY               FN            X           FY
+## 6              FY              FY               FY           FY           FY
+##   c_pre_iv2_comp pre_niv2_1_comp pre_niv2_2_comp pre_pre_mt_comp pre_mt_comp
+## 1             FN              FY              FY               X           X
+## 2             FY              FY              FY               X           X
+## 3             FN              FY              FY               X           X
+## 4             FN              FY              FY               X           X
+## 5             FN              FY              FY               X           X
+## 6             FN              FY              FY              FY          FY
+##   pre_tv_comp c_pre_tv_comp pre_ntv_1_comp pre_ntv_2_comp pre_dv_comp
+## 1           X             X              X              X          FY
+## 2           X             X              X              X           Y
+## 3           X             X              X              X           P
+## 4           X             X              X              X           Y
+## 5           X             X              X              X           Y
+## 6          FY            FN             FY             FY           Y
+##   c_pre_dv_comp pre_ndv_1_comp pre_ndv_2_comp pre_pre_mc_comp pre_mc_comp
+## 1            FN             FY             FY              FN           X
+## 2             Y             FY             FY              FN           X
+## 3            FY             FY             FY              FN           X
+## 4             Y             FY             FY              FN           X
+## 5             Y             FY             FY               Q         FXY
+## 6             Y             FY             FY               Q         FXN
+##   pre_cv_comp c_pre_cv_comp pre_ncv_1_comp pre_ncv_2_comp pre_dcp_1_comp
+## 1           X             X              X              X              Y
+## 2          FY            FY             FY             FY              Y
+## 3          FY            FN             FY             FY              Y
+## 4          FY            FY             FY             FY              Y
+## 5          FY            FY             FY             FY              Y
+## 6          FY            FN             FY             FY              Y
+##   pre_dcp_2_comp pre_pa_comp pre_iec_1_comp pre_imd_1_comp pre_imd_2_comp
+## 1              P           Q              Y              Y              Y
+## 2              P           Y             FY              P              P
+## 3              P           P              Y              P              P
+## 4              P           Y              Y              Y              Y
+## 5              P           Y              Y              Y              Y
+## 6              P           Y              Y              Y              Y
+##   pre_sm_1_comp pre_sm_2_comp pre_sm_3_comp pre_vsa_1_comp pre_vsa_2_comp
+## 1             Y             Y             P              P              P
+## 2             Y             Y             P              P              P
+## 3             P             P             P              P              P
+## 4             Y             Y             P              P              P
+## 5             Y             Y             P              P              P
+## 6             Y             Y             Y              P              P
+##   pre_vsa_3_comp pre_ic_comp pap_pap_mi1_comp pap_mi1_comp pap_iv1_comp
+## 1              P           Y                N            X            Y
+## 2              P           P                N            X            Y
+## 3              P           P                Y            Y           FY
+## 4              P           P                Y            Y           FY
+## 5              P           P                Y            Y           FY
+## 6              P           P                Y            Y           FY
+##   c_pap_iv1_comp pap_niv1_1_comp pap_niv1_2_comp pap_pap_mi2_comp pap_mi2_comp
+## 1              Y              FY              FY                N            X
+## 2              P               Y               Y                N            X
+## 3             FN              FY              FY               FY           FY
+## 4             FN              FY              FY               FY           FY
+## 5             FN              FY              FY               FN            X
+## 6             FN              FY              FY               FY           FY
+##   pap_iv2_comp c_pap_iv2_comp pap_niv2_1_comp pap_niv2_2_comp pap_pap_mt_comp
+## 1            Y              Y              FY              FY               X
+## 2            Y              Y              FY              FY               X
+## 3           FY             FN              FY              FY               X
+## 4           FY             FN              FY              FY               X
+## 5           FY             FN              FY              FY               X
+## 6           FY             FN              FY              FY              FY
+##   pap_mt_comp pap_tv_comp c_pap_tv_comp pap_ntv_1_comp pap_ntv_2_comp
+## 1           X           X             X              X              X
+## 2           X           X             X              X              X
+## 3           X           X             X              X              X
+## 4           X           X             X              X              X
+## 5           X           X             X              X              X
+## 6          FY          FY            FN             FY             FY
+##   pap_dv_comp c_pap_dv_comp pap_ndv_1_comp pap_ndv_2_comp pap_pap_mc_comp
+## 1          FY            FY             FY             FY              FN
+## 2           Y             Y             FY             FY              FN
+## 3           Y             P              Y              Y              FN
+## 4           Y             Y             FY             FY              FN
+## 5           Y             Y             FY             FY               Q
+## 6           Y             Y             FY             FY               Q
+##   pap_mc_comp pap_cv_comp c_pap_cv_comp pap_ncv_1_comp pap_ncv_2_comp
+## 1           X           X             X              X              X
+## 2           X          FY            FY             FY             FY
+## 3           X          FY            FN             FY             FY
+## 4           X          FY            FY             FY             FY
+## 5         FXY          FY            FY             FY             FY
+## 6         FXY          FY            FN             FY             FY
+##   pap_dcp_1_comp pap_dcp_2_comp pap_pa_comp pap_iec_1_comp pap_imd_1_comp
+## 1              Y              P           N              Y              N
+## 2              Y              P           Y             FY              P
+## 3              Y              P           Y              Y              P
+## 4              Y              P           Y              Y              Y
+## 5              Y              P           Y              Y              Y
+## 6              Y              P           Y             FY              P
+##   pap_imd_2_comp pap_sm_1_comp pap_sm_2_comp pap_sm_3_comp pap_vsa_1_comp
+## 1              P             P             P             P              P
+## 2              P             Y             Y             P              P
+## 3              P             Y             P             P              P
+## 4              Y             Y             Y             P              P
+## 5              Y             Y             Y             P              P
+## 6              P             Y             Y             Y              P
+##   pap_vsa_2_comp pap_vsa_3_comp pap_ic_comp match_mi1_comp match_iv1_0_comp
+## 1              P              P           P             FN                Q
+## 2              P              P           P             FY                Y
+## 3              P              P           P             FY               FY
+## 4              P              P           P              Y               FY
+## 5              P              P           P              Y               FY
+## 6              P              P           P             FY               FY
+##   match_iv1_1_comp match_iv1_2_comp match_iv1_3_comp match_mi2_comp
+## 1                N                N                N              X
+## 2                Y                Y                P              X
+## 3               FY               FY               FY             FY
+## 4               FY               FY               FY              X
+## 5               FY               FY               FY              X
+## 6               FY               FY                X             FY
+##   match_iv2_0_comp match_iv2_1_comp match_iv2_2_comp match_iv2_3_comp
+## 1                X                X                X                X
+## 2              FXN              FXN              FXN              FXN
+## 3               FY               FY               FY                X
+## 4                X                X                X                X
+## 5                X                X                X                X
+## 6               FY               FY               FY                X
+##   match_mt_comp match_tv_0_comp match_tv_1_comp match_tv_2_comp match_tv_3_comp
+## 1             X               X               X               X               X
+## 2             X               X               X               X               X
+## 3             X               X               X               X               X
+## 4             X               X               X               X               X
+## 5             X               X               X               X               X
+## 6            FY              FY              FY              FY               X
+##   match_dv_0_comp match_dv_1_comp match_dv_2_comp match_dv_3_comp match_mc_comp
+## 1              FN              FN              FN              FN             X
+## 2               Y               Y               Y               P            FY
+## 3              FY              FY              FY              FY            FY
+## 4               Y               P               P               P             X
+## 5               Y               P               Y               Y           FXY
+## 6               Y               Y               Y             FXN             Y
+##   match_cv_0_comp match_cv_1_comp match_cv_2_comp match_cv_3_comp
+## 1               X               X               X               X
+## 2              FY              FY              FY              FY
+## 3              FY              FY              FY              FY
+## 4               X               X               X               X
+## 5               X               X               X               X
+## 6              FY              FY              FY               X
+##   match_dcp_1_comp match_dcp_2_comp match_iec_1_comp match_imd_1_comp
+## 1                N                N                X               FN
+## 2                P              FXN               FY               FY
+## 3                Q              FXN                X               FY
+## 4                N                P                Y                Y
+## 5                P                P                Y                Y
+## 6                P                P                X               FY
+##   match_imd_2_comp match_sm_1_comp match_sm_2_comp match_sm_3_comp
+## 1               FN              FY              FN              FN
+## 2               FY               Y               Y               P
+## 3               FY              FY              FY              FY
+## 4                Y               Y               Y               P
+## 5                Y               Y               Y               P
+## 6               FY               Y               Y               Y
+##   match_vsa_1_comp match_vsa_2_comp match_vsa_3_comp match_ic_comp
+## 1                X                X                X             Y
+## 2               FY               FY               FY            FY
+## 3               FY               FY               FY            FY
+## 4               FY               FY               FY            FY
+## 5               FY               FY               FY            FY
+## 6               FY               FY               FY            FY</code></pre>
+<pre class="r"><code>data_alphabetic_comparison$psp</code></pre>
+<pre><code>##   [1]  16  17  18  23  24  27  33  34  36  37  42  43  44  48  49  50  51  52
+##  [19]  53  54  55  56  57  58  59  60  61  62  65  66  72  77  78  79  80  82
+##  [37]  83  85  86  87  88  89  92  97  99 100 104 105 106 114 115 116 117 118
+##  [55] 119 120 121 122 123 127 133 134 141 145 149 150 152 153 154 155 156 157
+##  [73] 159 160 162 163 164 165 166 169 172 173 174 175 177 178 179 183 186 191
+##  [91] 192 193 194 196 198 206 207 209 210 211 212 215 221 222 225 226 227 228
+## [109] 229 230 235 236 237 238 241 245 246 247 250 254 255 256 257 260 262 263
+## [127] 264 265 266 268 269 270 271 272 273 276 280 282 288 289 294 295 297 298
+## [145] 299 300 302 303 304 306 307 308 312 316 319 321 322 323 324 325 326 327
+## [163] 328 329 330 331 332 333 334 335 336 337 338 339 340 341 342 343 345 346
+## [181] 347 348 349 352 353 354 355 356 357 358 359 360 361 362 363 367 369 370
+## [199] 373 374 375 376 377 378 379 380 381 382 383 384 385 388 389 390 391 392
+## [217] 393 395 396 397 398 399 400 401 402 403 404 406 408 409 410 411 412 413
+## [235] 414 415 416 417 418 419 420 421 422 423 424 425 426 427 428 429 432 433
+## [253] 434 437 438 439 440 441 442 443 444 445 446 448 449 450 451 452 453 454
+## [271] 455 456 457 458 459 460 461 462 463 464 465 466 467 468 469 470 471 472
+## [289] 473 474 475 476 477 478 479 480 481 482 483 484 255 256 257 260 262 289
+## [307] 294 295 297 298 321 322 323 324 325 360 361 362 363 367 416 417 418 419
+## [325] 420 451 452 453 454 455</code></pre>
+<pre class="r"><code>colnames(data_alphabetic_comparison)</code></pre>
+<pre><code>##   [1] &quot;psp&quot;              &quot;test_retest&quot;      &quot;pre_pre_mi1_comp&quot;
+##   [4] &quot;pre_mi1_comp&quot;     &quot;pre_iv1_comp&quot;     &quot;c_pre_iv1_comp&quot;  
+##   [7] &quot;pre_niv1_1_comp&quot;  &quot;pre_niv1_2_comp&quot;  &quot;pre_pre_mi2_comp&quot;
+##  [10] &quot;pre_mi2_comp&quot;     &quot;pre_iv2_comp&quot;     &quot;c_pre_iv2_comp&quot;  
+##  [13] &quot;pre_niv2_1_comp&quot;  &quot;pre_niv2_2_comp&quot;  &quot;pre_pre_mt_comp&quot; 
+##  [16] &quot;pre_mt_comp&quot;      &quot;pre_tv_comp&quot;      &quot;c_pre_tv_comp&quot;   
+##  [19] &quot;pre_ntv_1_comp&quot;   &quot;pre_ntv_2_comp&quot;   &quot;pre_dv_comp&quot;     
+##  [22] &quot;c_pre_dv_comp&quot;    &quot;pre_ndv_1_comp&quot;   &quot;pre_ndv_2_comp&quot;  
+##  [25] &quot;pre_pre_mc_comp&quot;  &quot;pre_mc_comp&quot;      &quot;pre_cv_comp&quot;     
+##  [28] &quot;c_pre_cv_comp&quot;    &quot;pre_ncv_1_comp&quot;   &quot;pre_ncv_2_comp&quot;  
+##  [31] &quot;pre_dcp_1_comp&quot;   &quot;pre_dcp_2_comp&quot;   &quot;pre_pa_comp&quot;     
+##  [34] &quot;pre_iec_1_comp&quot;   &quot;pre_imd_1_comp&quot;   &quot;pre_imd_2_comp&quot;  
+##  [37] &quot;pre_sm_1_comp&quot;    &quot;pre_sm_2_comp&quot;    &quot;pre_sm_3_comp&quot;   
+##  [40] &quot;pre_vsa_1_comp&quot;   &quot;pre_vsa_2_comp&quot;   &quot;pre_vsa_3_comp&quot;  
+##  [43] &quot;pre_ic_comp&quot;      &quot;pap_pap_mi1_comp&quot; &quot;pap_mi1_comp&quot;    
+##  [46] &quot;pap_iv1_comp&quot;     &quot;c_pap_iv1_comp&quot;   &quot;pap_niv1_1_comp&quot; 
+##  [49] &quot;pap_niv1_2_comp&quot;  &quot;pap_pap_mi2_comp&quot; &quot;pap_mi2_comp&quot;    
+##  [52] &quot;pap_iv2_comp&quot;     &quot;c_pap_iv2_comp&quot;   &quot;pap_niv2_1_comp&quot; 
+##  [55] &quot;pap_niv2_2_comp&quot;  &quot;pap_pap_mt_comp&quot;  &quot;pap_mt_comp&quot;     
+##  [58] &quot;pap_tv_comp&quot;      &quot;c_pap_tv_comp&quot;    &quot;pap_ntv_1_comp&quot;  
+##  [61] &quot;pap_ntv_2_comp&quot;   &quot;pap_dv_comp&quot;      &quot;c_pap_dv_comp&quot;   
+##  [64] &quot;pap_ndv_1_comp&quot;   &quot;pap_ndv_2_comp&quot;   &quot;pap_pap_mc_comp&quot; 
+##  [67] &quot;pap_mc_comp&quot;      &quot;pap_cv_comp&quot;      &quot;c_pap_cv_comp&quot;   
+##  [70] &quot;pap_ncv_1_comp&quot;   &quot;pap_ncv_2_comp&quot;   &quot;pap_dcp_1_comp&quot;  
+##  [73] &quot;pap_dcp_2_comp&quot;   &quot;pap_pa_comp&quot;      &quot;pap_iec_1_comp&quot;  
+##  [76] &quot;pap_imd_1_comp&quot;   &quot;pap_imd_2_comp&quot;   &quot;pap_sm_1_comp&quot;   
+##  [79] &quot;pap_sm_2_comp&quot;    &quot;pap_sm_3_comp&quot;    &quot;pap_vsa_1_comp&quot;  
+##  [82] &quot;pap_vsa_2_comp&quot;   &quot;pap_vsa_3_comp&quot;   &quot;pap_ic_comp&quot;     
+##  [85] &quot;match_mi1_comp&quot;   &quot;match_iv1_0_comp&quot; &quot;match_iv1_1_comp&quot;
+##  [88] &quot;match_iv1_2_comp&quot; &quot;match_iv1_3_comp&quot; &quot;match_mi2_comp&quot;  
+##  [91] &quot;match_iv2_0_comp&quot; &quot;match_iv2_1_comp&quot; &quot;match_iv2_2_comp&quot;
+##  [94] &quot;match_iv2_3_comp&quot; &quot;match_mt_comp&quot;    &quot;match_tv_0_comp&quot; 
+##  [97] &quot;match_tv_1_comp&quot;  &quot;match_tv_2_comp&quot;  &quot;match_tv_3_comp&quot; 
+## [100] &quot;match_dv_0_comp&quot;  &quot;match_dv_1_comp&quot;  &quot;match_dv_2_comp&quot; 
+## [103] &quot;match_dv_3_comp&quot;  &quot;match_mc_comp&quot;    &quot;match_cv_0_comp&quot; 
+## [106] &quot;match_cv_1_comp&quot;  &quot;match_cv_2_comp&quot;  &quot;match_cv_3_comp&quot; 
+## [109] &quot;match_dcp_1_comp&quot; &quot;match_dcp_2_comp&quot; &quot;match_iec_1_comp&quot;
+## [112] &quot;match_imd_1_comp&quot; &quot;match_imd_2_comp&quot; &quot;match_sm_1_comp&quot; 
+## [115] &quot;match_sm_2_comp&quot;  &quot;match_sm_3_comp&quot;  &quot;match_vsa_1_comp&quot;
+## [118] &quot;match_vsa_2_comp&quot; &quot;match_vsa_3_comp&quot; &quot;match_ic_comp&quot;</code></pre>
+</div>
+<div id="numeric-comparison" class="section level2">
+<h2>numeric comparison</h2>
+<p>PEanalysis of olmos dataset contains different strictness categories
+than gpt,</p>
+</div>
+<div id="comparison-merge" class="section level2">
+<h2>comparison merge</h2>
+<pre class="r"><code>colnames(data_gpt_finito)</code></pre>
+<pre><code>##   [1] &quot;psp&quot;                                
+##   [2] &quot;title_pap&quot;                          
+##   [3] &quot;study_pap&quot;                          
+##   [4] &quot;date_gpt&quot;                           
+##   [5] &quot;prompt_version&quot;                     
+##   [6] &quot;test_retest&quot;                        
+##   [7] &quot;chat_gpt_version&quot;                   
+##   [8] &quot;time_extraction&quot;                    
+##   [9] &quot;time_comparison&quot;                    
+##  [10] &quot;pre_pre_mi1&quot;                        
+##  [11] &quot;pre_mi1&quot;                            
+##  [12] &quot;pre_iv1&quot;                            
+##  [13] &quot;c_pre_iv1&quot;                          
+##  [14] &quot;pre_niv1_1&quot;                         
+##  [15] &quot;pre_niv1_2&quot;                         
+##  [16] &quot;pre_pre_mi2&quot;                        
+##  [17] &quot;pre_mi2&quot;                            
+##  [18] &quot;pre_iv2&quot;                            
+##  [19] &quot;c_pre_iv2&quot;                          
+##  [20] &quot;pre_niv2_1&quot;                         
+##  [21] &quot;pre_niv2_2&quot;                         
+##  [22] &quot;pre_pre_mt&quot;                         
+##  [23] &quot;pre_mt&quot;                             
+##  [24] &quot;pre_tv&quot;                             
+##  [25] &quot;c_pre_tv&quot;                           
+##  [26] &quot;pre_ntv_1&quot;                          
+##  [27] &quot;pre_ntv_2&quot;                          
+##  [28] &quot;pre_dv&quot;                             
+##  [29] &quot;c_pre_dv&quot;                           
+##  [30] &quot;pre_ndv_1&quot;                          
+##  [31] &quot;pre_ndv_2&quot;                          
+##  [32] &quot;pre_pre_mc&quot;                         
+##  [33] &quot;pre_mc&quot;                             
+##  [34] &quot;pre_cv&quot;                             
+##  [35] &quot;c_pre_cv&quot;                           
+##  [36] &quot;pre_ncv_1&quot;                          
+##  [37] &quot;pre_ncv_2&quot;                          
+##  [38] &quot;pre_dcp_1&quot;                          
+##  [39] &quot;pre_dcp_2&quot;                          
+##  [40] &quot;pre_dcp_1_text&quot;                     
+##  [41] &quot;pre_pa&quot;                             
+##  [42] &quot;pre_iec_1&quot;                          
+##  [43] &quot;pre_imd_1&quot;                          
+##  [44] &quot;pre_imd_2&quot;                          
+##  [45] &quot;pre_sm_1&quot;                           
+##  [46] &quot;pre_sm_2&quot;                           
+##  [47] &quot;pre_sm_3&quot;                           
+##  [48] &quot;pre_vsa_1&quot;                          
+##  [49] &quot;pre_vsa_2&quot;                          
+##  [50] &quot;pre_vsa_3&quot;                          
+##  [51] &quot;pre_ic&quot;                             
+##  [52] &quot;pap_pap_mi1&quot;                        
+##  [53] &quot;pap_mi1&quot;                            
+##  [54] &quot;pap_iv1&quot;                            
+##  [55] &quot;c_pap_iv1&quot;                          
+##  [56] &quot;pap_niv1_1&quot;                         
+##  [57] &quot;pap_niv1_2&quot;                         
+##  [58] &quot;pap_pap_mi2&quot;                        
+##  [59] &quot;pap_mi2&quot;                            
+##  [60] &quot;pap_iv2&quot;                            
+##  [61] &quot;c_pap_iv2&quot;                          
+##  [62] &quot;pap_niv2_1&quot;                         
+##  [63] &quot;pap_niv2_2&quot;                         
+##  [64] &quot;pap_pap_mt&quot;                         
+##  [65] &quot;pap_mt&quot;                             
+##  [66] &quot;pap_tv&quot;                             
+##  [67] &quot;c_pap_tv&quot;                           
+##  [68] &quot;pap_ntv_1&quot;                          
+##  [69] &quot;pap_ntv_2&quot;                          
+##  [70] &quot;pap_dv&quot;                             
+##  [71] &quot;c_pap_dv&quot;                           
+##  [72] &quot;pap_ndv_1&quot;                          
+##  [73] &quot;pap_ndv_2&quot;                          
+##  [74] &quot;pap_pap_mc&quot;                         
+##  [75] &quot;pap_mc&quot;                             
+##  [76] &quot;pap_cv&quot;                             
+##  [77] &quot;c_pap_cv&quot;                           
+##  [78] &quot;pap_ncv_1&quot;                          
+##  [79] &quot;pap_ncv_2&quot;                          
+##  [80] &quot;pap_dcp_1&quot;                          
+##  [81] &quot;pap_dcp_2&quot;                          
+##  [82] &quot;pap_dcp_1_text&quot;                     
+##  [83] &quot;pap_pa&quot;                             
+##  [84] &quot;pap_iec_1&quot;                          
+##  [85] &quot;pap_imd_1&quot;                          
+##  [86] &quot;pap_imd_2&quot;                          
+##  [87] &quot;pap_sm_1&quot;                           
+##  [88] &quot;pap_sm_2&quot;                           
+##  [89] &quot;pap_sm_3&quot;                           
+##  [90] &quot;pap_vsa_1&quot;                          
+##  [91] &quot;pap_vsa_2&quot;                          
+##  [92] &quot;pap_vsa_3&quot;                          
+##  [93] &quot;pap_ic&quot;                             
+##  [94] &quot;s_pre_iv&quot;                           
+##  [95] &quot;s_pre_dv&quot;                           
+##  [96] &quot;s_pre_dcp&quot;                          
+##  [97] &quot;s_pre_smu&quot;                          
+##  [98] &quot;s_pre_sic&quot;                          
+##  [99] &quot;s_pap_iv&quot;                           
+## [100] &quot;s_pap_dv&quot;                           
+## [101] &quot;s_pap_dcp&quot;                          
+## [102] &quot;s_pap_smu&quot;                          
+## [103] &quot;s_pap_sic&quot;                          
+## [104] &quot;prompt_version_a_strictness_prereg&quot; 
+## [105] &quot;prompt_version_a_strictness_pubstud&quot;
+## [106] &quot;match_mi1&quot;                          
+## [107] &quot;match_iv1_0&quot;                        
+## [108] &quot;match_iv1_1&quot;                        
+## [109] &quot;match_iv1_2&quot;                        
+## [110] &quot;match_iv1_3&quot;                        
+## [111] &quot;match_mi2&quot;                          
+## [112] &quot;match_iv2_0&quot;                        
+## [113] &quot;match_iv2_1&quot;                        
+## [114] &quot;match_iv2_2&quot;                        
+## [115] &quot;match_iv2_3&quot;                        
+## [116] &quot;match_mt&quot;                           
+## [117] &quot;match_tv_0&quot;                         
+## [118] &quot;match_tv_1&quot;                         
+## [119] &quot;match_tv_2&quot;                         
+## [120] &quot;match_tv_3&quot;                         
+## [121] &quot;match_dv_0&quot;                         
+## [122] &quot;match_dv_1&quot;                         
+## [123] &quot;match_dv_2&quot;                         
+## [124] &quot;match_dv_3&quot;                         
+## [125] &quot;match_mc&quot;                           
+## [126] &quot;match_cv_0&quot;                         
+## [127] &quot;match_cv_1&quot;                         
+## [128] &quot;match_cv_2&quot;                         
+## [129] &quot;match_cv_3&quot;                         
+## [130] &quot;match_dcp_1&quot;                        
+## [131] &quot;match_dcp_2&quot;                        
+## [132] &quot;match_iec_1&quot;                        
+## [133] &quot;match_imd_1&quot;                        
+## [134] &quot;match_imd_2&quot;                        
+## [135] &quot;match_sm_1&quot;                         
+## [136] &quot;match_sm_2&quot;                         
+## [137] &quot;match_sm_3&quot;                         
+## [138] &quot;match_vsa_1&quot;                        
+## [139] &quot;match_vsa_2&quot;                        
+## [140] &quot;match_vsa_3&quot;                        
+## [141] &quot;match_ic&quot;                           
+## [142] &quot;con_iv&quot;                             
+## [143] &quot;con_dv&quot;                             
+## [144] &quot;con_dcp&quot;                            
+## [145] &quot;con_smu&quot;                            
+## [146] &quot;con_sic&quot;                            
+## [147] &quot;global_consistency_esimate&quot;         
+## [148] &quot;master_exclude&quot;</code></pre>
+<pre class="r"><code># Gewünschten Spalten aus data_gpt_finito
+selected_columns &lt;- c(&quot;psp&quot;, &quot;title_pap&quot;, &quot;study_pap&quot;, &quot;date_gpt&quot;, &quot;prompt_version&quot;, 
+                      &quot;test_retest&quot;, &quot;chat_gpt_version&quot;, &quot;time_extraction&quot;, 
+                      &quot;time_comparison&quot;, &quot;master_exclude&quot;)
+
+# Erstelle einen neuen Datensatz mit nur diesen Spalten
+data_gpt_selected &lt;- data_gpt_finito %&gt;% select(all_of(selected_columns))
+
+# Verwende left_join, um die Datensätze via psp und test_retest zu verbinden
+data_processed_before_exclusions &lt;- left_join(data_gpt_selected, data_alphabetic_comparison, by = c(&quot;psp&quot;, &quot;test_retest&quot;))
+
+# Ausgabe des Ergebnisses
+head(data_processed_before_exclusions)</code></pre>
+<pre><code>## # A tibble: 6 × 128
+##     psp title_pap       study_pap date_gpt            prompt_version test_retest
+##   &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+## 1    16 A Review of Be… NA        2024-06-25 00:00:00 A              Test       
+## 2    17 Accuracy and c… Study 2   2024-06-26 00:00:00 A              Test       
+## 3    18 Action Fluency… Experime… 2024-06-26 00:00:00 A              Test       
+## 4    23 Are tearful in… Study 1   2024-06-26 00:00:00 A              Test       
+## 5    24 Are tearful in… Study 2   2024-06-26 00:00:00 A              Test       
+## 6    27 Better calibra… Experime… 2024-06-26 00:00:00 A              Test       
+## # ℹ 122 more variables: chat_gpt_version &lt;chr&gt;, time_extraction &lt;dbl&gt;,
+## #   time_comparison &lt;dbl&gt;, master_exclude &lt;chr&gt;, pre_pre_mi1_comp &lt;named list&gt;,
+## #   pre_mi1_comp &lt;named list&gt;, pre_iv1_comp &lt;named list&gt;,
+## #   c_pre_iv1_comp &lt;named list&gt;, pre_niv1_1_comp &lt;named list&gt;,
+## #   pre_niv1_2_comp &lt;named list&gt;, pre_pre_mi2_comp &lt;named list&gt;,
+## #   pre_mi2_comp &lt;named list&gt;, pre_iv2_comp &lt;named list&gt;,
+## #   c_pre_iv2_comp &lt;named list&gt;, pre_niv2_1_comp &lt;named list&gt;, …</code></pre>
+<pre class="r"><code># Zeige die psp-Spalte an
+data_processed_before_exclusions$psp</code></pre>
+<pre><code>##   [1]  16  17  18  23  24  27  33  34  36  37  42  43  44  48  49  50  51  52
+##  [19]  53  54  55  56  57  58  59  60  61  62  65  66  72  77  78  79  80  82
+##  [37]  83  85  86  87  88  89  92  97  99 100 104 105 106 114 115 116 117 118
+##  [55] 119 120 121 122 123 127 133 134 141 145 149 150 152 153 154 155 156 157
+##  [73] 159 160 162 163 164 165 166 169 172 173 174 175 177 178 179 183 186 191
+##  [91] 192 193 194 196 198 206 207 209 210 211 212 215 221 222 225 226 227 228
+## [109] 229 230 235 236 237 238 241 245 246 247 250 254 255 256 257 260 262 263
+## [127] 264 265 266 268 269 270 271 272 273 276 280 282 288 289 294 295 297 298
+## [145] 299 300 302 303 304 306 307 308 312 316 319 321 322 323 324 325 326 327
+## [163] 328 329 330 331 332 333 334 335 336 337 338 339 340 341 342 343 345 346
+## [181] 347 348 349 352 353 354 355 356 357 358 359 360 361 362 363 367 369 370
+## [199] 373 374 375 376 377 378 379 380 381 382 383 384 385 388 389 390 391 392
+## [217] 393 395 396 397 398 399 400 401 402 403 404 406 408 409 410 411 412 413
+## [235] 414 415 416 417 418 419 420 421 422 423 424 425 426 427 428 429 432 433
+## [253] 434 437 438 439 440 441 442 443 444 445 446 448 449 450 451 452 453 454
+## [271] 455 456 457 458 459 460 461 462 463 464 465 466 467 468 469 470 471 472
+## [289] 473 474 475 476 477 478 479 480 481 482 483 484 255 256 257 260 262 289
+## [307] 294 295 297 298 321 322 323 324 325 360 361 362 363 367 416 417 418 419
+## [325] 420 451 452 453 454 455</code></pre>
+</div>
+<div id="remove-master-exclude-in-comparison" class="section level2">
+<h2>remove master exclude in comparison</h2>
+<pre class="r"><code># Remove rows where master_exclude column contains &quot;exclude&quot;
+comparison_data_processed &lt;- data_processed_before_exclusions[data_processed_before_exclusions$master_exclude != &quot;exclude&quot;, ]
+
+# Check the resulting data
+print(comparison_data_processed)</code></pre>
+<pre><code>## # A tibble: 309 × 128
+##      psp title_pap      study_pap date_gpt            prompt_version test_retest
+##    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+##  1    16 A Review of B… NA        2024-06-25 00:00:00 A              Test       
+##  2    17 Accuracy and … Study 2   2024-06-26 00:00:00 A              Test       
+##  3    18 Action Fluenc… Experime… 2024-06-26 00:00:00 A              Test       
+##  4    23 Are tearful i… Study 1   2024-06-26 00:00:00 A              Test       
+##  5    24 Are tearful i… Study 2   2024-06-26 00:00:00 A              Test       
+##  6    27 Better calibr… Experime… 2024-06-26 00:00:00 A              Test       
+##  7    33 Blurring the … Study 4   2024-06-26 00:00:00 A              Test       
+##  8    34 Cascade and n… NA        2024-06-26 00:00:00 A              Test       
+##  9    36 Cell phone-in… Experime… 2024-06-26 00:00:00 A              Test       
+## 10    37 CEOs imbue or… Experime… 2024-06-26 00:00:00 A              Test       
+## # ℹ 299 more rows
+## # ℹ 122 more variables: chat_gpt_version &lt;chr&gt;, time_extraction &lt;dbl&gt;,
+## #   time_comparison &lt;dbl&gt;, master_exclude &lt;chr&gt;, pre_pre_mi1_comp &lt;named list&gt;,
+## #   pre_mi1_comp &lt;named list&gt;, pre_iv1_comp &lt;named list&gt;,
+## #   c_pre_iv1_comp &lt;named list&gt;, pre_niv1_1_comp &lt;named list&gt;,
+## #   pre_niv1_2_comp &lt;named list&gt;, pre_pre_mi2_comp &lt;named list&gt;,
+## #   pre_mi2_comp &lt;named list&gt;, pre_iv2_comp &lt;named list&gt;, …</code></pre>
+</div>
+<div id="remove-master-exclude-in-data_gpt_olmo_merged" class="section level2">
+<h2>remove master exclude in data_gpt_olmo_merged</h2>
+<pre class="r"><code># Remove rows where master_exclude column contains &quot;exclude&quot;
+data_gpt_olmo_processed &lt;- data_gpt_olmo_merged[data_gpt_olmo_merged$master_exclude != &quot;exclude&quot;, ]
+
+# Check the resulting data
+print(data_gpt_olmo_processed)</code></pre>
+<pre><code>## # A tibble: 309 × 297
+##      psp title_pap      study_pap date_gpt            prompt_version test_retest
+##    &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+##  1    16 A Review of B… NA        2024-06-25 00:00:00 A              Test       
+##  2    17 Accuracy and … Study 2   2024-06-26 00:00:00 A              Test       
+##  3    18 Action Fluenc… Experime… 2024-06-26 00:00:00 A              Test       
+##  4    23 Are tearful i… Study 1   2024-06-26 00:00:00 A              Test       
+##  5    24 Are tearful i… Study 2   2024-06-26 00:00:00 A              Test       
+##  6    27 Better calibr… Experime… 2024-06-26 00:00:00 A              Test       
+##  7    33 Blurring the … Study 4   2024-06-26 00:00:00 A              Test       
+##  8    34 Cascade and n… NA        2024-06-26 00:00:00 A              Test       
+##  9    36 Cell phone-in… Experime… 2024-06-26 00:00:00 A              Test       
+## 10    37 CEOs imbue or… Experime… 2024-06-26 00:00:00 A              Test       
+## # ℹ 299 more rows
+## # ℹ 291 more variables: chat_gpt_version &lt;chr&gt;, time_extraction &lt;dbl&gt;,
+## #   time_comparison &lt;dbl&gt;, pre_pre_mi1_gpt &lt;chr&gt;, pre_mi1_gpt &lt;chr&gt;,
+## #   pre_iv1_gpt &lt;chr&gt;, c_pre_iv1_gpt &lt;chr&gt;, pre_niv1_1_gpt &lt;chr&gt;,
+## #   pre_niv1_2_gpt &lt;chr&gt;, pre_pre_mi2_gpt &lt;chr&gt;, pre_mi2_gpt &lt;chr&gt;,
+## #   pre_iv2_gpt &lt;chr&gt;, c_pre_iv2_gpt &lt;chr&gt;, pre_niv2_1_gpt &lt;chr&gt;,
+## #   pre_niv2_2_gpt &lt;chr&gt;, pre_pre_mt_gpt &lt;chr&gt;, pre_mt_gpt &lt;chr&gt;, …</code></pre>
+</div>
+<div id="sanity-check" class="section level2">
+<h2>sanity check</h2>
+<pre class="r"><code># # Sanity check function for data_processed
+# sanity_check_processed &lt;- function(df, allowed_values = c(&quot;Y&quot;, &quot;N&quot;, &quot;X&quot;, &quot;P&quot;, &quot;Q&quot;, &quot;FY&quot;, &quot;FN&quot;, &quot;FXN&quot;, &quot;FXY&quot;)) {
+#   invalid_entries &lt;- lapply(df, function(column) {
+#     if (is.numeric(column)) {
+#       return(NULL)  # Skip numeric columns for this check
+#     }
+#     # Check if any values are not in the allowed set
+#     invalid &lt;- !column %in% allowed_values
+#     return(which(invalid))  # Return indices of invalid values
+#   })
+#   
+#   # Filter out columns with no invalid entries
+#   invalid_entries &lt;- Filter(Negate(is.null), invalid_entries)
+#   
+#   if (length(invalid_entries) &gt; 0) {
+#     return(invalid_entries)  # Return list of invalid entries per column
+#   } else {
+#     message(&quot;Sanity check passed: All entries are valid.&quot;)
+#     return(NULL)  # No invalid entries found
+#   }
+# }
+# 
+# # Run sanity check on data_processed
+# invalid_entries_processed &lt;- sanity_check_processed(data_processed)
+# 
+# # Check results
+# if (!is.null(invalid_entries_processed)) {
+#   print(&quot;Invalid entries found:&quot;)
+#   print(invalid_entries_processed)
+# }</code></pre>
+</div>
+<div id="number-before-excluisone-for-retest-and-for-prompt-versions" class="section level2">
+<h2>number before excluisone, for retest and for prompt versions…</h2>
+<div id="hier-eventuell-ausserdem-auch-anzahl-einträge-ingesamt-und-pro-psp." class="section level3">
+<h3>hier eventuell ausserdem auch anzahl einträge ingesamt? und pro
+psp….</h3>
+</div>
+<div id="und-auch-noch-für-den-new-dataset" class="section level3">
+<h3>und auch noch für den new dataset</h3>
+<pre class="r"><code># Tabelle erstellen für Testanzahl und Prompt-Versionen
+
+# 1. Gesamtanzahl vor Ausschlüssen
+n_total_before_exclusions &lt;- nrow(data_processed_before_exclusions)
+
+# 2. Anzahl nach Ausschlüssen (nur &quot;include&quot; Zeilen berücksichtigen)
+n_after_exclusions &lt;- nrow(data_processed_before_exclusions[data_processed_before_exclusions$master_exclude == &quot;include&quot;, ])
+
+# 3. Anzahl der Retests (zählen, wie oft &quot;RETEST&quot; in der Spalte test_retest vorkommt)
+anzahl_retest &lt;- sum(data_processed_before_exclusions$test_retest == &quot;RETEST&quot;, na.rm = TRUE)
+
+# 4. Anzahl der Einträge für jede prompt_version (A, B, C, D)
+anzahl_prompt_version_a &lt;- sum(data_processed_before_exclusions$prompt_version == &quot;A&quot;, na.rm = TRUE)
+anzahl_prompt_version_b &lt;- sum(data_processed_before_exclusions$prompt_version == &quot;B&quot;, na.rm = TRUE)
+anzahl_prompt_version_c &lt;- sum(data_processed_before_exclusions$prompt_version == &quot;C&quot;, na.rm = TRUE)
+anzahl_prompt_version_d &lt;- sum(data_processed_before_exclusions$prompt_version == &quot;D&quot;, na.rm = TRUE)
+
+# Erstelle eine Tabelle mit den Ergebnissen
+test_table &lt;- data.frame(
+  n_total_before_exclusions = n_total_before_exclusions,
+  n_after_exclusions = n_after_exclusions,
+  anzahl_retest = anzahl_retest,
+  prompt_version_A = anzahl_prompt_version_a,
+  prompt_version_B = anzahl_prompt_version_b,
+  prompt_version_C = anzahl_prompt_version_c,
+  prompt_version_D = anzahl_prompt_version_d
+)
+
+# Ausgabe der Tabelle
+print(test_table)</code></pre>
+<pre><code>##   n_total_before_exclusions n_after_exclusions anzahl_retest prompt_version_A
+## 1                       330                309            30               30
+##   prompt_version_B prompt_version_C prompt_version_D
+## 1               45               31              203</code></pre>
+</div>
+</div>
+<div id="number-of-trials-for-new" class="section level2">
+<h2>number of trials for new</h2>
+</div>
+<div id="number-of-trials-for-new-1" class="section level2">
+<h2>number of trials for new</h2>
+<p>#File Size ## read data file size</p>
+<pre class="r"><code>data_psp_filesize &lt;- read_csv(&quot;../Data/raw/DATA_psp_filesize.csv&quot;) |&gt;
+  janitor::clean_names()</code></pre>
+<pre><code>## Rows: 567 Columns: 2
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (1): Name
+## dbl (1): Size (KB)
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div id="overview-filesize" class="section level2">
+<h2>overview filesize</h2>
+<pre class="r"><code># Zunächst: Einen Überblick der Dateigrößen-Spalte anzeigen
+summary(data_psp_filesize$size_kb)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    12.1   198.4   317.1   523.1   546.7  4820.9</code></pre>
+<pre class="r"><code># Histogramm der Verteilung der Dateigrößen (in KB)
+ggplot(data_psp_filesize, aes(x = size_kb)) +
+  geom_histogram(binwidth = 100, fill = &quot;lightblue&quot;, color = &quot;black&quot;) +
+  labs(title = &quot;Verteilung der Dateigrößen (in KB)&quot;, x = &quot;Dateigröße (KB)&quot;, y = &quot;Anzahl der Dateien&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="data:image/png;base64,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evKOEDd653T0J1gFR6ASoh2IQDOLEei6L93y5B0hbvTOQaDdARFoBIG6FiNQBXGjdw4C7Q6IQCMdC/Txx7eGwzc+7+jV9lNnhyHQzXYbCokbDASBdge8VIG2/dEbf3CjJ9eBlyDQ798eVnn+t9283H7qDIFaiQj04tAE2vpHb/q5jZ48B7wEgd4evvj5xcOPhi9+08nL7afODkOgssW7/9Kr3rYIVEKcfbnRX0b8Z+xUoA9upXXP799+7uedvN7uz6XdICJQ60uvetsiUAlx9mVvBXp3+NL4v2918nq7P5d2g4hArS+96m2LQCXE2Ze9Fejt4U/Tf78di3Tb7P5c2g0iArW+9Kq3LQKVEGdf9lWgjz8ab7o/uLW4E/QPRdn0wAEhhKyXMictWhWBEkIOMDst0K5OZJrlALaLDqAiHUVIO5AT6SOmNdDtcwDvygOoSEcR0g5EoBEEmkG6ef2vSEcR0g5EoJGdPgpfzwG8Kw+gIh1FSDsQgUY6Pg/0rbn/dpkDeFceQEU6ipB2IAKN7PSVSPUcwLvyACrSUYS0AxFopFOBPv5o+EKX18LXcwDvygOoSEcR0g5EoJFubybysNu7MdVzAO/KA6hIRxHSDkSgkY7vB/rw45E/3+h+/fMg3pUHUJGOIqQdiEAjO31H+noO4F15ABXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0gkAzSDev/xXpKELagQg0sjcCJYSQXQsCJYSQwiBQ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" width="672" />
+## filesize sum</p>
+<pre class="r"><code># Neuen Datensatz erstellen mit der Spalte &#39;psp&#39; (Nummer aus dem Dateinamen)
+data_psp_filesize_sum &lt;- data_psp_filesize %&gt;%
+  # Extrahiere die Nummer aus dem Dateinamen
+  mutate(psp = gsub(&quot;\\D&quot;, &quot;&quot;, name)) %&gt;%
+  group_by(psp) %&gt;%
+  summarise(
+    # Summe der Dateigrößen für das gesamte Paar (Prereg und Publikation)
+    size_kb_sum = sum(size_kb),
+    
+    # Größe der Prereg-Datei extrahieren
+    size_kb_prereg = sum(size_kb[grepl(&quot;Prereg.pdf&quot;, name)]),
+    
+    # Größe der Publikationsdatei (nicht &quot;Prereg.pdf&quot;) extrahieren
+    size_kb_pubstud = sum(size_kb[!grepl(&quot;Prereg.pdf&quot;, name)])
+  )
+
+# Ergebnis anzeigen
+print(data_psp_filesize_sum)</code></pre>
+<pre><code>## # A tibble: 288 × 4
+##    psp   size_kb_sum size_kb_prereg size_kb_pubstud
+##    &lt;chr&gt;       &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;
+##  1 100          558.          319.             239.
+##  2 104          773.          200.             574.
+##  3 105          346.           79.2            267.
+##  4 106          367.          123.             244.
+##  5 114         1187.          145.            1043.
+##  6 115         1181.          125.            1057.
+##  7 116         1182.          126.            1057.
+##  8 117         1180.          124.            1057.
+##  9 118          495.            0              495.
+## 10 119         1889.          308.            1581.
+## # ℹ 278 more rows</code></pre>
+<pre class="r"><code># Histogramm der summierten Dateigrößen (in KB)
+ggplot(data_psp_filesize_sum, aes(x = size_kb_sum)) +
+  geom_histogram(binwidth = 100, fill = &quot;blue&quot;, color = &quot;black&quot;) +
+  labs(title = &quot;Verteilung der summierten Dateigrößen (in KB)&quot;, x = &quot;Summierte Dateigröße (KB)&quot;, y = &quot;Anzahl der Dateien&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+</div>
+<div id="merge-file-size-to-the-processed-tatasets." class="section level2">
+<h2>merge file size to the processed tatasets.</h2>
+<pre class="r"><code># Umwandeln der &#39;psp&#39;-Spalte in data_psp_filesize_sum in numerisch (double), um sie mit den anderen Datensätzen kompatibel zu machen
+data_psp_filesize_sum &lt;- data_psp_filesize_sum %&gt;%
+  mutate(psp = as.numeric(psp))
+
+# Left Join des Datensatzes data_psp_filesize_sum mit comparison_data_processed
+comparison_data_processed &lt;- comparison_data_processed %&gt;%
+  left_join(data_psp_filesize_sum, by = &quot;psp&quot;)
+
+# Left Join des Datensatzes data_psp_filesize_sum mit data_gpt_olmo_processed
+data_gpt_olmo_processed &lt;- data_gpt_olmo_processed %&gt;%
+  left_join(data_psp_filesize_sum, by = &quot;psp&quot;)
+
+# Left Join des Datensatzes data_psp_filesize_sum mit data_gpt_ve_merged
+data_gpt_ve_merged &lt;- data_gpt_ve_merged %&gt;%
+  left_join(data_psp_filesize_sum, by = &quot;psp&quot;)
+
+# Optional: Anzeigen der Ergebnisse (hier ein Beispiel für die Ausgabe)
+head(comparison_data_processed)</code></pre>
+<pre><code>## # A tibble: 6 × 131
+##     psp title_pap       study_pap date_gpt            prompt_version test_retest
+##   &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+## 1    16 A Review of Be… NA        2024-06-25 00:00:00 A              Test       
+## 2    17 Accuracy and c… Study 2   2024-06-26 00:00:00 A              Test       
+## 3    18 Action Fluency… Experime… 2024-06-26 00:00:00 A              Test       
+## 4    23 Are tearful in… Study 1   2024-06-26 00:00:00 A              Test       
+## 5    24 Are tearful in… Study 2   2024-06-26 00:00:00 A              Test       
+## 6    27 Better calibra… Experime… 2024-06-26 00:00:00 A              Test       
+## # ℹ 125 more variables: chat_gpt_version &lt;chr&gt;, time_extraction &lt;dbl&gt;,
+## #   time_comparison &lt;dbl&gt;, master_exclude &lt;chr&gt;, pre_pre_mi1_comp &lt;named list&gt;,
+## #   pre_mi1_comp &lt;named list&gt;, pre_iv1_comp &lt;named list&gt;,
+## #   c_pre_iv1_comp &lt;named list&gt;, pre_niv1_1_comp &lt;named list&gt;,
+## #   pre_niv1_2_comp &lt;named list&gt;, pre_pre_mi2_comp &lt;named list&gt;,
+## #   pre_mi2_comp &lt;named list&gt;, pre_iv2_comp &lt;named list&gt;,
+## #   c_pre_iv2_comp &lt;named list&gt;, pre_niv2_1_comp &lt;named list&gt;, …</code></pre>
+<pre class="r"><code>head(data_gpt_olmo_processed)</code></pre>
+<pre><code>## # A tibble: 6 × 300
+##     psp title_pap       study_pap date_gpt            prompt_version test_retest
+##   &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+## 1    16 A Review of Be… NA        2024-06-25 00:00:00 A              Test       
+## 2    17 Accuracy and c… Study 2   2024-06-26 00:00:00 A              Test       
+## 3    18 Action Fluency… Experime… 2024-06-26 00:00:00 A              Test       
+## 4    23 Are tearful in… Study 1   2024-06-26 00:00:00 A              Test       
+## 5    24 Are tearful in… Study 2   2024-06-26 00:00:00 A              Test       
+## 6    27 Better calibra… Experime… 2024-06-26 00:00:00 A              Test       
+## # ℹ 294 more variables: chat_gpt_version &lt;chr&gt;, time_extraction &lt;dbl&gt;,
+## #   time_comparison &lt;dbl&gt;, pre_pre_mi1_gpt &lt;chr&gt;, pre_mi1_gpt &lt;chr&gt;,
+## #   pre_iv1_gpt &lt;chr&gt;, c_pre_iv1_gpt &lt;chr&gt;, pre_niv1_1_gpt &lt;chr&gt;,
+## #   pre_niv1_2_gpt &lt;chr&gt;, pre_pre_mi2_gpt &lt;chr&gt;, pre_mi2_gpt &lt;chr&gt;,
+## #   pre_iv2_gpt &lt;chr&gt;, c_pre_iv2_gpt &lt;chr&gt;, pre_niv2_1_gpt &lt;chr&gt;,
+## #   pre_niv2_2_gpt &lt;chr&gt;, pre_pre_mt_gpt &lt;chr&gt;, pre_mt_gpt &lt;chr&gt;,
+## #   pre_tv_gpt &lt;chr&gt;, c_pre_tv_gpt &lt;chr&gt;, pre_ntv_1_gpt &lt;chr&gt;, …</code></pre>
+<pre class="r"><code>head(data_gpt_ve_merged)</code></pre>
+<pre><code>## # A tibble: 6 × 29
+##     psp title_pap       study_pap date_gpt            prompt_version test_retest
+##   &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;      
+## 1   411 The power of m… Study 2   2024-09-30 00:00:00 E              Test       
+## 2   412 The Primacy Ef… Experime… 2024-09-30 00:00:00 E              Test       
+## 3   413 The Primacy Ef… Experime… 2024-09-30 00:00:00 E              Test       
+## 4   417 The relative c… NA        2024-09-30 00:00:00 E              Test       
+## 5   418 The role of em… Study 2   2024-09-30 00:00:00 E              Test       
+## 6   419 The Role of Ex… Experime… 2024-09-30 00:00:00 E              Test       
+## # ℹ 23 more variables: deviation_text_new &lt;chr&gt;, master_exclude &lt;chr&gt;,
+## #   match_dv_0_gpt &lt;chr&gt;, match_dv_1_gpt &lt;chr&gt;, match_dv_2_gpt &lt;chr&gt;,
+## #   match_dv_3_gpt &lt;chr&gt;, match_dcp_1_gpt &lt;chr&gt;, match_dcp_2_gpt &lt;chr&gt;,
+## #   match_sm_1_gpt &lt;chr&gt;, match_sm_2_gpt &lt;chr&gt;, match_sm_3_gpt &lt;chr&gt;,
+## #   match_dv_0_olmo &lt;chr&gt;, match_dv_1_olmo &lt;chr&gt;, match_dv_2_olmo &lt;chr&gt;,
+## #   match_dv_3_olmo &lt;chr&gt;, match_dcp_1_olmo &lt;chr&gt;, match_dcp_2_olmo &lt;chr&gt;,
+## #   match_sm_1_olmo &lt;chr&gt;, match_sm_2_olmo &lt;chr&gt;, match_sm_3_olmo &lt;chr&gt;, …</code></pre>
 </div>
 <div id="section-2" class="section level2">
 <h2></h2>
@@ -1478,6 +2522,75 @@ droppen</p>
 <div id="section-3" class="section level2">
 <h2></h2>
 </div>
+<div id="section-4" class="section level2">
+<h2></h2>
+</div>
+</div>
+<div id="write-to-disk" class="section level1">
+<h1>Write to disk</h1>
+<pre class="r"><code># save data to disk in that dir
+
+
+write.xlsx(comparison_data_processed, &quot;../Data/processed/comparison_data_processed.xlsx&quot;)
+
+
+
+write.xlsx(data_gpt_olmo_processed, &quot;../Data/processed/data_gpt_olmo_processed.xlsx&quot;)
+
+
+write.xlsx(data_gpt_ve_merged, &quot;../Data/processed/data_gpt_ve_processed.xlsx&quot;)</code></pre>
+</div>
+<div id="create-codebook-template-for-the-processed-data" class="section level1">
+<h1>Create codebook template for the processed data</h1>
+<pre class="r"><code>if(!file.exists(&quot;../data/processed/data_processed_codebook.xlsx&quot;)){
+  # convert the column names to a df
+  codebook_template &lt;- data.frame(variable = colnames(comparison_data_processed)) |&gt;
+    mutate(explanation = NA)
+  # write to disk as an excel file
+  write.xlsx(codebook_template, file = &quot;../Data/processed/comparison_data_processed_codebook.xlsx&quot;)
+}</code></pre>
+</div>
+<div id="session-info" class="section level1">
+<h1>Session info</h1>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 4.3.1 (2023-06-16 ucrt)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 10 x64 (build 19045)
+## 
+## Matrix products: default
+## 
+## 
+## locale:
+## [1] LC_COLLATE=German_Switzerland.utf8  LC_CTYPE=German_Switzerland.utf8   
+## [3] LC_MONETARY=German_Switzerland.utf8 LC_NUMERIC=C                       
+## [5] LC_TIME=German_Switzerland.utf8    
+## 
+## time zone: Europe/Zurich
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] openxlsx_4.2.7.1 janitor_2.2.0    readxl_1.4.3     lubridate_1.9.3 
+##  [5] forcats_1.0.0    stringr_1.5.1    dplyr_1.1.4      purrr_1.0.2     
+##  [9] readr_2.1.5      tidyr_1.3.1      tibble_3.2.1     ggplot2_3.5.1   
+## [13] tidyverse_2.0.0 
+## 
+## loaded via a namespace (and not attached):
+##  [1] sass_0.4.9        utf8_1.2.4        generics_0.1.3    stringi_1.8.4    
+##  [5] hms_1.1.3         digest_0.6.34     magrittr_2.0.3    evaluate_1.0.0   
+##  [9] grid_4.3.1        timechange_0.3.0  fastmap_1.2.0     cellranger_1.1.0 
+## [13] jsonlite_1.8.9    zip_2.3.1         fansi_1.0.6       scales_1.3.0     
+## [17] jquerylib_0.1.4   cli_3.6.1         crayon_1.5.3      rlang_1.1.3      
+## [21] bit64_4.5.2       munsell_0.5.1     withr_3.0.1       cachem_1.1.0     
+## [25] yaml_2.3.10       parallel_4.3.1    tools_4.3.1       tzdb_0.4.0       
+## [29] colorspace_2.1-1  vctrs_0.6.5       R6_2.5.1          lifecycle_1.0.4  
+## [33] snakecase_0.11.1  bit_4.5.0         vroom_1.6.5       pkgconfig_2.0.3  
+## [37] pillar_1.9.0      bslib_0.8.0       gtable_0.3.5      glue_1.7.0       
+## [41] Rcpp_1.0.13       highr_0.11        xfun_0.47         tidyselect_1.2.1 
+## [45] rstudioapi_0.16.0 knitr_1.48        farver_2.1.2      htmltools_0.5.8.1
+## [49] labeling_0.4.3    rmarkdown_2.28    compiler_4.3.1</code></pre>
 </div>
 
 

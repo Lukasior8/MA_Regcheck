@@ -1,6 +1,6 @@
 ---
 title: "Processing MA Results"
-author: "Luki"
+author: "Lukas"
 date: "2024-09-06"
 output: html_document
 ---
@@ -21,6 +21,68 @@ resultate
 - safe to disc
 - version control
 
+#Disclaimer
+
+
+The following R code was developed with the assistance of AI tools. Specifically, the ChatGPT-4o model was employed to optimise the code, provide solutions, and implement adjustments. The code segments were iteratively refined and reviewed to ensure they performed the intended functions. Additionally, key results were recalculated using  tools like Jamovi to verify their accuracy.
+
+The use of ChatGPT offered significant advantages, particularly in terms of speed and adaptability in generating code. It served as a valuable resource by translating human language into programming language. However, several challenges arose during this process. Firstly, ChatGPT occasionally generated incorrect or non-functional code. Secondly, its solutions often involved more complex or less efficient code variants, which sometimes introduced additional variables or unnecessary nesting. This approach frequently disregarded programming best practices, thereby reducing the clarity and transparency of the code.
+
+It should be noted, however, that similar issues—such as reduced code quality and comprehensibility—can also arise when using examples from online forums. As such, the ultimate responsibility for the correctness, completeness, and application of the code rests solely with the author.
+
+
+
+
+
+
+## Prompt examples
+
+________________________________________
+Example 1: Variable Cleaning and Type Conversion
+Task:
+Clean the following variables by formatting their column names as if they were processed with the janitor package (all lowercase). Write the code to convert all these variables into numeric types. If a cell does not contain a numeric value, set it to "exclude."
+
+Variables:
+PreDCP_1_TEXT, PapDCP_1_TEXT, S_PRE_IV, S_Pre_DV, S_Pre_DCP, S_Pre_SMU, S_Pre_SIC, S_Pap_IV, S_Pap_DV, S_Pap_DCP, S_Pap_SMU, S_Pap_SIC, Prompt version a Strictness PREREG, Prompt version aStrictness Pubstud, Con_IV, Con_DV, Con_DCP, Con_SMU, Con_SIC, Global_Consistency_Esimate.
+________________________________________
+Example 2: Creating a New Dataset and Renaming Values
+Task:
+Create a new dataset data_results_finito based on the dataset data_results_filtered_clean_exclude_numeric.
+
+In the column prompt_version, rename the values "v4" and "V4" to "D."
+Add a new column master_exclude. Set its value to "include" for all rows, except for rows where the column date_gpt has an NA. In these cases, set the value to "exclude."
+________________________________________
+Example 3: Renaming and Cleaning Columns
+Task:
+Clean the following column names by converting them to lowercase as if they were processed with the janitor package:
+PSP, Coder, PrePreMI1, PreMI1, PreIV1, CPreIV1, PreNIV1_1, PreNIV1_2, PreNIV1_3, PrePreMI2, PreMI2, PreIV2, CPreIV2, PreNIV2_1, PreNIV2_2, PreNIV2_3.
+
+Apply these changes to the dataset data_olmo_raw_selected.
+________________________________________
+Example 4: Overview of Column Types
+Task:
+Is there a command in R that provides an overview of which variables in a dataset are stored as character and which are stored as numeric? Write the code to accomplish this task.
+________________________________________
+Example 5: Conditional Transformation of NA Values
+Task:
+Mutate the dataset data_olmo_raw_selected_mutated to replace missing values (NA) in the variables pre_pre_mi1, pre_mi1, pre_iv1, c_pre_iv1, pre_niv1_1, pre_niv1_2, pre_niv1_3 under the following conditions:
+
+If pre_niv1_3 = "No, none of the elements", set the NA values in pre_niv1_1 and pre_niv1_2 to "n."
+If either pre_niv1_1 or pre_niv1_2 contains the value "y," set the NA values in the other variable to "n."
+Otherwise, replace all remaining NA values with "x."
+________________________________________
+Example 6: Refined Exception Handling
+Task:
+If only one of the two columns pre_niv1_1 or pre_niv1_2 contains the value "y," replace the missing values (NA) in the other column with "n." Ensure that no other conditions are overwritten by this logic.
+________________________________________
+Example 7: Step-by-Step Code Explanation
+Task:
+Explain the following code line by line. Describe what each line does and why it is necessary:...
+
+
+
+
+
 
 
 # Dependencies
@@ -36,7 +98,7 @@ library(openxlsx)
 
 ```
 
-# clean GPT data_gpt and new gpt data
+# Clean GPT testdata 
 
 ## Read GPT data
 
@@ -265,7 +327,7 @@ head(data_gpt_ve)
 
 
 ```
-# clean olmos data
+# Clean olmos data
 
 ## read olmos data
 
@@ -1250,6 +1312,8 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 kurze erklärungen: 
 - data_gpt_finito hat 330 Einträge, dh 30 mehr als olmo, was auf die 30 retest zurückzuführen ist
 - auch wenn die beiden Datensätze eine sehr ähnliche Anzahl von Columns haben (149 und 148) ist die zusammensetzung anders. die gpt categories(118) sind bei beiden enthalten, aber sie haben beide jeweils zusätzliche Kategorien...
+
+
 ```{r}
 
 data_olmo_finito <- data_olmo_selected_mutated 
@@ -1265,9 +1329,7 @@ data_gpt_finito$psp
 
 # Data olmo & gpt mergen
 
-## 
 
-## 
 
 ```{r}
 
@@ -1378,16 +1440,6 @@ colnames(data_alphabetic_comparison)
 ```
 
 
-## numeric comparison
-
-PEanalysis of olmos dataset contains different strictness categories than gpt, 
-
-```{r}
-
-
-
-```
-
 
 ## comparison merge 
 
@@ -1487,8 +1539,7 @@ print(data_gpt_olmo_processed)
 
 
 ## number before excluisone, for retest and for prompt versions...
-### hier eventuell ausserdem auch anzahl einträge ingesamt? und pro psp....
-### und auch noch für den new dataset
+
 
 ```{r}
 # Tabelle erstellen für Testanzahl und Prompt-Versionen
@@ -1521,23 +1572,6 @@ test_table <- data.frame(
 
 # Ausgabe der Tabelle
 print(test_table)
-
-
-
-```
-
-## number of trials for new
-
-```{r}
-
-
-
-```
-
-
-## number of trials for new
-
-```{r}
 
 
 
@@ -1634,37 +1668,6 @@ head(data_gpt_ve_merged)
 
 
 
-## 
-
-```{r}
-
-
-
-```
-
-
-
-
-## 
-
-```{r}
-
-
-
-```
-
-
-
-
-## 
-
-```{r}
-
-
-
-```
-
-
 
 # Write to disk
 
@@ -1687,21 +1690,6 @@ write.xlsx(data_gpt_ve_merged, "../Data/processed/data_gpt_ve_processed.xlsx")
 
 ```
 
-
-# Create codebook template for the processed data
-
-
-```{r}
-
-if(!file.exists("../data/processed/data_processed_codebook.xlsx")){
-  # convert the column names to a df
-  codebook_template <- data.frame(variable = colnames(comparison_data_processed)) |>
-    mutate(explanation = NA)
-  # write to disk as an excel file
-  write.xlsx(codebook_template, file = "../Data/processed/comparison_data_processed_codebook.xlsx")
-}
-
-```
 
 
 # Session info
