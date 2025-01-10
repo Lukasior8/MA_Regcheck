@@ -1,0 +1,18 @@
+1. Data
+This folder contains all relevant data:
+
+Raw: Raw data before processing.
+Excel File Raw and Original: Includes links to all chats with GPT and the transferred responses.
+New for Adjusted Prompt: Contains adjusted prompts and their corresponding outputs.
+Data Preregistration Effectiveness: Data from the reference dataset by van den Akker et al. (2024).
+Data PSP Filesize: Includes information on PSP file sizes.
+
+
+2. Analysis
+This folder contains all codes for data processing and analysis.
+
+3. OSF-Archive
+Includes the archived files from the OSF repository of van den Akker et al. (2024).
+
+4. Prompts
+This folder contains all prompts used for analysis and data processing.

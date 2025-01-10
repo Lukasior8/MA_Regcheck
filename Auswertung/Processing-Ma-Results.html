@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Luki" />
+<meta name="author" content="Lukas" />
 
 <meta name="date" content="2024-09-06" />
 
@@ -351,23 +351,81 @@ display: none;
 
 
 <h1 class="title toc-ignore">Processing MA Results</h1>
-<h4 class="author">Luki</h4>
+<h4 class="author">Lukas</h4>
 <h4 class="date">2024-09-06</h4>
 
 </div>
 
 
-<div id="datacleaning-to-dos" class="section level1">
-<h1>Datacleaning to dos:</h1>
-<p>resultate - wenn preregvorhanden oder paper vorhandene keine Zahl
-(sondern leer oder not available) dann die ganze zeile löschen - sanity
-kontrollieren dass überall nur x,y, n,m, leer oder zahl ist. - Prompt
-versionen renamen - PreDCP_1_TEXT komische Zahlen verändern</p>
-<ul>
-<li>wieder mergen</li>
-<li>safe to disc</li>
-<li>version control</li>
-</ul>
+<p>#Disclaimer</p>
+<p>The following R code was developed with the assistance of AI tools.
+Specifically, the ChatGPT-4o model was employed to optimise the code,
+provide solutions, and implement adjustments. The code segments were
+iteratively refined and reviewed to ensure they performed the intended
+functions. Additionally, key results were recalculated using tools like
+Jamovi to verify their accuracy.</p>
+<p>The use of ChatGPT offered significant advantages, particularly in
+terms of speed and adaptability in generating code. It served as a
+valuable resource by translating human language into programming
+language. However, several challenges arose during this process.
+Firstly, ChatGPT occasionally generated incorrect or non-functional
+code. Secondly, its solutions often involved more complex or less
+efficient code variants, which sometimes introduced additional variables
+or unnecessary nesting. This approach frequently disregarded programming
+best practices, thereby reducing the clarity and transparency of the
+code.</p>
+<p>It should be noted, however, that similar issues—such as reduced code
+quality and comprehensibility—can also arise when using examples from
+online forums. As such, the ultimate responsibility for the correctness,
+completeness, and application of the code rests solely with the
+author.</p>
+<div id="prompt-examples" class="section level2">
+<h2>Prompt examples</h2>
+<hr />
+<p>Example 1: Variable Cleaning and Type Conversion Task: Clean the
+following variables by formatting their column names as if they were
+processed with the janitor package (all lowercase). Write the code to
+convert all these variables into numeric types. If a cell does not
+contain a numeric value, set it to “exclude.”</p>
+<p>Variables: PreDCP_1_TEXT, PapDCP_1_TEXT, S_PRE_IV, S_Pre_DV,
+S_Pre_DCP, S_Pre_SMU, S_Pre_SIC, S_Pap_IV, S_Pap_DV, S_Pap_DCP,
+S_Pap_SMU, S_Pap_SIC, Prompt version a Strictness PREREG, Prompt version
+aStrictness Pubstud, Con_IV, Con_DV, Con_DCP, Con_SMU, Con_SIC,
+Global_Consistency_Esimate. ________________________________________
+Example 2: Creating a New Dataset and Renaming Values Task: Create a new
+dataset data_results_finito based on the dataset
+data_results_filtered_clean_exclude_numeric.</p>
+<p>In the column prompt_version, rename the values “v4” and “V4” to “D.”
+Add a new column master_exclude. Set its value to “include” for all
+rows, except for rows where the column date_gpt has an NA. In these
+cases, set the value to “exclude.”
+________________________________________ Example 3: Renaming and
+Cleaning Columns Task: Clean the following column names by converting
+them to lowercase as if they were processed with the janitor package:
+PSP, Coder, PrePreMI1, PreMI1, PreIV1, CPreIV1, PreNIV1_1, PreNIV1_2,
+PreNIV1_3, PrePreMI2, PreMI2, PreIV2, CPreIV2, PreNIV2_1, PreNIV2_2,
+PreNIV2_3.</p>
+<p>Apply these changes to the dataset data_olmo_raw_selected.
+________________________________________ Example 4: Overview of Column
+Types Task: Is there a command in R that provides an overview of which
+variables in a dataset are stored as character and which are stored as
+numeric? Write the code to accomplish this task.
+________________________________________ Example 5: Conditional
+Transformation of NA Values Task: Mutate the dataset
+data_olmo_raw_selected_mutated to replace missing values (NA) in the
+variables pre_pre_mi1, pre_mi1, pre_iv1, c_pre_iv1, pre_niv1_1,
+pre_niv1_2, pre_niv1_3 under the following conditions:</p>
+<p>If pre_niv1_3 = “No, none of the elements”, set the NA values in
+pre_niv1_1 and pre_niv1_2 to “n.” If either pre_niv1_1 or pre_niv1_2
+contains the value “y,” set the NA values in the other variable to “n.”
+Otherwise, replace all remaining NA values with “x.”
+________________________________________ Example 6: Refined Exception
+Handling Task: If only one of the two columns pre_niv1_1 or pre_niv1_2
+contains the value “y,” replace the missing values (NA) in the other
+column with “n.” Ensure that no other conditions are overwritten by this
+logic. ________________________________________ Example 7: Step-by-Step
+Code Explanation Task: Explain the following code line by line. Describe
+what each line does and why it is necessary:…</p>
 </div>
 <div id="dependencies" class="section level1">
 <h1>Dependencies</h1>
@@ -402,8 +460,8 @@ versionen renamen - PreDCP_1_TEXT komische Zahlen verändern</p>
 library(openxlsx)</code></pre>
 <pre><code>## Warning: Paket &#39;openxlsx&#39; wurde unter R Version 4.3.3 erstellt</code></pre>
 </div>
-<div id="clean-gpt-data_gpt-and-new-gpt-data" class="section level1">
-<h1>clean GPT data_gpt and new gpt data</h1>
+<div id="clean-gpt-testdata" class="section level1">
+<h1>Clean GPT testdata</h1>
 <div id="read-gpt-data" class="section level2">
 <h2>Read GPT data</h2>
 <pre class="r"><code>data_gpt_raw &lt;- read_excel(&quot;../Data/raw/DATA_Resultate_raw.xlsx&quot;) |&gt;
@@ -694,7 +752,7 @@ head(data_gpt_ve)</code></pre>
 </div>
 </div>
 <div id="clean-olmos-data" class="section level1">
-<h1>clean olmos data</h1>
+<h1>Clean olmos data</h1>
 <div id="read-olmos-data" class="section level2">
 <h2>read olmos data</h2>
 <pre class="r"><code>DATA_olmo_raw &lt;- read_excel(&quot;../data/raw/Data Preregistration Effectiveness.xlsx&quot;) |&gt;
@@ -1023,9 +1081,6 @@ n</li>
 </div>
 <div id="paiecimd" class="section level3">
 <h3>PA/IEC/IMD</h3>
-<p>achtung pre_iec (pre_iec_1) hatte eine andere Beschriftung im
-variabel-lexikon von olmo, und nur yes, deshalb eventuell später
-droppen</p>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     pre_imd_1 = case_when(
@@ -1512,8 +1567,9 @@ droppen</p>
     match_cv_3 = ifelse(is.na(match_cv_3), &quot;x&quot;, match_cv_3)
     # match_cv_4 = ifelse(is.na(match_cv_4), &quot;x&quot;, match_cv_4)
 )</code></pre>
-<p>#achtung bei iec repesktive iec 1 bedeutet eine leer gelassene zeile
-eventuell n ?!!! ### dcp/iec</p>
+</div>
+<div id="dcpiec" class="section level3">
+<h3>dcp/iec</h3>
 <pre class="r"><code>data_olmo_selected_mutated &lt;- data_olmo_selected_mutated %&gt;% mutate(
 
     match_dcp_1 = case_when(
@@ -1686,11 +1742,6 @@ data_gpt_finito</code></pre>
 </div>
 <div id="data-olmo-gpt-mergen" class="section level1">
 <h1>Data olmo &amp; gpt mergen</h1>
-<div id="section" class="section level2">
-<h2></h2>
-</div>
-<div id="section-1" class="section level2">
-<h2></h2>
 <pre class="r"><code>#gpt
 data_gpt_olmo_merged &lt;- left_join(data_gpt_finito, data_olmo_finito, by = &quot;psp&quot;, suffix = c(&quot;_gpt&quot;, &quot;_olmo&quot;))
 
@@ -1709,7 +1760,7 @@ data_gpt_ve_merged &lt;- left_join(data_gpt_ve, data_olmo_new_filtered, by = &qu
 data_gpt_ve_merged &lt;- data_gpt_ve_merged %&gt;%
   mutate(master_exclude = if_else(rowSums(across(ends_with(&quot;_olmo&quot;), ~ . == &quot;x&quot;)) &gt; 0, &quot;exclude&quot;, &quot;include&quot;))
 
-# Optional: Überprüfung der ersten Zeilen des neuen Datensatzes
+# Überprüfung der ersten Zeilen des neuen Datensatzes
 head(data_gpt_ve_merged)</code></pre>
 <pre><code>## # A tibble: 6 × 26
 ##     psp title_pap       study_pap date_gpt            prompt_version test_retest
@@ -1727,7 +1778,6 @@ head(data_gpt_ve_merged)</code></pre>
 ## #   match_dv_0_olmo &lt;chr&gt;, match_dv_1_olmo &lt;chr&gt;, match_dv_2_olmo &lt;chr&gt;,
 ## #   match_dv_3_olmo &lt;chr&gt;, match_dcp_1_olmo &lt;chr&gt;, match_dcp_2_olmo &lt;chr&gt;,
 ## #   match_sm_1_olmo &lt;chr&gt;, match_sm_2_olmo &lt;chr&gt;, match_sm_3_olmo &lt;chr&gt;</code></pre>
-</div>
 </div>
 <div id="compare-datasets" class="section level1">
 <h1>compare datasets</h1>
@@ -2036,11 +2086,6 @@ head(data_alphabetic_comparison)</code></pre>
 ## [115] &quot;match_sm_2_comp&quot;  &quot;match_sm_3_comp&quot;  &quot;match_vsa_1_comp&quot;
 ## [118] &quot;match_vsa_2_comp&quot; &quot;match_vsa_3_comp&quot; &quot;match_ic_comp&quot;</code></pre>
 </div>
-<div id="numeric-comparison" class="section level2">
-<h2>numeric comparison</h2>
-<p>PEanalysis of olmos dataset contains different strictness categories
-than gpt,</p>
-</div>
 <div id="comparison-merge" class="section level2">
 <h2>comparison merge</h2>
 <pre class="r"><code>colnames(data_gpt_finito)</code></pre>
@@ -2332,14 +2377,9 @@ print(data_gpt_olmo_processed)</code></pre>
 #   print(invalid_entries_processed)
 # }</code></pre>
 </div>
-<div id="number-before-excluisone-for-retest-and-for-prompt-versions" class="section level2">
-<h2>number before excluisone, for retest and for prompt versions…</h2>
-<div id="hier-eventuell-ausserdem-auch-anzahl-einträge-ingesamt-und-pro-psp." class="section level3">
-<h3>hier eventuell ausserdem auch anzahl einträge ingesamt? und pro
-psp….</h3>
 </div>
-<div id="und-auch-noch-für-den-new-dataset" class="section level3">
-<h3>und auch noch für den new dataset</h3>
+<div id="number-of-psp" class="section level1">
+<h1>Number of PSP</h1>
 <pre class="r"><code># Tabelle erstellen für Testanzahl und Prompt-Versionen
 
 # 1. Gesamtanzahl vor Ausschlüssen
@@ -2374,13 +2414,6 @@ print(test_table)</code></pre>
 ## 1                       330                309            30               30
 ##   prompt_version_B prompt_version_C prompt_version_D
 ## 1               45               31              203</code></pre>
-</div>
-</div>
-<div id="number-of-trials-for-new" class="section level2">
-<h2>number of trials for new</h2>
-</div>
-<div id="number-of-trials-for-new-1" class="section level2">
-<h2>number of trials for new</h2>
 <p>#File Size ## read data file size</p>
 <pre class="r"><code>data_psp_filesize &lt;- read_csv(&quot;../Data/raw/DATA_psp_filesize.csv&quot;) |&gt;
   janitor::clean_names()</code></pre>
@@ -2392,10 +2425,9 @@ print(test_table)</code></pre>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
 <div id="overview-filesize" class="section level2">
 <h2>overview filesize</h2>
-<pre class="r"><code># Zunächst: Einen Überblick der Dateigrößen-Spalte anzeigen
+<pre class="r"><code># Einen Überblick der Dateigrößen-Spalte anzeigen
 summary(data_psp_filesize$size_kb)</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##    12.1   198.4   317.1   523.1   546.7  4820.9</code></pre>
@@ -2516,15 +2548,6 @@ head(comparison_data_processed)</code></pre>
 ## #   match_dv_3_olmo &lt;chr&gt;, match_dcp_1_olmo &lt;chr&gt;, match_dcp_2_olmo &lt;chr&gt;,
 ## #   match_sm_1_olmo &lt;chr&gt;, match_sm_2_olmo &lt;chr&gt;, match_sm_3_olmo &lt;chr&gt;, …</code></pre>
 </div>
-<div id="section-2" class="section level2">
-<h2></h2>
-</div>
-<div id="section-3" class="section level2">
-<h2></h2>
-</div>
-<div id="section-4" class="section level2">
-<h2></h2>
-</div>
 </div>
 <div id="write-to-disk" class="section level1">
 <h1>Write to disk</h1>
@@ -2539,16 +2562,6 @@ write.xlsx(data_gpt_olmo_processed, &quot;../Data/processed/data_gpt_olmo_proces
 
 
 write.xlsx(data_gpt_ve_merged, &quot;../Data/processed/data_gpt_ve_processed.xlsx&quot;)</code></pre>
-</div>
-<div id="create-codebook-template-for-the-processed-data" class="section level1">
-<h1>Create codebook template for the processed data</h1>
-<pre class="r"><code>if(!file.exists(&quot;../data/processed/data_processed_codebook.xlsx&quot;)){
-  # convert the column names to a df
-  codebook_template &lt;- data.frame(variable = colnames(comparison_data_processed)) |&gt;
-    mutate(explanation = NA)
-  # write to disk as an excel file
-  write.xlsx(codebook_template, file = &quot;../Data/processed/comparison_data_processed_codebook.xlsx&quot;)
-}</code></pre>
 </div>
 <div id="session-info" class="section level1">
 <h1>Session info</h1>

@@ -9,17 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Datacleaning to dos:
 
-resultate
-- wenn preregvorhanden oder paper vorhandene keine Zahl (sondern leer oder  not available) dann die ganze zeile löschen
-- sanity kontrollieren dass überall nur x,y, n,m, leer oder zahl ist.
-- Prompt versionen renamen
-- PreDCP_1_TEXT komische Zahlen verändern
-
-- wieder mergen
-- safe to disc
-- version control
 
 #Disclaimer
 
@@ -633,7 +623,6 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ### PA/IEC/IMD
 
-achtung pre_iec (pre_iec_1) hatte eine andere Beschriftung im variabel-lexikon von olmo, und nur yes, deshalb eventuell später droppen
 
 ```{r}
 data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
@@ -1193,7 +1182,7 @@ data_olmo_selected_mutated <- data_olmo_selected_mutated %>% mutate(
 
 ```
 
-#achtung bei iec repesktive iec 1 bedeutet eine leer gelassene zeile eventuell n ?!!!
+
 ### dcp/iec
 
 ```{r}
@@ -1351,7 +1340,7 @@ data_gpt_ve_merged <- left_join(data_gpt_ve, data_olmo_new_filtered, by = "psp",
 data_gpt_ve_merged <- data_gpt_ve_merged %>%
   mutate(master_exclude = if_else(rowSums(across(ends_with("_olmo"), ~ . == "x")) > 0, "exclude", "include"))
 
-# Optional: Überprüfung der ersten Zeilen des neuen Datensatzes
+# Überprüfung der ersten Zeilen des neuen Datensatzes
 head(data_gpt_ve_merged)
 
   
@@ -1538,7 +1527,7 @@ print(data_gpt_olmo_processed)
 ```
 
 
-## number before excluisone, for retest and for prompt versions...
+# Number of PSP 
 
 
 ```{r}
@@ -1595,7 +1584,7 @@ data_psp_filesize <- read_csv("../Data/raw/DATA_psp_filesize.csv") |>
 
 
 
-# Zunächst: Einen Überblick der Dateigrößen-Spalte anzeigen
+# Einen Überblick der Dateigrößen-Spalte anzeigen
 summary(data_psp_filesize$size_kb)
 
 # Histogramm der Verteilung der Dateigrößen (in KB)

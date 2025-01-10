@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Luki" />
+<meta name="author" content="Lukas" />
 
 <meta name="date" content="2024-09-19" />
 
@@ -638,35 +638,63 @@ display: none;
 
 
 <h1 class="title toc-ignore">Analysis MA results</h1>
-<h4 class="author">Luki</h4>
+<h4 class="author">Lukas</h4>
 <h4 class="date">2024-09-19</h4>
 
 </div>
 
 
-<div id="todo" class="section level2">
-<h2>#todo:</h2>
-<ul>
-<li><p>herausfinden welche Werte man angeben MUSS (pwert, xwert , %
-etc..)</p></li>
-<li><p>kappa auf Basis von diesem ausrechnen für übereinstimmung gpt
-&amp; olmo</p></li>
-<li><p>Assumption checks herausfinden welche und ausrechnen
--&gt;&gt;&gt;&lt; also zb ob es problematisch ist dass teilweise fast
-nur y oder fast nur n oder so ist…..</p></li>
-</ul>
-<p>-&gt; why df isch p wert so gross! hmm vilech wäge nidrige - weitere
-analyse….</p>
-<ul>
-<li><p>Analysis File beschönigen.</p></li>
-<li><p>das ziel ist ja: Synthetic peer review: Using large language
-models to automatically detect deviations from preregistrations</p></li>
-</ul>
-<p>dh. insbesondere die “n” sind interessant um eine Aussage darüber zu
-machen wie viel % davon entdeckt werden und viel viel fals positive
-etc….und es wäre auch noch nice zu wissen welche Kategorien man brauchen
-kann und welche nicht…</p>
-<p>extraction vs compare prompt..</p>
+<p>#Disclaimer</p>
+<p>The following R code was developed with the assistance of AI tools.
+Specifically, the ChatGPT-4o model was employed to optimise the code,
+provide solutions, and implement adjustments. The code segments were
+iteratively refined and reviewed to ensure they performed the intended
+functions. Additionally, key results were recalculated using tools like
+Jamovi to verify their accuracy.</p>
+<p>The use of ChatGPT offered significant advantages, particularly in
+terms of speed and adaptability in generating code. It served as a
+valuable resource by translating human language into programming
+language. However, several challenges arose during this process.
+Firstly, ChatGPT occasionally generated incorrect or non-functional
+code. Secondly, its solutions often involved more complex or less
+efficient code variants, which sometimes introduced additional variables
+or unnecessary nesting. This approach frequently disregarded programming
+best practices, thereby reducing the clarity and transparency of the
+code.It should be noted, however, that similar issues—such as reduced
+code quality and comprehensibility—can also arise when using examples
+from online forums. As such, the ultimate responsibility for the
+correctness, completeness, and application of the code rests solely with
+the author.</p>
+<div id="prompt-examples" class="section level2">
+<h2>Prompt examples</h2>
+<p>Example 1: Create a Dataset with Prototypical Responses Task: Help me
+write R code to create a new dataset, data_prototype, based on
+data_gpt_olmo_processed. The new dataset should have: 1. A column
+containing the variable names from data_gpt_olmo_processed. 2. A column
+containing the most frequent (prototypical) response for each column in
+data_gpt_olmo_processed. 3. A column showing the percentage of rows
+containing this most frequent response.
+________________________________________ Example 2: Merge Prototype with
+Retest Data Task: Create a new dataset, data_retest_prototype, by
+merging retest_merged_data with data_prototype. • Match the Column
+column from retest_merged_data with the Variable column in
+data_prototype. • The issue: In retest_merged_data, variable names end
+with <em>comp, whereas in data_prototype, they end with <em>gpt.
+Variables ending with <em>olmo in data_prototype can be ignored.
+</em></em></em>_____________________________________ Example 3: Include
+Confidence Interval and Round Results Task: Add a confidence interval to
+the code and round all results to two decimal places. Ensure the final
+dataset reflects these adjustments.
+________________________________________ Example 4: Calculate Kappa per
+Item Task: Help me adjust the R code to calculate Cohen’s Kappa for each
+individual column in data_gpt_olmo_processed that ends with <em>gpt or
+<em>olmo. • Create a new dataset named kappa_per_item_v3. • Include
+additional measures (e.g., p-value) for each column in the new dataset.
+• Rename all variable and function names to include the suffix
+<em>per_item_v3 to avoid confusion.
+</em></em></em>_____________________________________ Example 5:
+Step-by-Step Code Explanation Task: Explain the following code line by
+line. Describe what each line does and why it is necessary:…</p>
 </div>
 <div id="dependencies" class="section level1">
 <h1>Dependencies</h1>
@@ -780,7 +808,6 @@ data_gpt_ve_filtered &lt;- data_gpt_ve_processed %&gt;%
 <h1>Category COUNTS</h1>
 <div id="category-counts-total" class="section level2">
 <h2>category counts total</h2>
-<p>hier noch die absoluten zahlen ohne.oo hinschreiben…</p>
 <pre class="r"><code># Step 1: Select the columns that end with &quot;_comp&quot;
 comp_columns &lt;- comparison_data_processed %&gt;%
   select(ends_with(&quot;_comp&quot;))
@@ -839,8 +866,6 @@ cat(&quot;Number of items (categories):&quot;, num_columns, &quot;\n&quot;)</cod
 <pre><code>## Number of psps (rows): 309</code></pre>
 <div id="x3-confusionsmatrix-absolut" class="section level3">
 <h3>3x3 confusionsmatrix absolut</h3>
-<p>hier müsste ich evventuell noch zusätzlich die Anzahl vvon Olmo… als
-Vergleich.</p>
 <pre class="r"><code># Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
 actual_Y &lt;- data_category_counts_total$Identical_YES[1]  # Zähle die Y-Zuordnungen
 actual_N &lt;- data_category_counts_total$Identical_NO[1]   # Zähle die N-Zuordnungen
@@ -877,12 +902,6 @@ print(confusion_matrix)</code></pre>
 ## Actual_Y        7177        5224        7256
 ## Actual_N         382        1106        2172
 ## Actual_X         938         534       11673</code></pre>
-<p>bei den category counts total sieht man welche kategorie insgesamt
-viel verwendet wurde…. Aber halt nicht so aussagekräftig, da n kommt
-auch bei olmo seltener vor…ncith so aussagekräfitg… man müsste
-prozentual zu allen berechnungen( also dass y,n,x gleich häufig
-vorkommen) aber man sieht schon, dass nur ca 50 &amp; richtig predictet…
-halt sehr schlecht…</p>
 </div>
 <div id="confusion-matrix-absolut-inkl.-summen" class="section level3">
 <h3>confusion matrix absolut inkl. summen!</h3>
@@ -1006,9 +1025,8 @@ Sum
 </table>
 </div>
 </div>
-</div>
-<div id="confusionmatrix-in-percent" class="section level1">
-<h1>confusionmatrix in percent</h1>
+<div id="confusionmatrix-in-percent" class="section level2">
+<h2>confusionmatrix in percent</h2>
 <pre class="r"><code># Extrahiere nur die relevanten Werte für Y, N, X (jeweils für tatsächliche und vorhergesagte Werte)
 actual_Y_in_percent &lt;- data_category_counts_total$Identical_YES[2]  # Prozentsatz der Y-Zuordnungen
 actual_N_in_percent &lt;- data_category_counts_total$Identical_NO[2]   # Prozentsatz der N-Zuordnungen
@@ -1156,6 +1174,7 @@ Sum
 </tr>
 </tbody>
 </table>
+</div>
 <div id="category-counts-per-item" class="section level2">
 <h2>category counts per item</h2>
 <pre class="r"><code># Step 1: Select the columns that end with &quot;_comp&quot;
@@ -1354,8 +1373,8 @@ print(overall_results)</code></pre>
 ## 8         accuracy2 0.5473095
 ## 9 balanced_accuracy 0.5184386</code></pre>
 </div>
-<div id="hier-nur-noch-negative-predictive-value-für-jede-klasse" class="section level2">
-<h2>hier nur noch negative predictive value für jede Klasse</h2>
+<div id="negative-predictive-value-für-jede-klasse" class="section level2">
+<h2>negative predictive value für jede Klasse</h2>
 <pre class="r"><code>print(confusion_matrix)</code></pre>
 <pre><code>##          Predicted_Y Predicted_N Predicted_X
 ## Actual_Y        7177        5224        7256
@@ -1363,7 +1382,7 @@ print(overall_results)</code></pre>
 ## Actual_X         938         534       11673</code></pre>
 <pre class="r"><code>n_total &lt;- sum(confusion_matrix)
 
-# Funktion zur Berechnung des Wilson-Konfidenzintervalls
+#Berechnung des Wilson-Konfidenzintervalls
 wilson_ci &lt;- function(successes, total, conf_level = 0.95) {
   z &lt;- qnorm(1 - (1 - conf_level) / 2)
   phat &lt;- successes / total
@@ -1441,8 +1460,6 @@ print(results_with_ci)</code></pre>
 </div>
 <div id="kappa-retest" class="section level1">
 <h1>Kappa RETEST</h1>
-<p>Here i work with the dataset comparison_data_processed does it maybe
-make a difference because i have way more categories?!(y,n fxy etc)?</p>
 <div id="test-retest-korrelation-cohens-kappa-per-category-v1" class="section level2">
 <h2>test, retest korrelation Cohens Kappa per category v1</h2>
 <pre class="r"><code># Step 1: Filter the dataset into test and retest subsets
@@ -2560,7 +2577,7 @@ retest_kappa_all</code></pre>
 ## weighted kappa    0.61     0.64  0.67
 ## 
 ##  Number of subjects = 3540</code></pre>
-<p>weighted macht heir absolut keinen sinn…</p>
+<p>weighted macht hier keinen sinn…</p>
 <p>##test, retest korrelation gesamt kappa…v2 mit p wert etc..</p>
 <pre class="r"><code># Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen&#39;s Kappa
 calculate_kappa_confidence_interval &lt;- function(kappa_value, se_kappa) {
@@ -2610,11 +2627,9 @@ retest_kappa_all_summary &lt;- data.frame(
 print(retest_kappa_all_summary)</code></pre>
 <pre><code>##       Kappa Agreement_Percentage  z_value      p_value  CI_Lower  CI_Upper    n
 ## 1 0.8345588                   90 130.1641 1.213182e-09 0.8219921 0.8471255 3540</code></pre>
-<p>naja z wert und p wert muss ich noch anschauen…</p>
 </div>
-</div>
-<div id="test-retest-nur-extraction-nurcomparison" class="section level1">
-<h1>test retest nur extraction nurcomparison…</h1>
+<div id="test-retest-nur-extraction-nurcomparison" class="section level2">
+<h2>test retest nur extraction nurcomparison…</h2>
 <pre class="r"><code># Step 1: Filter the dataset into test and retest subsets
 test_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;Test&quot;)
 retest_data &lt;- comparison_data_processed %&gt;% filter(test_retest == &quot;RETEST&quot;)
@@ -2651,6 +2666,7 @@ print(retest_kappa_extraction_comparison)</code></pre>
 <pre><code>##            Category     Kappa
 ## 1 retest_extraction 0.7091343
 ## 2 retest_comparison 0.7963016</code></pre>
+</div>
 <div id="test-retest-überblick-kappas" class="section level2">
 <h2>test-retest Überblick kappas</h2>
 <pre class="r"><code># Schritt 1: Rundung der Kappa-Werte auf 2 Nachkommastellen
@@ -3662,13 +3678,6 @@ NA
 </tbody>
 </table>
 <p>#Kappa INTERRATER gpt zu olmo</p>
-<ul>
-<li></li>
-<li>sollte ich im gesamten script die selbe mehto wählen?</li>
-<li>wie ist die differenz zu interpretieren?</li>
-<li>kann man es überhaupt ausrechnen für die text variablen? also etwa
-die einzigen guten kapps?–&gt; nein das muss ich noch anschauen…</li>
-</ul>
 </div>
 <div id="kappa-interrater-gpt-zu-olmo-per-itemcategory" class="section level2">
 <h2>Kappa interrater gpt zu olmo per ITEM/category</h2>
@@ -4378,7 +4387,6 @@ qqline(kappa_results$Kappa, col = &quot;blue&quot;, lwd = 2)</code></pre>
 <h1></h1>
 <div id="average-interater-kappa-over-items" class="section level2">
 <h2>Average Interater kappa over ITEMS…</h2>
-<p>hmm ich dachte dies sollte gleich hoch sein wie kappa total?</p>
 <pre class="r"><code># Überprüfen, ob die Spalte &quot;Kappa&quot; im Datensatz kappa_results existiert
 if(&quot;Kappa&quot; %in% colnames(kappa_results)) {
   # Berechne den Durchschnitt der Spalte Kappa und runde auf 2 Nachkommastellen
@@ -4401,9 +4409,8 @@ if(&quot;Kappa&quot; %in% colnames(kappa_results)) {
 ## Standardabweichung des Kappa-Werts über alle Kategorien: 0.09 
 ## Bereich des Kappa-Werts über alle Kategorien: -0.04 - 0.45</code></pre>
 </div>
-</div>
-<div id="average-percent-agreement-over-items" class="section level1">
-<h1>average percent agreement over items</h1>
+<div id="average-percent-agreement-over-items" class="section level2">
+<h2>Average percent agreement over items</h2>
 <pre class="r"><code># Überprüfen, ob die Spalte &quot;Percent_Agreement&quot; im Datensatz kappa_results existiert
 if(&quot;Percent_Agreement&quot; %in% colnames(kappa_results)) {
   # Berechne den Durchschnitt der Spalte Percent_Agreement und runde auf 2 Nachkommastellen
@@ -4425,6 +4432,7 @@ if(&quot;Percent_Agreement&quot; %in% colnames(kappa_results)) {
 <pre><code>## Durchschnittlicher Percent_Agreement-Wert über alle Kategorien: 54.73 
 ## Standardabweichung des Percent_Agreement-Werts über alle Kategorien: 22.31 
 ## Bereich des Percent_Agreement-Werts über alle Kategorien: 12.94 - 97.73</code></pre>
+</div>
 <div id="kappa-interrater-gpt-zu-olmo-per-category-4.-ansatz-inkl-sensitivityspecifity-precision-per-item" class="section level2">
 <h2>Kappa interrater gpt zu olmo per category 4. ansatz inkl
 sensitivity,specifity precision per item</h2>
@@ -4750,11 +4758,9 @@ print(kappa_results_per_item_v4)</code></pre>
 ## 117   0.000000000     0.9153094  0.99293286
 ## 118   0.000000000     0.9696970  0.96000000</code></pre>
 <pre class="r"><code>write.xlsx(kappa_results_per_item_v4, &quot;../Data/processed/kappa_results_per_item_v4.xlsx&quot;)</code></pre>
-<p>#gwets ac1</p>
-</div>
-</div>
-<div id="gwets-ac1-per-item" class="section level1">
-<h1>GWET’s AC1 per item</h1>
+<p>##gwets ac1</p>
+<div id="gwets-ac1-per-item" class="section level3">
+<h3>GWET’s AC1 per item</h3>
 <pre class="r"><code># Spalten mit _gpt und _olmo suffix finden
 gpt_columns_per_item_v4 &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns_per_item_v4 &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns_per_item_v4)
@@ -5194,8 +5200,8 @@ print(ac1_results_per_item_v4)</code></pre>
 ## 117   0.000000000     0.9153094  0.99293286
 ## 118   0.000000000     0.9696970  0.96000000</code></pre>
 </div>
-<div id="gwet-über-alle-kategorien.." class="section level1">
-<h1>gwet über alle kategorien..</h1>
+<div id="gwet-über-alle-kategorien.." class="section level3">
+<h3>gwet über alle kategorien..</h3>
 <pre class="r"><code># Spalten mit _gpt und _olmo suffix finden
 gpt_columns &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns)
@@ -5247,15 +5253,13 @@ print(ac1_overall)</code></pre>
 ## $categories
 ## [1] 0</code></pre>
 </div>
+</div>
+</div>
 <div id="section-1" class="section level1">
 <h1></h1>
-</div>
-<div id="section-2" class="section level1">
-<h1></h1>
-</div>
-<div id="gpt-olmo-interrater-nur-comparisonnur-extraction-prompt-gesamtdatenset" class="section level1">
-<h1>gpt /olmo interrater nur comparison/nur extraction prompt
-(gesamtdatenset)</h1>
+<div id="gpt-olmo-interrater-nur-comparisonnur-extraction-prompt-gesamtdatenset" class="section level2">
+<h2>gpt /olmo interrater nur comparison/nur extraction prompt
+(gesamtdatenset)</h2>
 <pre class="r"><code># Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen&#39;s Kappa
 calculate_kappa_confidence_interval &lt;- function(kappa_value, se_kappa) {
   if (!is.na(se_kappa)) {
@@ -5379,6 +5383,7 @@ cat(&quot;Cohen&#39;s Kappa für Extraction (gesamt_kappa_extraction):\n&quot;)<
 <pre><code>## Prozentuale Übereinstimmung: 58.64797 %</code></pre>
 <pre class="r"><code>cat(&quot;Anzahl der Vergleiche (n):&quot;, n_comp, &quot;\n&quot;)</code></pre>
 <pre><code>## Anzahl der Vergleiche (n): 11124</code></pre>
+</div>
 <div id="kappa-interrater-gpt-zu-olmo-gesamt" class="section level2">
 <h2>Kappa interrater gpt zu olmo gesamt</h2>
 <pre class="r"><code># Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen&#39;s Kappa
@@ -5459,7 +5464,6 @@ cat(&quot;Cohen&#39;s Kappa für den gesamten Test:\n&quot;)</code></pre>
 </div>
 <div id="interrater-kappa-per-prompt-version" class="section level2">
 <h2>interrater kappa per prompt version</h2>
-<p>hier noch n reinnehmen</p>
 <pre class="r"><code># Funktion zur Berechnung des 95%-Konfidenzintervalls für Cohen&#39;s Kappa
 calculate_kappa_confidence_interval &lt;- function(kappa_value, se_kappa) {
   if (!is.na(se_kappa)) {
@@ -5575,10 +5579,8 @@ for (version_PromptV in versions_PromptV) {
 ## z-Wert: 105.1388 
 ## Prozentuale Übereinstimmung: 57.11462 %
 ## Anzahl der Vergleiche (n): 24288</code></pre>
-</div>
-</div>
-<div id="siginifikanztest-unterscheid-promptversion-a-zu-d" class="section level1">
-<h1>siginifikanztest unterscheid promptversion a zu d</h1>
+<div id="siginifikanztest-unterscheid-promptversion-a-zu-d" class="section level3">
+<h3>siginifikanztest unterscheid promptversion a zu d</h3>
 <pre class="r"><code># Funktion zur Berechnung des Fisher-Z-Werts für den Unterschied zwischen zwei Kappa-Werten
 calculate_z_difference &lt;- function(kappa1, se_kappa1, kappa2, se_kappa2) {
   if (!is.na(se_kappa1) &amp; !is.na(se_kappa2)) {
@@ -5639,7 +5641,7 @@ cat(&quot;\nUnterschied zwischen Cohen&#39;s Kappa für Version A und D:\n&quot;
 <pre><code>## Z-Wert: -5.811836</code></pre>
 <pre class="r"><code>cat(&quot;p-Wert:&quot;, z_diff_results[2], &quot;\n&quot;)</code></pre>
 <pre><code>## p-Wert: 6.179123e-09</code></pre>
-<p>##signifikanztest unterschied extraction comparison steigers z</p>
+<p>###signifikanztest unterschied extraction comparison steigers z</p>
 <pre class="r"><code># Berechne den Unterschied zwischen den Kappa-Werten für Extraction und Comparison
 z_diff_results &lt;- calculate_z_difference(kappa_result_extract$value, se_kappa_extract,
                                          kappa_result_comp$value, se_kappa_comp)
@@ -5651,6 +5653,8 @@ cat(&quot;\nUnterschied zwischen Kappa für Extraction und Comparison:\n&quot;)<
 <pre><code>## Z-Wert: 4.257885</code></pre>
 <pre class="r"><code>cat(&quot;p-Wert:&quot;, z_diff_results[2], &quot;\n&quot;)</code></pre>
 <pre><code>## p-Wert: 2.063702e-05</code></pre>
+</div>
+</div>
 <div id="kappa-interrater-gpt-olmo-zusammengefügt" class="section level2">
 <h2>kappa interrater gpt olmo zusammengefügt</h2>
 <pre class="r"><code># Erstelle den DataFrame mit den Kappa-Ergebnissen, Zahlen auf 2 Nachkommastellen gerundet
@@ -5687,13 +5691,13 @@ ft &lt;- autofit(ft) # Automatisch die Spaltenbreiten anpassen
 
 # Zeige die Tabelle an
 ft</code></pre>
-<div class="tabwid"><style>.cl-64d8aa50{}.cl-64c6ae0e{font-family:'Arial';font-size:12pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-64c6ae40{font-family:'Arial';font-size:12pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-64cc72b2{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-64ccb650{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb65a{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb65b{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb664{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb66e{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb66f{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb678{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb679{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb682{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb683{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb684{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb68c{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb696{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb697{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6a0{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6a1{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6aa{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6b4{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6b5{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6be{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6bf{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6c8{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6d2{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6d3{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6dc{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6dd{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6de{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6e6{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6e7{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-64ccb6f0{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-64d8aa50"><thead><tr style="overflow-wrap:break-word;"><th class="cl-64ccb650"><p class="cl-64cc72b2"><span class="cl-64c6ae0e">Test</span></p></th><th class="cl-64ccb65a"><p class="cl-64cc72b2"><span class="cl-64c6ae0e">Kappa</span></p></th><th class="cl-64ccb65b"><p class="cl-64cc72b2"><span class="cl-64c6ae0e">95% CI Lower</span></p></th><th class="cl-64ccb664"><p class="cl-64cc72b2"><span class="cl-64c6ae0e">95% CI Upper</span></p></th><th class="cl-64ccb66e"><p class="cl-64cc72b2"><span class="cl-64c6ae0e">Percent Agreement (%)</span></p></th><th class="cl-64ccb66f"><p class="cl-64cc72b2"><span class="cl-64c6ae0e">N</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-64ccb678"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Gesamter Test</span></p></td><td class="cl-64ccb679"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.31</span></p></td><td class="cl-64ccb682"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.31</span></p></td><td class="cl-64ccb683"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.32</span></p></td><td class="cl-64ccb684"><p class="cl-64cc72b2"><span class="cl-64c6ae40">54.92</span></p></td><td class="cl-64ccb68c"><p class="cl-64cc72b2"><span class="cl-64c6ae40">36,955</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-64ccb696"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Extraction</span></p></td><td class="cl-64ccb697"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.31</span></p></td><td class="cl-64ccb6a0"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.31</span></p></td><td class="cl-64ccb6a1"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.32</span></p></td><td class="cl-64ccb6aa"><p class="cl-64cc72b2"><span class="cl-64c6ae40">53.31</span></p></td><td class="cl-64ccb6b4"><p class="cl-64cc72b2"><span class="cl-64c6ae40">25,831</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-64ccb6b5"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Comparison</span></p></td><td class="cl-64ccb6be"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.28</span></p></td><td class="cl-64ccb6bf"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.26</span></p></td><td class="cl-64ccb6c8"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.29</span></p></td><td class="cl-64ccb6d2"><p class="cl-64cc72b2"><span class="cl-64c6ae40">58.65</span></p></td><td class="cl-64ccb6d3"><p class="cl-64cc72b2"><span class="cl-64c6ae40">11,124</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-64ccb696"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Version A</span></p></td><td class="cl-64ccb697"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.28</span></p></td><td class="cl-64ccb6a0"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.27</span></p></td><td class="cl-64ccb6a1"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.30</span></p></td><td class="cl-64ccb6aa"><p class="cl-64cc72b2"><span class="cl-64c6ae40">51.50</span></p></td><td class="cl-64ccb6b4"><p class="cl-64cc72b2"><span class="cl-64c6ae40">3,590</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-64ccb696"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Version B</span></p></td><td class="cl-64ccb697"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.29</span></p></td><td class="cl-64ccb6a0"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.28</span></p></td><td class="cl-64ccb6a1"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.30</span></p></td><td class="cl-64ccb6aa"><p class="cl-64cc72b2"><span class="cl-64c6ae40">51.84</span></p></td><td class="cl-64ccb6b4"><p class="cl-64cc72b2"><span class="cl-64c6ae40">5,374</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-64ccb696"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Version C</span></p></td><td class="cl-64ccb697"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.24</span></p></td><td class="cl-64ccb6a0"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.23</span></p></td><td class="cl-64ccb6a1"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.26</span></p></td><td class="cl-64ccb6aa"><p class="cl-64cc72b2"><span class="cl-64c6ae40">48.29</span></p></td><td class="cl-64ccb6b4"><p class="cl-64cc72b2"><span class="cl-64c6ae40">3,703</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-64ccb6dc"><p class="cl-64cc72b2"><span class="cl-64c6ae40">Version D</span></p></td><td class="cl-64ccb6dd"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.33</span></p></td><td class="cl-64ccb6de"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.33</span></p></td><td class="cl-64ccb6e6"><p class="cl-64cc72b2"><span class="cl-64c6ae40">0.34</span></p></td><td class="cl-64ccb6e7"><p class="cl-64cc72b2"><span class="cl-64c6ae40">57.11</span></p></td><td class="cl-64ccb6f0"><p class="cl-64cc72b2"><span class="cl-64c6ae40">24,288</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-935042e8{}.cl-9332e86a{font-family:'Arial';font-size:12pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-9332e8ba{font-family:'Arial';font-size:12pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-933edb8e{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-933f425e{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f427c{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4286{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4290{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4291{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f429a{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42a4{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42a5{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42ae{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42af{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42c2{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42c3{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42cc{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42e0{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42ea{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42f4{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42f5{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f42fe{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4312{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f431c{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f431d{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4326{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4330{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f433a{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4344{width:1.387in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4345{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f434e{width:1.369in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4362{width:1.36in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4363{width:2.119in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-933f4376{width:0.795in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-935042e8"><thead><tr style="overflow-wrap:break-word;"><th class="cl-933f425e"><p class="cl-933edb8e"><span class="cl-9332e86a">Test</span></p></th><th class="cl-933f427c"><p class="cl-933edb8e"><span class="cl-9332e86a">Kappa</span></p></th><th class="cl-933f4286"><p class="cl-933edb8e"><span class="cl-9332e86a">95% CI Lower</span></p></th><th class="cl-933f4290"><p class="cl-933edb8e"><span class="cl-9332e86a">95% CI Upper</span></p></th><th class="cl-933f4291"><p class="cl-933edb8e"><span class="cl-9332e86a">Percent Agreement (%)</span></p></th><th class="cl-933f429a"><p class="cl-933edb8e"><span class="cl-9332e86a">N</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-933f42a4"><p class="cl-933edb8e"><span class="cl-9332e8ba">Gesamter Test</span></p></td><td class="cl-933f42a5"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.31</span></p></td><td class="cl-933f42ae"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.31</span></p></td><td class="cl-933f42af"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.32</span></p></td><td class="cl-933f42c2"><p class="cl-933edb8e"><span class="cl-9332e8ba">54.92</span></p></td><td class="cl-933f42c3"><p class="cl-933edb8e"><span class="cl-9332e8ba">36,955</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-933f42cc"><p class="cl-933edb8e"><span class="cl-9332e8ba">Extraction</span></p></td><td class="cl-933f42e0"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.31</span></p></td><td class="cl-933f42ea"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.31</span></p></td><td class="cl-933f42f4"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.32</span></p></td><td class="cl-933f42f5"><p class="cl-933edb8e"><span class="cl-9332e8ba">53.31</span></p></td><td class="cl-933f42fe"><p class="cl-933edb8e"><span class="cl-9332e8ba">25,831</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-933f4312"><p class="cl-933edb8e"><span class="cl-9332e8ba">Comparison</span></p></td><td class="cl-933f431c"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.28</span></p></td><td class="cl-933f431d"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.26</span></p></td><td class="cl-933f4326"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.29</span></p></td><td class="cl-933f4330"><p class="cl-933edb8e"><span class="cl-9332e8ba">58.65</span></p></td><td class="cl-933f433a"><p class="cl-933edb8e"><span class="cl-9332e8ba">11,124</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-933f42cc"><p class="cl-933edb8e"><span class="cl-9332e8ba">Version A</span></p></td><td class="cl-933f42e0"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.28</span></p></td><td class="cl-933f42ea"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.27</span></p></td><td class="cl-933f42f4"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.30</span></p></td><td class="cl-933f42f5"><p class="cl-933edb8e"><span class="cl-9332e8ba">51.50</span></p></td><td class="cl-933f42fe"><p class="cl-933edb8e"><span class="cl-9332e8ba">3,590</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-933f42cc"><p class="cl-933edb8e"><span class="cl-9332e8ba">Version B</span></p></td><td class="cl-933f42e0"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.29</span></p></td><td class="cl-933f42ea"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.28</span></p></td><td class="cl-933f42f4"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.30</span></p></td><td class="cl-933f42f5"><p class="cl-933edb8e"><span class="cl-9332e8ba">51.84</span></p></td><td class="cl-933f42fe"><p class="cl-933edb8e"><span class="cl-9332e8ba">5,374</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-933f42cc"><p class="cl-933edb8e"><span class="cl-9332e8ba">Version C</span></p></td><td class="cl-933f42e0"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.24</span></p></td><td class="cl-933f42ea"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.23</span></p></td><td class="cl-933f42f4"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.26</span></p></td><td class="cl-933f42f5"><p class="cl-933edb8e"><span class="cl-9332e8ba">48.29</span></p></td><td class="cl-933f42fe"><p class="cl-933edb8e"><span class="cl-9332e8ba">3,703</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-933f4344"><p class="cl-933edb8e"><span class="cl-9332e8ba">Version D</span></p></td><td class="cl-933f4345"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.33</span></p></td><td class="cl-933f434e"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.33</span></p></td><td class="cl-933f4362"><p class="cl-933edb8e"><span class="cl-9332e8ba">0.34</span></p></td><td class="cl-933f4363"><p class="cl-933edb8e"><span class="cl-9332e8ba">57.11</span></p></td><td class="cl-933f4376"><p class="cl-933edb8e"><span class="cl-9332e8ba">24,288</span></p></td></tr></tbody></table></div>
 </div>
 </div>
-<div id="kappa-nur-y-n" class="section level1">
-<h1>Kappa NUR Y &amp; N</h1>
-<div id="kappa-y_n-all-categories" class="section level2">
-<h2>kappa y_n all categories</h2>
+<div id="interrater-kappa-nur-y-n" class="section level1">
+<h1>interrater Kappa NUR Y &amp; N</h1>
+<div id="interrater-kappa-y_n-all-categories" class="section level2">
+<h2>interrater kappa y_n all categories</h2>
 <pre class="r"><code># Function to calculate Cohen&#39;s Kappa, p-value, z-value, percentage agreement, and number of comparisons using &#39;irr&#39; package
 calculate_kappa_irr_filtered_debug &lt;- function(data, column_gpt, column_olmo) {
   # Ensure both columns exist
@@ -6479,23 +6483,10 @@ print(kappa_gesamt_yn)</code></pre>
 ##    CI_Upper
 ## 1 0.1066748</code></pre>
 <p>i thought it would be better, but its actually worse…</p>
-<p>hmm ich ersuhe jetz noch einen kürzeren promt mit ausgewählten
-fragen… dann muss ich nur diese ausgewählte fragen noch testen beim
-ursprünglichen datensatz und dann kann ich diesn vergleichen mit dem
-neuen gekürzeten…</p>
-<p>und eventuell noch die sensitivity etc. nur für y/n zählen
-lassen!!!</p>
-<p>ausserdem sollte ich wohl noch die ratings auch auswerten(alos die
-nummern obwohldiese ziemlich scheisse isind</p>
-<p>und noch schauen ob es einen unterschied macht ob experiment oder
-nicht….)</p>
-</div>
-<div id="ich-könnte-noch-kappa-pro-psp-machen.-dh.." class="section level2">
-<h2>ich könnte noch kappa pro psp machen…. dh..</h2>
 </div>
 </div>
-<div id="new" class="section level1">
-<h1>NEW</h1>
+<div id="new-minimal-version-ve" class="section level1">
+<h1>NEW / MINIMAL VERSION (VE)</h1>
 <div id="interrater-kappa-new-per-category" class="section level2">
 <h2>interrater kappa new per category</h2>
 <pre class="r"><code># Definiere die zu vergleichenden Variablenpaare
@@ -6635,7 +6626,6 @@ print(results_ve)</code></pre>
 ## 7           29          42
 ## 8           45          43
 ## 9           12          36</code></pre>
-<p>p sind nicht signifikant?!</p>
 </div>
 <div id="interrater-kappa-ve-total" class="section level2">
 <h2>Interrater kappa ve total</h2>
@@ -6788,7 +6778,7 @@ print(&quot;Detailed Confusion Matrix Metrics (ve):&quot;)</code></pre>
 <!-- n, y = 155: Olmo hat n (Nein) angegeben, aber GPT hat y (Ja) vorhergesagt (False Positive). -->
 <!-- y, n = 41: Olmo hat y (Ja) angegeben, aber GPT hat n (Nein) vorhergesagt (False Negative). -->
 <!-- y, y = 199: Olmo und GPT stimmen beide überein und haben y (Ja) vorhergesagt. -->
-<p>#confusion matrix mit unterschiedlicher Reiehnfolge und
+<p>##confusion matrix mit unterschiedlicher Reiehnfolge und
 unterschiedlichem positive Class….</p>
 <pre class="r"><code># Ändere die Reihenfolge der Levels
 combined_data_ve_total$Olmo_Rating_ve_total &lt;- factor(combined_data_ve_total$Olmo_Rating_ve_total, levels = c(&quot;y&quot;, &quot;n&quot;))
@@ -6839,9 +6829,8 @@ print(&quot;Confusion Matrix (ve):&quot;)</code></pre>
 ##        &#39;Positive&#39; Class : y              
 ## </code></pre>
 </div>
-</div>
-<div id="confusion-matrix-ve-new-v2" class="section level1">
-<h1>confusion matrix VE new v2</h1>
+<div id="confusion-matrix-ve-new-v2" class="section level2">
+<h2>confusion matrix VE new v2</h2>
 <pre class="r"><code># Definiere die zu vergleichenden Variablenpaare mit &#39;ve_new&#39;
 variables_to_compare_ve_new &lt;- c(&quot;match_dv_0&quot;, &quot;match_dv_1&quot;, &quot;match_dv_2&quot;, &quot;match_dv_3&quot;,
                                  &quot;match_dcp_1&quot;, &quot;match_dcp_2&quot;, &quot;match_sm_1&quot;, &quot;match_sm_2&quot;, &quot;match_sm_3&quot;)
@@ -6965,6 +6954,7 @@ Sum_ve_new
 </tr>
 </tbody>
 </table>
+</div>
 <div id="new-test-retest-kappa" class="section level2">
 <h2>new test retest kappa</h2>
 <pre class="r"><code># Step 1: Filter the dataset into test and retest subsets
@@ -7058,7 +7048,7 @@ print(retest_kappa_all_ve)</code></pre>
 ## weighted kappa    0.66     0.74  0.82
 ## 
 ##  Number of subjects = 140</code></pre>
-<p>weighted macht heir absolut keinen sinn…</p>
+<p>weighted macht hier keinen sinn…</p>
 </div>
 </div>
 <div id="sample-size" class="section level1">
@@ -7344,10 +7334,8 @@ compute_kappa_for_tertile_pubstud(combined_data_extract_pubstud, &quot;small&quo
 ## p-Wert: 0 
 ## z-Wert: 32.54 
 ## Prozentuale Übereinstimmung: 52.38 %</code></pre>
-</div>
-</div>
-<div id="tabelle-zusammengeführt" class="section level1">
-<h1>tabelle zusammengeführt</h1>
+<div id="tabelle-zusammengeführt" class="section level3">
+<h3>tabelle zusammengeführt</h3>
 <pre class="r"><code># Erstelle die Daten für die Tabelle im gewünschten Format (K = ... [95% CI])
 terzile &lt;- c(&quot;small&quot;, &quot;medium&quot;, &quot;large&quot;)
 match_kappa &lt;- c(&quot;K = 0.30 [0.27, 0.33]&quot;, &quot;K = 0.25 [0.22, 0.28]&quot;, &quot;K = 0.28 [0.25, 0.31]&quot;)
@@ -7377,12 +7365,17 @@ ft &lt;- theme_booktabs(ft) %&gt;%
 
 # Zeige die Tabelle direkt in der R-Konsole
 ft</code></pre>
-<div class="tabwid"><style>.cl-67402052{}.cl-67317d36{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-6736ddbc{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-67370a6c{width:0.829in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-67370a76{width:1.665in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-67370a80{width:0.829in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-67370a81{width:1.665in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-67370a8a{width:0.829in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-67370a94{width:1.665in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-67402052"><thead><tr style="overflow-wrap:break-word;"><th class="cl-67370a6c"><p class="cl-6736ddbc"><span class="cl-67317d36">Terzile</span></p></th><th class="cl-67370a76"><p class="cl-6736ddbc"><span class="cl-67317d36">Match</span></p></th><th class="cl-67370a76"><p class="cl-6736ddbc"><span class="cl-67317d36">Extract Prereg</span></p></th><th class="cl-67370a76"><p class="cl-6736ddbc"><span class="cl-67317d36">Extract Pubstud</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-67370a80"><p class="cl-6736ddbc"><span class="cl-67317d36">small</span></p></td><td class="cl-67370a81"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.30 [0.27, 0.33]</span></p></td><td class="cl-67370a81"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.31 [0.28, 0.34]</span></p></td><td class="cl-67370a81"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.32 [0.29, 0.35]</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-67370a80"><p class="cl-6736ddbc"><span class="cl-67317d36">medium</span></p></td><td class="cl-67370a81"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.25 [0.22, 0.28]</span></p></td><td class="cl-67370a81"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.36 [0.33, 0.39]</span></p></td><td class="cl-67370a81"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.30 [0.27, 0.32]</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-67370a8a"><p class="cl-6736ddbc"><span class="cl-67317d36">large</span></p></td><td class="cl-67370a94"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.28 [0.25, 0.31]</span></p></td><td class="cl-67370a94"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.29 [0.26, 0.32]</span></p></td><td class="cl-67370a94"><p class="cl-6736ddbc"><span class="cl-67317d36">K = 0.30 [0.27, 0.33]</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-97cda57c{}.cl-97afefe6{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-97bb0f52{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-97bb9224{width:0.829in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-97bb9242{width:1.665in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-97bb924c{width:0.829in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-97bb9256{width:1.665in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-97bb9260{width:0.829in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-97bb926a{width:1.665in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-97cda57c"><thead><tr style="overflow-wrap:break-word;"><th class="cl-97bb9224"><p class="cl-97bb0f52"><span class="cl-97afefe6">Terzile</span></p></th><th class="cl-97bb9242"><p class="cl-97bb0f52"><span class="cl-97afefe6">Match</span></p></th><th class="cl-97bb9242"><p class="cl-97bb0f52"><span class="cl-97afefe6">Extract Prereg</span></p></th><th class="cl-97bb9242"><p class="cl-97bb0f52"><span class="cl-97afefe6">Extract Pubstud</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-97bb924c"><p class="cl-97bb0f52"><span class="cl-97afefe6">small</span></p></td><td class="cl-97bb9256"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.30 [0.27, 0.33]</span></p></td><td class="cl-97bb9256"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.31 [0.28, 0.34]</span></p></td><td class="cl-97bb9256"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.32 [0.29, 0.35]</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-97bb924c"><p class="cl-97bb0f52"><span class="cl-97afefe6">medium</span></p></td><td class="cl-97bb9256"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.25 [0.22, 0.28]</span></p></td><td class="cl-97bb9256"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.36 [0.33, 0.39]</span></p></td><td class="cl-97bb9256"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.30 [0.27, 0.32]</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-97bb9260"><p class="cl-97bb0f52"><span class="cl-97afefe6">large</span></p></td><td class="cl-97bb926a"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.28 [0.25, 0.31]</span></p></td><td class="cl-97bb926a"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.29 [0.26, 0.32]</span></p></td><td class="cl-97bb926a"><p class="cl-97bb0f52"><span class="cl-97afefe6">K = 0.30 [0.27, 0.33]</span></p></td></tr></tbody></table></div>
 </div>
-<div id="section-3" class="section level1">
+</div>
+</div>
+<div id="section-2" class="section level1">
 <h1></h1>
-<p>#PER PSP</p>
-<p>##kappa per psp</p>
+</div>
+<div id="per-psp" class="section level1">
+<h1>PER PSP</h1>
+<div id="interrater-kappa-per-psp" class="section level2">
+<h2>Interrater kappa per psp</h2>
 <pre class="r"><code># Spalten mit _gpt und _olmo suffix finden
 gpt_columns_peritem &lt;- grep(&quot;_gpt$&quot;, colnames(data_gpt_olmo_processed), value = TRUE)
 olmo_columns_peritem &lt;- gsub(&quot;_gpt$&quot;, &quot;_olmo&quot;, gpt_columns_peritem)
@@ -7708,6 +7701,7 @@ cat(&quot;Kappa pro Zeile (psp):\n&quot;)</code></pre>
 ## 277 482  0.408799267          64.16667
 ## 278 483  0.045825487          36.66667
 ## 279 484  0.165574927          42.50000</code></pre>
+</div>
 <div id="average-over-psp" class="section level2">
 <h2>average over psp</h2>
 <pre class="r"><code>if(&quot;kappa_value&quot; %in% colnames(results_peritem)) {
@@ -8366,8 +8360,8 @@ str(analyse_per_psp)</code></pre>
 ##   [list output truncated]</code></pre>
 </div>
 </div>
-<div id="kappa-per-expeiment-type" class="section level1">
-<h1>kappa per expeiment type</h1>
+<div id="interrater-kappa-per-experiment-type" class="section level1">
+<h1>interrater kappa per EXPERIMENT TYPE</h1>
 <pre class="r"><code># Funktion zur Berechnung des Konfidenzintervalls für Kappa
 calculate_kappa_confidence_interval &lt;- function(kappa_value, n, alpha = 0.05) {
   # Standardfehler von Kappa
@@ -8508,9 +8502,8 @@ print(results_table)</code></pre>
 ## 3         20684
 ## 4          2155
 ## 5           478</code></pre>
-</div>
-<div id="significant-per-intterater-experimenthypothese-type" class="section level1">
-<h1>significant per intterater experiment/hypothese type</h1>
+<div id="differenztest-steigers-z-per-intterater-experiment-type" class="section level2">
+<h2>differenztest steigers z per intterater experiment type</h2>
 <pre class="r"><code># Funktion zur Berechnung des Z-Tests für den Unterschied zwischen zwei Kappa-Werten
 calculate_z_difference &lt;- function(kappa1, se_kappa1, kappa2, se_kappa2) {
   if (!is.na(se_kappa1) &amp; !is.na(se_kappa2)) {
@@ -8564,6 +8557,8 @@ cat(&quot;Unterschied zwischen Kappa für&quot;, type1, &quot;und&quot;, type2, 
 <pre><code>## Z-Wert: 8.762148</code></pre>
 <pre class="r"><code>cat(&quot;p-Wert:&quot;, z_diff_results[2], &quot;\n&quot;)</code></pre>
 <pre><code>## p-Wert: 0</code></pre>
+<p>#protoypische /häufigste Antwort</p>
+</div>
 <div id="protoype-olmo" class="section level2">
 <h2>protoype olmo</h2>
 <pre class="r"><code># Erstellen des neuen Datensatzes `data_prototype`
@@ -8609,9 +8604,8 @@ head(data_prototype)</code></pre>
 ## 14  pre_niv1_1_gpt         x             58.57605
 ## 15  pre_niv1_2_gpt         x             58.57605</code></pre>
 </div>
-</div>
-<div id="mergen-von-data_protoype-und-retest_kappa-summaryv2" class="section level1">
-<h1>mergen von data_protoype und retest_kappa summaryv2</h1>
+<div id="mergen-von-data_protoype-und-retest_kappa-summaryv2" class="section level2">
+<h2>mergen von data_protoype und retest_kappa summaryv2</h2>
 <pre class="r"><code># Anzeigen der einzigartigen Werte von &#39;Column&#39; in retest_kappa_summary_v2
 unique(retest_kappa_summary_v2$Column)</code></pre>
 <pre><code>##   [1] &quot;pre_pre_mi1_comp&quot; &quot;pre_mi1_comp&quot;     &quot;pre_iv1_comp&quot;    
@@ -8878,8 +8872,8 @@ head(data_retest_prototype)</code></pre>
 ## 5  pre_niv1_1_gpt         x             58.57605
 ## 6  pre_niv1_2_gpt         x             58.57605</code></pre>
 </div>
-<div id="korrelation-zw-protoype-percentage-und-kapparetest" class="section level1">
-<h1>korrelation zw protoype percentage und kappa(retest)</h1>
+<div id="korrelation-zw-protoype-percentage-und-kapparetest" class="section level2">
+<h2>korrelation zw protoype percentage und kappa(retest)</h2>
 <pre class="r"><code># Korrelation berechnen
 correlation_result &lt;- cor.test(data_retest_prototype$Kappa, data_retest_prototype$Prototype_Percentage, method = &quot;pearson&quot;)
 
@@ -8892,8 +8886,8 @@ cat(sprintf(&quot;r(%d) = %.2f, p = %.3f, 95%% CI [%.2f, %.2f]&quot;,
             correlation_result$conf.int[2]))           # Obere Grenze des Konfidenzintervalls</code></pre>
 <pre><code>## r(113) = 0.42, p = 0.000, 95% CI [0.25, 0.56]</code></pre>
 </div>
-<div id="mergen-von-data_protoype-und-kappa_results" class="section level1">
-<h1>mergen von data_protoype und kappa_results</h1>
+<div id="mergen-von-data_protoype-und-kappa_results" class="section level2">
+<h2>mergen von data_protoype und kappa_results</h2>
 <pre class="r"><code># Sicherstellen, dass die Spalten &#39;Variable&#39; in beiden Datensätzen als Zeichenketten behandelt werden
 data_prototype$Variable &lt;- as.character(data_prototype$Variable)
 kappa_results$Variable &lt;- as.character(kappa_results$Variable)
@@ -8926,7 +8920,8 @@ head(data_interrater_prototype)</code></pre>
 ## 9  54.36893 0.02713023          54.36893
 ## 11 28.47896 0.02421982          28.47896</code></pre>
 </div>
-<div id="section-4" class="section level1">
+</div>
+<div id="section-3" class="section level1">
 <h1></h1>
 <div id="korrelation-zw-protoype-percentage-und-kappainterrater-sowie-agreement" class="section level2">
 <h2>korrelation zw protoype percentage und kappa(interrater) sowie
@@ -9094,7 +9089,7 @@ cat(&quot;Durchschnittliche Abweichung PRE:&quot;, durchschnittliche_abweichung_
 </div>
 </div>
 <div id="promptdauer" class="section level1">
-<h1>promptdauer…</h1>
+<h1>Promptdauer</h1>
 <pre class="r"><code>## Berechnung des Mittelwerts und der Standardabweichung für time_extraction und time_comparison, gerundet auf 2 Dezimalstellen
 summary_stats &lt;- data_gpt_olmo_processed %&gt;%
   summarise(
@@ -9112,17 +9107,17 @@ print(summary_stats)</code></pre>
 ## 1                 65.1               6.09                 68.6
 ## # ℹ 1 more variable: sd_time_comparison &lt;dbl&gt;</code></pre>
 </div>
+<div id="section-4" class="section level1">
+<h1></h1>
+</div>
 <div id="section-5" class="section level1">
 <h1></h1>
 </div>
 <div id="section-6" class="section level1">
 <h1></h1>
 </div>
-<div id="section-7" class="section level1">
-<h1></h1>
-</div>
-<div id="session-info_" class="section level1">
-<h1>Session info_</h1>
+<div id="session-info" class="section level1">
+<h1>Session info</h1>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 4.3.1 (2023-06-16 ucrt)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)

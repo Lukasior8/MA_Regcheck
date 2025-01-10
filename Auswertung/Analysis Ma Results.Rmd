@@ -13,9 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The following R code was developed with the assistance of AI tools. Specifically, the ChatGPT-4o model was employed to optimise the code, provide solutions, and implement adjustments. The code segments were iteratively refined and reviewed to ensure they performed the intended functions. Additionally, key results were recalculated using  tools like Jamovi to verify their accuracy.
 
-The use of ChatGPT offered significant advantages, particularly in terms of speed and adaptability in generating code. It served as a valuable resource by translating human language into programming language. However, several challenges arose during this process. Firstly, ChatGPT occasionally generated incorrect or non-functional code. Secondly, its solutions often involved more complex or less efficient code variants, which sometimes introduced additional variables or unnecessary nesting. This approach frequently disregarded programming best practices, thereby reducing the clarity and transparency of the code.
-
-It should be noted, however, that similar issues—such as reduced code quality and comprehensibility—can also arise when using examples from online forums. As such, the ultimate responsibility for the correctness, completeness, and application of the code rests solely with the author.
+The use of ChatGPT offered significant advantages, particularly in terms of speed and adaptability in generating code. It served as a valuable resource by translating human language into programming language. However, several challenges arose during this process. Firstly, ChatGPT occasionally generated incorrect or non-functional code. Secondly, its solutions often involved more complex or less efficient code variants, which sometimes introduced additional variables or unnecessary nesting. This approach frequently disregarded programming best practices, thereby reducing the clarity and transparency of the code.It should be noted, however, that similar issues—such as reduced code quality and comprehensibility—can also arise when using examples from online forums. 
+As such, the ultimate responsibility for the correctness, completeness, and application of the code rests solely with the author.
 
 
 ## Prompt examples
@@ -239,7 +238,7 @@ kable(confusion_matrix_with_sums, format = "html", caption = "Confusion Matrix w
 
 
 
-# confusionmatrix in percent
+## confusionmatrix in percent
 ```{r}
 
 
@@ -340,8 +339,6 @@ write.xlsx(data_category_counts_per_item, "../Data/processed/data_category_count
 ```
 
 # Quality MEASURES
-
-
 
 ## Sensitivität und Spezifität und accuracy für jede Klasse (One-vs-Rest)
 
@@ -483,7 +480,7 @@ print(overall_results)
 print(confusion_matrix)
 n_total <- sum(confusion_matrix)
 
-# Funktion zur Berechnung des Wilson-Konfidenzintervalls
+#Berechnung des Wilson-Konfidenzintervalls
 wilson_ci <- function(successes, total, conf_level = 0.95) {
   z <- qnorm(1 - (1 - conf_level) / 2)
   phat <- successes / total
@@ -842,7 +839,7 @@ retest_kappa_all <- cohen.kappa(cbind(all_test_values, all_retest_values))
 retest_kappa_all
 
 ```
-weighted macht hier  keinen sinn...
+weighted macht hier keinen sinn...
 
 ##test, retest korrelation gesamt kappa...v2 mit p wert etc..
 
@@ -900,7 +897,7 @@ print(retest_kappa_all_summary)
 ```
 
 
-# test retest nur extraction nurcomparison...
+## test retest nur extraction nurcomparison...
 ```{r}
 
 # Step 1: Filter the dataset into test and retest subsets
@@ -1246,7 +1243,7 @@ if("Kappa" %in% colnames(kappa_results)) {
 
 
 
-# average percent agreement over items
+## Average percent agreement over items
 ```{r}
 # Überprüfen, ob die Spalte "Percent_Agreement" im Datensatz kappa_results existiert
 if("Percent_Agreement" %in% colnames(kappa_results)) {
@@ -1367,9 +1364,9 @@ write.xlsx(kappa_results_per_item_v4, "../Data/processed/kappa_results_per_item_
 ```
 
 
-#gwets ac1 
+##gwets ac1 
 
-# GWET's AC1 per item
+### GWET's AC1 per item
 ```{r}
 
 
@@ -1464,7 +1461,7 @@ print(ac1_results_per_item_v4)
 
 
 
-# gwet über alle kategorien..
+### gwet über alle kategorien..
 ```{r}
 # Spalten mit _gpt und _olmo suffix finden
 gpt_columns <- grep("_gpt$", colnames(data_gpt_olmo_processed), value = TRUE)
@@ -1529,7 +1526,7 @@ print(ac1_overall)
 
 
 
-# gpt /olmo interrater nur comparison/nur extraction  prompt (gesamtdatenset)
+## gpt /olmo interrater nur comparison/nur extraction  prompt (gesamtdatenset)
 
 
 ```{r}
@@ -1809,7 +1806,7 @@ for (version_PromptV in versions_PromptV) {
 ```
 
 
-# siginifikanztest unterscheid promptversion a zu d
+### siginifikanztest unterscheid promptversion a zu d
 ```{r}
 # Funktion zur Berechnung des Fisher-Z-Werts für den Unterschied zwischen zwei Kappa-Werten
 calculate_z_difference <- function(kappa1, se_kappa1, kappa2, se_kappa2) {
@@ -1871,7 +1868,7 @@ cat("p-Wert:", z_diff_results[2], "\n")
 
 
 
-##signifikanztest unterschied extraction comparison steigers z
+###signifikanztest unterschied extraction comparison steigers z
 ```{r}
 # Berechne den Unterschied zwischen den Kappa-Werten für Extraction und Comparison
 z_diff_results <- calculate_z_difference(kappa_result_extract$value, se_kappa_extract,
@@ -1936,9 +1933,9 @@ ft
 
 
 
-# Kappa NUR Y & N 
+# interrater Kappa NUR Y & N 
 
-## kappa y_n all categories
+## interrater kappa y_n all categories
 
 ```{r}
 # Function to calculate Cohen's Kappa, p-value, z-value, percentage agreement, and number of comparisons using 'irr' package
@@ -2132,15 +2129,8 @@ i thought it would be better, but its actually worse...
 
 
 
-## ich könnte noch kappa pro psp machen.... dh..
 
-```{r}
-
-
-
-```
-
-# NEW
+# NEW / MINIMAL VERSION (VE)
 ## interrater kappa new per category
 ```{r}
 # Definiere die zu vergleichenden Variablenpaare
@@ -2831,9 +2821,9 @@ ft
 
 
 
-#PER PSP
+# PER PSP
 
-##kappa per psp 
+## Interrater kappa per psp 
 ```{r}
 
 
@@ -3227,7 +3217,7 @@ head(data_retest_prototype)
 
 
 
-# korrelation zw protoype percentage und kappa(retest)
+## korrelation zw protoype percentage und kappa(retest)
 ```{r}
 # Korrelation berechnen
 correlation_result <- cor.test(data_retest_prototype$Kappa, data_retest_prototype$Prototype_Percentage, method = "pearson")
@@ -3247,7 +3237,7 @@ cat(sprintf("r(%d) = %.2f, p = %.3f, 95%% CI [%.2f, %.2f]",
 
 
 
-### mergen von data_protoype und kappa_results
+## mergen von data_protoype und kappa_results
 ```{r}
 # Sicherstellen, dass die Spalten 'Variable' in beiden Datensätzen als Zeichenketten behandelt werden
 data_prototype$Variable <- as.character(data_prototype$Variable)
@@ -3285,7 +3275,7 @@ head(data_interrater_prototype)
 
 
 
-### korrelation zw protoype percentage und kappa(interrater) sowie agreement
+## korrelation zw protoype percentage und kappa(interrater) sowie agreement
 ```{r}
 
 ## Berechnung der Korrelation zwischen Kappa und Prototype_Percentage
@@ -3328,7 +3318,7 @@ cat(sprintf("Percent_Agreement und Kappa: r(%d) = %.2f, p = %.3f, 95%% CI [%.2f,
 
 
 
-## versuchsperson extrahieren
+# versuchsperson extrahieren
 ```{r}
 # Erstellen eines neuen Datensatzes mit den relevanten Spalten (plus Versuchsperson)
 data_gpt_olmo_numeric <- data_gpt_olmo_processed[, c("psp", "pre_dcp_1_text_gpt", "pre_dcp_1_text_olmo", "pap_dcp_1_text_gpt", "pap_dcp_1_text_olmo")]
