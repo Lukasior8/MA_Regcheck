@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-#Disclaimer
+# Disclaimer
 
 
 The following R code was developed with the assistance of AI tools. Specifically, the ChatGPT-4o model was employed to optimise the code, provide solutions, and implement adjustments. The code segments were iteratively refined and reviewed to ensure they performed the intended functions. Additionally, key results were recalculated using  tools like Jamovi to verify their accuracy.
@@ -34,6 +34,7 @@ Clean the following variables by formatting their column names as if they were p
 
 Variables:
 PreDCP_1_TEXT, PapDCP_1_TEXT, S_PRE_IV, S_Pre_DV, S_Pre_DCP, S_Pre_SMU, S_Pre_SIC, S_Pap_IV, S_Pap_DV, S_Pap_DCP, S_Pap_SMU, S_Pap_SIC, Prompt version a Strictness PREREG, Prompt version aStrictness Pubstud, Con_IV, Con_DV, Con_DCP, Con_SMU, Con_SIC, Global_Consistency_Esimate.
+
 ________________________________________
 Example 2: Creating a New Dataset and Renaming Values
 Task:
@@ -41,6 +42,7 @@ Create a new dataset data_results_finito based on the dataset data_results_filte
 
 In the column prompt_version, rename the values "v4" and "V4" to "D."
 Add a new column master_exclude. Set its value to "include" for all rows, except for rows where the column date_gpt has an NA. In these cases, set the value to "exclude."
+
 ________________________________________
 Example 3: Renaming and Cleaning Columns
 Task:
@@ -48,10 +50,12 @@ Clean the following column names by converting them to lowercase as if they were
 PSP, Coder, PrePreMI1, PreMI1, PreIV1, CPreIV1, PreNIV1_1, PreNIV1_2, PreNIV1_3, PrePreMI2, PreMI2, PreIV2, CPreIV2, PreNIV2_1, PreNIV2_2, PreNIV2_3.
 
 Apply these changes to the dataset data_olmo_raw_selected.
+
 ________________________________________
 Example 4: Overview of Column Types
 Task:
 Is there a command in R that provides an overview of which variables in a dataset are stored as character and which are stored as numeric? Write the code to accomplish this task.
+
 ________________________________________
 Example 5: Conditional Transformation of NA Values
 Task:
@@ -60,10 +64,12 @@ Mutate the dataset data_olmo_raw_selected_mutated to replace missing values (NA)
 If pre_niv1_3 = "No, none of the elements", set the NA values in pre_niv1_1 and pre_niv1_2 to "n."
 If either pre_niv1_1 or pre_niv1_2 contains the value "y," set the NA values in the other variable to "n."
 Otherwise, replace all remaining NA values with "x."
+
 ________________________________________
 Example 6: Refined Exception Handling
 Task:
 If only one of the two columns pre_niv1_1 or pre_niv1_2 contains the value "y," replace the missing values (NA) in the other column with "n." Ensure that no other conditions are overwritten by this logic.
+
 ________________________________________
 Example 7: Step-by-Step Code Explanation
 Task:

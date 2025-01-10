@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Disclaimer
+# Disclaimer
 
 The following R code was developed with the assistance of AI tools. Specifically, the ChatGPT-4o model was employed to optimise the code, provide solutions, and implement adjustments. The code segments were iteratively refined and reviewed to ensure they performed the intended functions. Additionally, key results were recalculated using  tools like Jamovi to verify their accuracy.
 
@@ -26,16 +26,19 @@ Help me write R code to create a new dataset, data_prototype, based on data_gpt_
 1.	A column containing the variable names from data_gpt_olmo_processed.
 2.	A column containing the most frequent (prototypical) response for each column in data_gpt_olmo_processed.
 3.	A column showing the percentage of rows containing this most frequent response.
+
 ________________________________________
 Example 2: Merge Prototype with Retest Data
 Task:
 Create a new dataset, data_retest_prototype, by merging retest_merged_data with data_prototype.
 •	Match the Column column from retest_merged_data with the Variable column in data_prototype.
 •	The issue: In retest_merged_data, variable names end with _comp, whereas in data_prototype, they end with _gpt. Variables ending with _olmo in data_prototype can be ignored.
+
 ________________________________________
 Example 3: Include Confidence Interval and Round Results
 Task:
 Add a confidence interval to the code and round all results to two decimal places. Ensure the final dataset reflects these adjustments.
+
 ________________________________________
 Example 4: Calculate Kappa per Item
 Task:
@@ -43,6 +46,7 @@ Help me adjust the R code to calculate Cohen's Kappa for each individual column 
 •	Create a new dataset named kappa_per_item_v3.
 •	Include additional measures (e.g., p-value) for each column in the new dataset.
 •	Rename all variable and function names to include the suffix _per_item_v3 to avoid confusion.
+
 ________________________________________
 Example 5: Step-by-Step Code Explanation
 Task:
